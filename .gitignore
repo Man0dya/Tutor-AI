@@ -1,0 +1,25 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+.env
+
+# Node / React
+client/node_modules/
+client/dist/
+client/.vite/
+.env
+
+# VSCode
+.vscode/
+
+# Data
+/data/sessions/*.json
+/data/*.db
+
+# Logs
+*.log
+
+# OS
+.DS_Store
+Thumbs.db

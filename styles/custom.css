@@ -1,0 +1,592 @@
+/* Multi-Agent AI Tutoring System - Professional Dark Mode Styling */
+
+/* Import fonts */
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap');
+
+/* Root variables for theming */
+:root {
+    --primary-color: #FF6B6B;
+    --secondary-color: #4ECDC4;
+    --accent-color: #45B7D1;
+    --success-color: #96CEB4;
+    --warning-color: #FECA57;
+    --error-color: #FF6B6B;
+    --text-primary: #FAFAFA;
+    --text-secondary: #B8BCC8;
+    --bg-primary: #0E1117;
+    --bg-secondary: #262730;
+    --bg-tertiary: #1E1E1E;
+    --border-color: #30363D;
+    --shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+    --shadow-lg: 0 10px 25px rgba(0, 0, 0, 0.4);
+    --gradient-primary: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    --gradient-secondary: linear-gradient(135deg, #f093fb 0%, #f5576c 100%);
+}
+
+/* Global styles */
+.stApp {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+/* Hide Streamlit elements */
+#MainMenu {visibility: hidden;}
+footer {visibility: hidden;}
+header {visibility: hidden;}
+
+/* Custom header styling */
+.main-header {
+    background: var(--gradient-primary);
+    padding: 1.5rem;
+    margin: -1rem -1rem 2rem -1rem;
+    border-radius: 0 0 20px 20px;
+    box-shadow: var(--shadow-lg);
+}
+
+.main-header h1 {
+    color: white;
+    font-weight: 700;
+    font-size: 2.5rem;
+    margin-bottom: 0.5rem;
+    text-shadow: 2px 2px 4px rgba(0,0,0,0.3);
+}
+
+.main-header .subtitle {
+    color: rgba(255, 255, 255, 0.9);
+    font-size: 1.2rem;
+    font-weight: 400;
+}
+
+/* Sidebar styling */
+.css-1d391kg {
+    background: var(--bg-secondary);
+    border-right: 1px solid var(--border-color);
+}
+
+.css-1d391kg .stSelectbox > div > div {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+/* Button styling */
+.stButton > button {
+    background: var(--gradient-primary);
+    color: white;
+    border: none;
+    border-radius: 12px;
+    padding: 0.6rem 1.5rem;
+    font-weight: 600;
+    font-size: 0.95rem;
+    transition: all 0.3s ease;
+    box-shadow: var(--shadow);
+    text-transform: none;
+}
+
+.stButton > button:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-lg);
+    filter: brightness(1.1);
+}
+
+.stButton > button:active {
+    transform: translateY(0);
+}
+
+/* Primary button variant */
+div[data-testid="column"] .stButton > button[kind="primary"] {
+    background: var(--gradient-secondary);
+    font-weight: 700;
+    font-size: 1rem;
+    padding: 0.8rem 2rem;
+}
+
+/* Input field styling */
+.stTextInput > div > div > input,
+.stTextArea > div > div > textarea,
+.stSelectbox > div > div > select {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-size: 0.95rem;
+    padding: 0.8rem 1rem;
+    transition: all 0.3s ease;
+}
+
+.stTextInput > div > div > input:focus,
+.stTextArea > div > div > textarea:focus,
+.stSelectbox > div > div > select:focus {
+    border-color: var(--accent-color);
+    box-shadow: 0 0 0 2px rgba(69, 183, 209, 0.2);
+    outline: none;
+}
+
+/* Metric styling */
+.metric-container {
+    background: var(--bg-secondary);
+    padding: 1.5rem;
+    border-radius: 15px;
+    box-shadow: var(--shadow);
+    border: 1px solid var(--border-color);
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.metric-container:hover {
+    transform: translateY(-3px);
+    box-shadow: var(--shadow-lg);
+}
+
+div[data-testid="metric-container"] {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1rem;
+    box-shadow: var(--shadow);
+}
+
+/* Expander styling */
+.streamlit-expanderHeader {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    color: var(--text-primary);
+    font-weight: 600;
+    padding: 1rem;
+}
+
+.streamlit-expanderContent {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-top: none;
+    border-radius: 0 0 10px 10px;
+    padding: 1.5rem;
+}
+
+/* Tab styling */
+.stTabs [data-baseweb="tab-list"] {
+    gap: 0.5rem;
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    padding: 0.5rem;
+    border: 1px solid var(--border-color);
+}
+
+.stTabs [data-baseweb="tab"] {
+    background: transparent;
+    border-radius: 10px;
+    color: var(--text-secondary);
+    font-weight: 500;
+    padding: 0.8rem 1.5rem;
+    border: none;
+    transition: all 0.3s ease;
+}
+
+.stTabs [aria-selected="true"] {
+    background: var(--gradient-primary);
+    color: white;
+    font-weight: 600;
+    box-shadow: var(--shadow);
+}
+
+/* Cards and containers */
+.content-card {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    margin: 1rem 0;
+    box-shadow: var(--shadow);
+    transition: all 0.3s ease;
+}
+
+.content-card:hover {
+    box-shadow: var(--shadow-lg);
+    border-color: var(--accent-color);
+}
+
+/* Success/Error message styling */
+.stSuccess {
+    background: rgba(150, 206, 180, 0.1);
+    border: 1px solid var(--success-color);
+    border-radius: 10px;
+    color: var(--success-color);
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.stError {
+    background: rgba(255, 107, 107, 0.1);
+    border: 1px solid var(--error-color);
+    border-radius: 10px;
+    color: var(--error-color);
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.stWarning {
+    background: rgba(254, 202, 87, 0.1);
+    border: 1px solid var(--warning-color);
+    border-radius: 10px;
+    color: var(--warning-color);
+    padding: 1rem;
+    font-weight: 500;
+}
+
+.stInfo {
+    background: rgba(69, 183, 209, 0.1);
+    border: 1px solid var(--accent-color);
+    border-radius: 10px;
+    color: var(--accent-color);
+    padding: 1rem;
+    font-weight: 500;
+}
+
+/* Progress bar styling */
+.stProgress > div > div > div {
+    background: var(--gradient-primary);
+    border-radius: 10px;
+    height: 8px;
+}
+
+/* Spinner styling */
+.stSpinner > div {
+    border-color: var(--accent-color);
+}
+
+/* Plotly chart styling */
+.js-plotly-plot {
+    background: var(--bg-secondary);
+    border-radius: 15px;
+    border: 1px solid var(--border-color);
+    box-shadow: var(--shadow);
+}
+
+/* Radio button styling */
+.stRadio > div {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+.stRadio > div > label > div {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.8rem;
+    margin: 0.3rem 0;
+    transition: all 0.3s ease;
+}
+
+.stRadio > div > label > div:hover {
+    background: var(--bg-secondary);
+    border-color: var(--accent-color);
+}
+
+/* Checkbox styling */
+.stCheckbox > label {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    padding: 0.8rem;
+    transition: all 0.3s ease;
+}
+
+.stCheckbox > label:hover {
+    background: var(--bg-tertiary);
+    border-color: var(--accent-color);
+}
+
+/* Slider styling */
+.stSlider > div > div > div {
+    background: var(--bg-secondary);
+    border-radius: 10px;
+    padding: 1rem;
+    border: 1px solid var(--border-color);
+}
+
+/* Number input styling */
+.stNumberInput > div > div > input {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+    color: var(--text-primary);
+}
+
+/* Multiselect styling */
+.stMultiSelect > div > div {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    border-radius: 8px;
+}
+
+.stMultiSelect span[data-baseweb="tag"] {
+    background: var(--gradient-primary);
+    color: white;
+    border-radius: 20px;
+    border: none;
+    padding: 0.3rem 0.8rem;
+    font-weight: 500;
+}
+
+/* File uploader styling */
+.stFileUploader > div > div {
+    background: var(--bg-secondary);
+    border: 2px dashed var(--border-color);
+    border-radius: 15px;
+    padding: 2rem;
+    text-align: center;
+    transition: all 0.3s ease;
+}
+
+.stFileUploader > div > div:hover {
+    border-color: var(--accent-color);
+    background: var(--bg-tertiary);
+}
+
+/* Dataframe styling */
+.stDataFrame {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 10px;
+    overflow: hidden;
+}
+
+/* Custom animations */
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+@keyframes slideIn {
+    from { transform: translateX(-100%); }
+    to { transform: translateX(0); }
+}
+
+@keyframes pulse {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.05); }
+}
+
+/* Apply animations */
+.content-card {
+    animation: fadeIn 0.6s ease-out;
+}
+
+.metric-container {
+    animation: fadeIn 0.8s ease-out;
+}
+
+/* Agent status indicators */
+.agent-status {
+    display: inline-block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    margin-right: 8px;
+}
+
+.agent-status.active {
+    background: var(--success-color);
+    box-shadow: 0 0 10px rgba(150, 206, 180, 0.5);
+}
+
+.agent-status.inactive {
+    background: var(--error-color);
+    box-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
+}
+
+/* Question styling */
+.question-container {
+    background: var(--bg-secondary);
+    border: 1px solid var(--border-color);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin: 1rem 0;
+    border-left: 4px solid var(--accent-color);
+    transition: all 0.3s ease;
+}
+
+.question-container:hover {
+    box-shadow: var(--shadow);
+}
+
+/* Feedback styling */
+.feedback-positive {
+    border-left-color: var(--success-color);
+    background: rgba(150, 206, 180, 0.05);
+}
+
+.feedback-neutral {
+    border-left-color: var(--warning-color);
+    background: rgba(254, 202, 87, 0.05);
+}
+
+.feedback-negative {
+    border-left-color: var(--error-color);
+    background: rgba(255, 107, 107, 0.05);
+}
+
+/* Score indicators */
+.score-excellent { color: var(--success-color); }
+.score-good { color: var(--accent-color); }
+.score-average { color: var(--warning-color); }
+.score-poor { color: var(--error-color); }
+
+/* Responsive design */
+@media (max-width: 768px) {
+    .main-header h1 {
+        font-size: 2rem;
+    }
+    
+    .main-header .subtitle {
+        font-size: 1rem;
+    }
+    
+    .content-card {
+        padding: 1rem;
+    }
+    
+    .metric-container {
+        padding: 1rem;
+    }
+}
+
+/* Dark mode toggle effects */
+.theme-transition {
+    transition: all 0.3s ease-in-out;
+}
+
+/* Loading states */
+.loading-spinner {
+    border: 3px solid var(--border-color);
+    border-top: 3px solid var(--accent-color);
+    border-radius: 50%;
+    width: 30px;
+    height: 30px;
+    animation: spin 1s linear infinite;
+    margin: 0 auto;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+    width: 8px;
+    height: 8px;
+}
+
+::-webkit-scrollbar-track {
+    background: var(--bg-primary);
+    border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb {
+    background: var(--border-color);
+    border-radius: 4px;
+    transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+    background: var(--accent-color);
+}
+
+/* Additional professional touches */
+.professional-card {
+    background: linear-gradient(135deg, var(--bg-secondary) 0%, var(--bg-tertiary) 100%);
+    border: 1px solid var(--border-color);
+    border-radius: 20px;
+    padding: 2rem;
+    margin: 1.5rem 0;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    overflow: hidden;
+}
+
+.professional-card::before {
+    content: '';
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    height: 3px;
+    background: var(--gradient-primary);
+}
+
+/* Badge styling */
+.badge {
+    display: inline-block;
+    padding: 0.3rem 0.8rem;
+    border-radius: 15px;
+    font-size: 0.8rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+
+.badge-primary {
+    background: var(--gradient-primary);
+    color: white;
+}
+
+.badge-secondary {
+    background: var(--bg-tertiary);
+    border: 1px solid var(--border-color);
+    color: var(--text-secondary);
+}
+
+.badge-success {
+    background: rgba(150, 206, 180, 0.2);
+    color: var(--success-color);
+    border: 1px solid var(--success-color);
+}
+
+/* Typography enhancements */
+h1, h2, h3, h4, h5, h6 {
+    color: var(--text-primary);
+    font-weight: 600;
+    line-height: 1.3;
+    margin-bottom: 1rem;
+}
+
+p {
+    color: var(--text-secondary);
+    line-height: 1.6;
+    margin-bottom: 1rem;
+}
+
+/* Enhanced link styling */
+a {
+    color: var(--accent-color);
+    text-decoration: none;
+    font-weight: 500;
+    transition: all 0.3s ease;
+}
+
+a:hover {
+    color: var(--primary-color);
+    text-decoration: underline;
+}
+
+/* Topic chips */
+.chip-group { display: flex; flex-wrap: wrap; gap: 0.4rem; }
+.chip {
+    display: inline-block;
+    background: var(--bg-tertiary);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-color);
+    padding: 0.35rem 0.75rem;
+    border-radius: 999px;
+    font-size: 0.85rem;
+}
+.chip:hover { border-color: var(--accent-color); color: var(--text-primary); }
+
+/* Hero metrics spacing */
+.stMetric label { color: var(--text-secondary); }
+.stMetric { background: var(--bg-secondary); border: 1px solid var(--border-color); border-radius: 12px; padding: 0.6rem 0.8rem; box-shadow: var(--shadow); }

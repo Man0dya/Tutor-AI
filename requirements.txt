@@ -1,0 +1,14 @@
+streamlit
+python-dotenv
+pandas
+plotly
+numpy
+scikit-learn
+nltk
+google-genai
+fastapi
+uvicorn
+motor
+python-jose[cryptography]
+passlib[bcrypt]
+pydantic[email]

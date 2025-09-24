@@ -416,8 +416,8 @@ Provide actionable study recommendations that address these specific areas."""
             }
             
         except Exception:
-            # Fallback to basic evaluation
-            return self._evaluate_single_answer(question, user_answer, feedback_type)
+            # Fallback to basic evaluation (ignore feedback_type for single answer)
+            return self._evaluate_single_answer(question, user_answer)
     
     def _calculate_semantic_similarity(self, question, user_answer):
         """Calculate semantic similarity between user answer and expected answer"""
@@ -472,48 +472,47 @@ Provide actionable study recommendations that address these specific areas."""
         
         return covered
     
-    def _generate_comprehensive_feedback(self, results, avg_score, feedback_type, performance_history):
-        """Generate comprehensive feedback with historical context"""
+    def _generate_comprehensive_feedback_with_history(self, results, avg_score, feedback_type, performance_history):
+        """Advanced comprehensive feedback (historical context). Not used directly in evaluate_answers."""
         try:
-            system_prompt = f"""You are an expert educational evaluator providing comprehensive feedback.
-            
-            Feedback Type: {feedback_type}
-            
-            Analyze the student's performance and provide:
-            1. Overall assessment of understanding
-            2. Specific strengths demonstrated
-            3. Areas needing improvement
-            4. Learning progress indicators
-            5. Motivational guidance
-            
-            Be encouraging but honest about areas for improvement."""
-            
-            # Prepare performance summary
+            system_prompt = ("You are an expert educational evaluator providing comprehensive feedback.\n\n"
+                             f"Feedback Type: {feedback_type}\n\n"
+                             "Analyze the student's performance and provide:\n"
+                             "1. Overall assessment of understanding\n"
+                             "2. Specific strengths demonstrated\n"
+                             "3. Areas needing improvement\n"
+                             "4. Learning progress indicators\n"
+                             "5. Motivational guidance\n\n"
+                             "Be encouraging but honest about areas for improvement.")
             total_questions = len(results)
             correct_answers = len([r for r in results if r['score'] >= 70])
             difficulty_breakdown = self._analyze_difficulty_performance(results)
             bloom_breakdown = self._analyze_bloom_performance(results)
-            
-            user_prompt = f"""Provide comprehensive feedback for a student who:
-            - Answered {total_questions} questions
-            - Got {correct_answers} answers satisfactory or better (≥70%)
-            - Overall score: {avg_score:.1f}%
-            - Difficulty performance: {difficulty_breakdown}
-            - Bloom's taxonomy performance: {bloom_breakdown}
-            
-            {f"Previous performance trend: {self._analyze_performance_trend(performance_history)}" if performance_history else ""}
-            
-            Provide specific, actionable feedback that acknowledges strengths and guides improvement."""
-            
+            trend = ""
+            if performance_history and hasattr(self, '_analyze_performance_trend'):
+                try:
+                    trend = f"Previous performance trend: {self._analyze_performance_trend(performance_history)}"
+                except Exception:
+                    trend = ""
+            user_prompt = ("Provide comprehensive feedback for a student who:\n"
+                           f"- Answered {total_questions} questions\n"
+                           f"- Got {correct_answers} answers satisfactory or better (≥70%)\n"
+                           f"- Overall score: {avg_score:.1f}%\n"
+                           f"- Difficulty performance: {difficulty_breakdown}\n"
+                           f"- Bloom's taxonomy performance: {bloom_breakdown}\n\n"
+                           f"{trend}\n\n"
+                           "Provide specific, actionable feedback that acknowledges strengths and guides improvement.")
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=f"{system_prompt}\n\n{user_prompt}"
             )
-            
             return response.text or "Good effort! Keep practicing to improve your understanding."
-            
         except Exception:
             return self._generate_basic_feedback(avg_score, len(results))
+
+    def _generate_basic_feedback(self, avg_score, total_questions):
+        return (f"Score: {avg_score:.1f}% over {total_questions} questions. "
+                f"{self._get_performance_message(avg_score)}")
     
     def _generate_adaptive_suggestions(self, results, questions, concept_scores, performance_history):
         """Generate adaptive study suggestions based on performance patterns"""

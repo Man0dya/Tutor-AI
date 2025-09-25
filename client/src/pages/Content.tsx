@@ -358,7 +358,7 @@ export default function ContentPage() {
                       fontWeight={activeId === h.id ? '700' : '500'}
                       bg={activeId === h.id ? 'purple.50' : 'transparent'}
                       rounded="md"
-                      pl={Math.min((h.level - 1) * 4, 12)}
+                      pl={Math.min((h.level - 1) * 6, 16)}
                       aria-current={activeId === h.id ? 'true' : undefined}
                     >
                       <HStack>
@@ -367,6 +367,8 @@ export default function ContentPage() {
                       </HStack>
                     </Button>
                   ))}
+                  <Divider borderColor="purple.200" my={2} />
+                  <Button size="xs" variant="outline" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Back to top</Button>
                 </VStack>
               </Box>
             </VStack>

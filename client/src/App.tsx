@@ -8,6 +8,7 @@ import ContentPage from './pages/Content'
 import QuestionsPage from './pages/Questions'
 import ProgressPage from './pages/Progress'
 import FeedbackPage from './pages/Feedback'
+import ContentViewPage from './pages/ContentView'
 import { useAuth } from './context/AuthContext'
 
 function PrivateRoute({ children }: { children: ReactElement }) {
@@ -50,6 +51,14 @@ export default function App() {
         element={
           <PrivateRoute>
             <ProgressPage />
+          </PrivateRoute>
+        }
+      />
+      <Route
+        path="/content/view"
+        element={
+          <PrivateRoute>
+            <ContentViewPage />
           </PrivateRoute>
         }
       />

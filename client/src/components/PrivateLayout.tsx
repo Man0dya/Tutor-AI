@@ -1,6 +1,7 @@
-import { Box, Button, Flex, Heading, Stack, VStack, Icon } from '@chakra-ui/react'
+import { Box, Button, Flex, Heading, Stack, VStack, Icon, useDisclosure } from '@chakra-ui/react'
 import Navbar from './Navbar'
 import { Link as RouterLink, useLocation } from 'react-router-dom'
+import UserProfileModal from './UserProfileModal'
 import { 
   MdDashboard, 
   MdDescription, 
@@ -19,6 +20,7 @@ const menuItems = [
 
 export default function PrivateLayout({ children }: { children: React.ReactNode }) {
   const { pathname } = useLocation()
+  const settings = useDisclosure()
   
   const link = (to: string, label: string, IconComponent: any) => {
     const isActive = pathname === to
@@ -54,12 +56,15 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         <Box 
           as="nav" 
           width="260px" 
-          minH="calc(100vh - 73px)" 
+          height="calc(100vh - 73px)" 
           bg="white"
           borderRightWidth="1px" 
           borderColor="gray.200"
           p={4}
           boxShadow="2px 0 4px rgba(0, 0, 0, 0.02)"
+          display="flex"
+          flexDirection="column"
+          overflow="hidden"
         >
           <VStack align="stretch" spacing={2}>
             <Heading 
@@ -73,10 +78,30 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
             >
               Navigation
             </Heading>
-            {menuItems.map(item => 
-              link(item.to, item.label, item.icon)
-            )}
           </VStack>
+          <Box flex="1" overflowY="auto" mt={2} pr={1}>
+            <VStack align="stretch" spacing={2}>
+              {menuItems.map(item => 
+                link(item.to, item.label, item.icon)
+              )}
+            </VStack>
+          </Box>
+          <Box position="sticky" bottom={0} bg="white" pt={2} borderTop="1px solid" borderColor="gray.200">
+            <Button 
+              onClick={settings.onOpen}
+              variant="ghost"
+              justifyContent="flex-start"
+              width="100%"
+              borderRadius="10px"
+              py={6}
+              fontWeight="500"
+              fontSize="sm"
+              _hover={{ bg: 'purple.50', transform: 'translateX(2px)' }}
+              transition="all 0.2s ease"
+            >
+              Settings
+            </Button>
+          </Box>
         </Box>
         <Box flex="1" p={6} bg="#fafafa">
           <Box 
@@ -91,6 +116,8 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
           </Box>
         </Box>
       </Flex>
+      {/* Settings modal at app level */}
+      <UserProfileModal isOpen={settings.isOpen} onClose={settings.onClose} />
     </Box>
   )
 }

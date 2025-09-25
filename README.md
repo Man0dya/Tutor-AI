@@ -45,8 +45,8 @@ Tutor AI helps learners create study materials, practice with intelligent questi
 | Plan     | Price       | Content Generations | Question Generations | Feedback Evaluations | Notes          |
 |----------|-------------|---------------------|----------------------|----------------------|----------------|
 | Free     | Free        | —                   | 10                   | —                    | Basic features |
-| Standard | $10/month   | 100                 | 100                  | 100                  | —              |
-| Premium  | $50/month   | Unlimited           | Unlimited            | Unlimited            | —              |
+| Standard | $10/month   | 100                 | 100                  | 100                  | Standard features |
+| Premium  | $50/month   | Unlimited           | Unlimited            | Unlimited            | Premium features |
 
 When limits are exceeded or a paid-only feature is accessed on the Free plan, the server returns HTTP 402 (Payment Required). The client intercepts 402 responses and redirects to the Pricing page.
 

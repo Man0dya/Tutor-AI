@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
 import { Box, Button, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, Input, NumberInput, NumberInputField, Radio, RadioGroup, Select, Stack, Text, Textarea, VStack, useToast, Badge } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
 import { generateQuestions, Question, submitAnswers, getErrorMessage } from '../api/client'
@@ -21,6 +21,7 @@ export default function QuestionsPage() {
   const [questionSetId, setQuestionSetId] = useState<string>('')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const questionRefs = useRef<Array<HTMLDivElement | null>>([])
 
   const answeredCount = useMemo(() => questions.reduce((acc, _q, i) => acc + (answers[i] ? 1 : 0), 0), [questions, answers])
 
@@ -138,6 +139,20 @@ export default function QuestionsPage() {
               </HStack>
               <Text color="gray.600" fontSize="sm">Answer all questions, then submit.</Text>
             </HStack>
+            <HStack spacing={2} overflowX="auto" mt={3} py={1}>
+              {questions.map((_q, i) => {
+                const answered = !!answers[i]
+                const scheme: any = answered ? 'green' : 'gray'
+                return (
+                  <Button key={i} size="sm" variant={answered ? 'solid' : 'outline'} colorScheme={scheme} onClick={() => {
+                    const ref = questionRefs.current[i]
+                    if (ref) ref.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                  }}>
+                    Q{i + 1}
+                  </Button>
+                )
+              })}
+            </HStack>
           </Box>
         )}
 
@@ -145,7 +160,7 @@ export default function QuestionsPage() {
           {questions.map((q: Question, idx: number) => {
             const isAnswered = !!answers[idx]
             return (
-            <Box key={idx} p={6} bg="white" borderWidth="1px" borderColor={isAnswered ? 'green.200' : 'gray.200'} borderRadius="12px" boxShadow="0 2px 6px rgba(0,0,0,0.04)">
+            <Box key={idx} ref={(el) => (questionRefs.current[idx] = el)} p={6} bg="white" borderWidth="1px" borderColor={isAnswered ? 'green.200' : 'gray.200'} borderRadius="12px" boxShadow="0 2px 6px rgba(0,0,0,0.04)">
               <HStack justify="space-between" align="center" mb={2}>
                 <HStack spacing={3}>
                   <Badge colorScheme={isAnswered ? 'green' : 'gray'}>Q{idx + 1}</Badge>

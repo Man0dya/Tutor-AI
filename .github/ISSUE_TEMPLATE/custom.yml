@@ -1,0 +1,101 @@
+name: General issue
+description: Use this for bugs, features, docs, questions, chores, or billing/security topics
+title: "[Type] Brief title"
+labels: [needs-triage]
+assignees: []
+body:
+  - type: dropdown
+    id: type
+    attributes:
+      label: Type
+      options:
+        - Bug
+        - Feature
+        - Documentation
+        - Question
+        - Chore
+        - Security
+        - Billing
+      description: What kind of issue is this?
+    validations:
+      required: true
+
+  - type: textarea
+    id: summary
+    attributes:
+      label: Summary
+      description: A clear and concise description of the problem or request.
+      placeholder: What is happening or what would you like to see?
+    validations:
+      required: true
+
+  - type: textarea
+    id: steps
+    attributes:
+      label: Steps to Reproduce (for bugs)
+      description: Provide detailed steps to reproduce. If not a bug, write N/A.
+      placeholder: |
+        1. Go to ...
+        2. Click ...
+        3. Observe ...
+    validations:
+      required: false
+
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected behavior
+      description: What did you expect to happen? If feature, describe desired outcome.
+    validations:
+      required: false
+
+  - type: textarea
+    id: actual
+    attributes:
+      label: Actual behavior
+      description: What actually happened? If feature, you can leave this blank.
+    validations:
+      required: false
+
+  - type: input
+    id: frontend-env
+    attributes:
+      label: Frontend environment
+      placeholder: OS/Browser, Node version, client commit or tag
+    validations:
+      required: false
+
+  - type: input
+    id: backend-env
+    attributes:
+      label: Backend environment
+      placeholder: OS/Python version, server commit or tag, Mongo URI type (local/Atlas), Stripe config state
+    validations:
+      required: false
+
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposal / Suggested solution
+      description: For features/refactors, describe the approach. For bugs, describe a potential fix if you have one.
+    validations:
+      required: false
+
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs / Screenshots
+      description: Paste relevant logs or add screenshots. Redact secrets.
+      render: shell
+    validations:
+      required: false
+
+  - type: checkboxes
+    id: checks
+    attributes:
+      label: Pre‑submission checks
+      options:
+        - label: I have searched existing issues
+          required: true
+        - label: I can reproduce this on the latest commit (if bug)
+          required: false

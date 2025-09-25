@@ -1,12 +1,12 @@
 import React from "react";
 import { Box, Button, Flex, Heading, Text, List, ListItem, ListIcon, useColorModeValue, Icon } from "@chakra-ui/react";
-import { CheckCircleIcon, StarIcon, AtSignIcon } from "@chakra-ui/icons";
+import { IoCheckmarkCircle, IoStar, IoAt } from "react-icons/io5";
 
 const plans = [
   {
     name: "Free",
     price: "$0/month",
-    icon: AtSignIcon,
+    icon: IoAt,
     features: [
       "10 free question generations",
       "5 free feedback evaluations",
@@ -21,7 +21,7 @@ const plans = [
   {
     name: "Pro",
     price: "$9.99/month",
-    icon: StarIcon,
+    icon: IoStar,
     features: [
       "Unlimited question generations",
       "Unlimited feedback evaluations",
@@ -36,7 +36,7 @@ const plans = [
   {
     name: "Enterprise",
     price: "$29.99/month",
-    icon: CheckCircleIcon,
+    icon: IoCheckmarkCircle,
     features: [
       "Custom AI models",
       "Team access",
@@ -129,7 +129,7 @@ const PricingPlans: React.FC = () => {
           <List spacing={5} mb={12}>
             {plan.features.map((feature) => (
               <ListItem key={feature} display="flex" alignItems="center" justifyContent="center" fontSize="lg" fontWeight="medium">
-                <ListIcon as={CheckCircleIcon} color={plan.highlight ? "green.200" : "green.400"} boxSize={6} mr={2} />
+                <ListIcon as={IoCheckmarkCircle} color={plan.highlight ? "green.200" : "green.400"} boxSize={6} mr={2} />
                 {feature}
               </ListItem>
             ))}

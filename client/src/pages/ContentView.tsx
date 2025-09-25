@@ -1,4 +1,4 @@
-import { Box, Button, Container, Heading, Stack, Text, Flex, VStack, HStack, Divider, Icon, useToast } from '@chakra-ui/react'
+import { Box, Button, Container, Heading, Stack, Text, Flex, VStack, HStack, Divider, Icon, useToast, Tooltip } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
 import { useEffect, useMemo, useRef, useState } from 'react'
 import { getContentById, type ContentOut } from '../api/client'
@@ -78,11 +78,19 @@ export default function ContentViewPage() {
               <HStack justify="space-between" mb={4}>
                 <Heading>{data.topic || 'Study Content'}</Heading>
                 <HStack>
+                  <Tooltip label="Copy all" placement="top">
+                    <Button variant="outline" onClick={() => {
+                      navigator.clipboard.writeText(data.content)
+                        .then(() => toast({ title: 'Copied to clipboard', status: 'success', duration: 2000 }))
+                        .catch(() => toast({ title: 'Copy failed', status: 'error', duration: 2000 }))
+                    }}>Copy</Button>
+                  </Tooltip>
                   <Button leftIcon={<Icon as={MdDownload} />} variant="outline" onClick={onDownloadPdf}>Download PDF</Button>
                   <Button leftIcon={<Icon as={MdOutlineArrowBack} />} onClick={() => navigate('/progress')} variant="ghost">Back</Button>
                 </HStack>
               </HStack>
-              <Box ref={contentRef} borderWidth="1px" rounded="lg" p={6} bg="white">
+              <Box ref={contentRef} borderWidth="1px" rounded="lg" p={6} bg="white" position="relative">
+                <Button size="sm" position="absolute" right="12px" bottom="12px" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Top</Button>
                 <Markdown source={data.content} />
               </Box>
               <Stack direction={{ base: 'column', md: 'row' }} mt={6}>

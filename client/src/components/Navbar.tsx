@@ -18,6 +18,7 @@ export default function Navbar() {
               <Button as={RouterLink} to="/dashboard" variant="ghost">Dashboard</Button>
               <Button as={RouterLink} to="/content" variant="ghost">Content</Button>
               <Button as={RouterLink} to="/questions" variant="ghost">Questions</Button>
+              <Button as={RouterLink} to="/feedback" variant="ghost">Feedback</Button>
               <Button as={RouterLink} to="/progress" variant="ghost">Progress</Button>
             </>
           )}

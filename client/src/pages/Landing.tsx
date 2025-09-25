@@ -290,11 +290,17 @@ export default function Landing() {
         </Box>
 
         {/* Pricing Plans Section */}
-        <Box mt={20}>
+        <Box mt={20} position="relative" zIndex={2} animation="fadeInUp 1.2s cubic-bezier(.4,0,.2,1)">
           <Heading size="xl" mb={6} textAlign="center" color="gray.800" fontWeight="extrabold" letterSpacing="tight">
             Choose Your Plan
           </Heading>
           <PricingPlans />
+          <style>{`
+            @keyframes fadeInUp {
+              0% { opacity: 0; transform: translateY(40px); }
+              100% { opacity: 1; transform: translateY(0); }
+            }
+          `}</style>
         </Box>
       </Container>
     </Box>

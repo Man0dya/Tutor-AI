@@ -1,10 +1,11 @@
 import { useState } from 'react'
-import { Box, Button, Checkbox, Container, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, Stack, Text, Textarea, useDisclosure, useToast, VStack } from '@chakra-ui/react'
+import { Box, Button, Checkbox, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, Progress, SimpleGrid, Stack, Text, useDisclosure, useToast, VStack } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import { getErrorMessage } from '../api/client'
-import { MdPerson, MdMail, MdLock, MdVisibility, MdVisibilityOff } from 'react-icons/md'
+import { MdPerson, MdMail, MdLock, MdVisibility, MdVisibilityOff, MdCheckCircle } from 'react-icons/md'
+import { FaGoogle, FaGithub } from 'react-icons/fa'
 
 export default function Signup() {
   const toast = useToast()
@@ -15,6 +16,20 @@ export default function Signup() {
   const [password, setPassword] = useState('')
   const [loading, setLoading] = useState(false)
   const { isOpen: showPassword, onToggle } = useDisclosure()
+
+  const getPasswordStrength = (pwd: string): { score: number; label: string; color: string } => {
+    let score = 0
+    if (pwd.length >= 8) score += 25
+    if (/[A-Z]/.test(pwd)) score += 20
+    if (/[a-z]/.test(pwd)) score += 20
+    if (/\d/.test(pwd)) score += 20
+    if (/[^A-Za-z0-9]/.test(pwd)) score += 15
+    if (score > 100) score = 100
+    if (score >= 80) return { score, label: 'Strong', color: 'green' }
+    if (score >= 55) return { score, label: 'Medium', color: 'yellow' }
+    if (score > 0) return { score, label: 'Weak', color: 'red' }
+    return { score: 0, label: '', color: 'gray' }
+  }
 
   const onSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -31,17 +46,22 @@ export default function Signup() {
   }
 
   return (
-    <Box bgGradient={{ base: 'linear(to-b, white, teal.50)', md: 'linear(to-r, white, teal.50)' }} minH="100vh">
+    <Box bgGradient={{ base: 'linear(to-b, white, purple.50)', md: 'linear(to-r, white, purple.50)' }} minH="100vh">
       <Navbar />
       <Container maxW="6xl" py={{ base: 8, md: 16 }}>
         <Stack direction={{ base: 'column', md: 'row' }} spacing={{ base: 8, md: 16 }} align="center">
           <VStack align="flex-start" spacing={4} flex="1" display={{ base: 'none', md: 'flex' }}>
             <HStack>
-              <Icon as={MdPerson} color="teal.500" boxSize={7} />
+              <Icon as={MdPerson} color="purple.500" boxSize={7} />
               <Heading size="lg" color="gray.800">Create your account</Heading>
             </HStack>
             <Text color="gray.600">Join to generate tailored content, practice effectively, and track progress.</Text>
-            <Box h="1px" w="80%" bg="teal.200" borderRadius="full" />
+            <Box h="1px" w="80%" bg="purple.200" borderRadius="full" />
+            <SimpleGrid columns={1} spacing={2}>
+              <HStack color="gray.600"><Icon as={MdCheckCircle} color="purple.500" /><Text>Personalized study content</Text></HStack>
+              <HStack color="gray.600"><Icon as={MdCheckCircle} color="purple.500" /><Text>Smart practice questions</Text></HStack>
+              <HStack color="gray.600"><Icon as={MdCheckCircle} color="purple.500" /><Text>Track progress and insights</Text></HStack>
+            </SimpleGrid>
             <Text color="gray.500" fontSize="sm">Takes less than a minute. No credit card required.</Text>
           </VStack>
 
@@ -59,7 +79,7 @@ export default function Signup() {
             <Stack spacing={6}>
               <VStack align="flex-start" spacing={1} display={{ base: 'flex', md: 'none' }}>
                 <HStack>
-                  <Icon as={MdPerson} color="teal.500" boxSize={6} />
+                  <Icon as={MdPerson} color="purple.500" boxSize={6} />
                   <Heading size="md" color="gray.800">Create your account</Heading>
                 </HStack>
                 <Text color="gray.600" fontSize="sm">It’s quick and easy</Text>
@@ -94,15 +114,39 @@ export default function Signup() {
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
+              {password && (
+                <Box>
+                  {(() => {
+                    const ps = getPasswordStrength(password)
+                    return (
+                      <>
+                        <Progress value={ps.score} colorScheme={ps.color as any} size="sm" borderRadius="8px" />
+                        <Text fontSize="xs" color="gray.500" mt={1}>Password strength: {ps.label}</Text>
+                      </>
+                    )
+                  })()}
+                </Box>
+              )}
 
               <HStack justify="space-between">
                 <Checkbox defaultChecked>I agree to the Terms</Checkbox>
-                <Link color="teal.600" as={RouterLink} to="#">View policy</Link>
+                <Link color="purple.600" as={RouterLink} to="#">View policy</Link>
               </HStack>
 
-              <Button type="submit" colorScheme="teal" isLoading={loading} size="lg" borderRadius="12px">Create account</Button>
+              <Button type="submit" colorScheme="purple" isLoading={loading} size="lg" borderRadius="12px">Create account</Button>
 
-              <Text fontSize="sm" color="gray.600">Already have an account? <Link as={RouterLink} to="/login" color="teal.600" fontWeight="600">Log in</Link></Text>
+              <HStack align="center" spacing={3}>
+                <Divider />
+                <Text fontSize="sm" color="gray.500">or</Text>
+                <Divider />
+              </HStack>
+
+              <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3}>
+                <Button variant="outline" leftIcon={<FaGoogle />} borderRadius="10px">Continue with Google</Button>
+                <Button variant="outline" leftIcon={<FaGithub />} borderRadius="10px">Continue with GitHub</Button>
+              </SimpleGrid>
+
+              <Text fontSize="sm" color="gray.600">Already have an account? <Link as={RouterLink} to="/login" color="purple.600" fontWeight="600">Log in</Link></Text>
             </Stack>
           </Box>
         </Stack>

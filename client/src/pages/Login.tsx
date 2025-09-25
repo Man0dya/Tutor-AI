@@ -1,9 +1,10 @@
 import { useState } from 'react'
-import { Box, Button, Checkbox, Container, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, Stack, Text, useDisclosure, useToast, VStack } from '@chakra-ui/react'
+import { Box, Button, Checkbox, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, SimpleGrid, Stack, Text, useDisclosure, useToast, VStack } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import { MdLock, MdMail, MdVisibility, MdVisibilityOff } from 'react-icons/md'
+import { FaGoogle, FaGithub } from 'react-icons/fa'
 
 export default function Login() {
   const toast = useToast()
@@ -89,6 +90,17 @@ export default function Login() {
               </HStack>
 
               <Button type="submit" colorScheme="purple" isLoading={loading} size="lg" borderRadius="12px">Log in</Button>
+
+              <HStack align="center" spacing={3}>
+                <Divider />
+                <Text fontSize="sm" color="gray.500">or</Text>
+                <Divider />
+              </HStack>
+
+              <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3}>
+                <Button variant="outline" leftIcon={<FaGoogle />} borderRadius="10px">Continue with Google</Button>
+                <Button variant="outline" leftIcon={<FaGithub />} borderRadius="10px">Continue with GitHub</Button>
+              </SimpleGrid>
 
               <Text fontSize="sm" color="gray.600">No account? <Link as={RouterLink} to="/signup" color="purple.600" fontWeight="600">Create one</Link></Text>
             </Stack>

@@ -1,6 +1,6 @@
 import { useEffect, useState } from 'react'
 import { Box, Container, Heading, Text, Stack, Badge, Divider } from '@chakra-ui/react'
-import Navbar from '../components/Navbar'
+import PrivateLayout from '../components/PrivateLayout'
 import { useLocation } from 'react-router-dom'
 import { api, type FeedbackOut, getErrorMessage } from '../api/client'
 
@@ -23,9 +23,8 @@ export default function FeedbackPage() {
   }, [query])
 
   return (
-    <Box>
-      <Navbar />
-      <Container maxW="5xl" py={10}>
+    <PrivateLayout>
+      <Container maxW="5xl" py={2}>
         <Heading mb={6}>Feedback</Heading>
         {error && <Text color="red.500">{error}</Text>}
         {feedback && (
@@ -64,6 +63,6 @@ export default function FeedbackPage() {
           </Stack>
         )}
       </Container>
-    </Box>
+    </PrivateLayout>
   )
 }

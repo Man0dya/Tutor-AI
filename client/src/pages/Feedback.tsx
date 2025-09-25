@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react'
-import { Box, Container, Heading, Text, Stack, Badge, Divider, HStack, Button, Icon, Progress, VStack, Tooltip, Flex } from '@chakra-ui/react'
+import { useEffect, useMemo, useRef, useState } from 'react'
+import { Box, Container, Heading, Text, Stack, Badge, Divider, HStack, Button, Icon, Progress, VStack, Tooltip, Flex, CircularProgress, CircularProgressLabel, Tag } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
 import { useLocation } from 'react-router-dom'
 import { api, type FeedbackOut, getErrorMessage } from '../api/client'
@@ -17,6 +17,15 @@ export default function FeedbackPage() {
   const [error, setError] = useState<string | null>(null)
   const contentRef = useRef<HTMLDivElement | null>(null)
   const evalRefs = useRef<Array<HTMLDivElement | null>>([])
+  const [filter, setFilter] = useState<'all' | 'correct' | 'incorrect'>('all')
+  const [collapseExplanations, setCollapseExplanations] = useState<boolean>(false)
+
+  const filteredEvaluations = useMemo(() => {
+    const list: any[] = feedback?.individualEvaluations || []
+    if (filter === 'correct') return list.filter((e: any) => e.is_correct)
+    if (filter === 'incorrect') return list.filter((e: any) => !e.is_correct)
+    return list
+  }, [feedback?.individualEvaluations, filter])
 
   useEffect(() => {
     const id = query.get('id')
@@ -30,7 +39,10 @@ export default function FeedbackPage() {
     <PrivateLayout>
       <Container maxW="7xl" py={4}>
         <HStack justify="space-between" align="center" mb={2}>
-          <Heading>Feedback</Heading>
+          <Box>
+            <Heading>Feedback</Heading>
+            <Text color="gray.600" fontSize="sm">Your performance summary and detailed insights</Text>
+          </Box>
           {feedback && (
             <HStack>
               <Tooltip label="Copy all" placement="top">
@@ -62,20 +74,24 @@ export default function FeedbackPage() {
             <Box ref={contentRef} flex="1 1 0%" maxW="3xl">
               <Stack spacing={6}>
                 <Box borderWidth="1px" borderColor="gray.200" rounded="lg" p={6} bg="white" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
-                  <HStack justify="space-between" align="center" mb={3}>
-                    <HStack>
-                      <Box w="10px" h="10px" rounded="full" bg="purple.500" />
-                      <Heading size="md">Overall</Heading>
-                    </HStack>
-                    <Badge colorScheme="purple" fontSize="0.9em">{feedback.overallScore?.toFixed(1)}%</Badge>
+                  <HStack align="center" spacing={6}>
+                    <CircularProgress value={Math.max(0, Math.min(100, Number(feedback.overallScore) || 0))} color="purple.500" size="86px" thickness="10px">
+                      <CircularProgressLabel>{feedback.overallScore?.toFixed(0)}%</CircularProgressLabel>
+                    </CircularProgress>
+                    <Box flex="1 1 0%">
+                      <HStack justify="space-between" align="center" mb={2}>
+                        <Heading size="md">Overall</Heading>
+                        <Tag colorScheme="purple" variant="subtle">Score</Tag>
+                      </HStack>
+                      <Progress value={Math.max(0, Math.min(100, Number(feedback.overallScore) || 0))} colorScheme="purple" size="sm" rounded="md" mb={2} />
+                      {feedback.individualEvaluations && (
+                        <HStack spacing={3}>
+                          <Badge colorScheme="green">Correct {feedback.individualEvaluations.filter((e: any) => e.is_correct).length}</Badge>
+                          <Badge colorScheme="red">Incorrect {feedback.individualEvaluations.filter((e: any) => !e.is_correct).length}</Badge>
+                        </HStack>
+                      )}
+                    </Box>
                   </HStack>
-                  <Progress value={Math.max(0, Math.min(100, Number(feedback.overallScore) || 0))} colorScheme="purple" size="sm" rounded="md" mb={3} />
-                  {feedback.individualEvaluations && (
-                    <HStack spacing={3}>
-                      <Badge colorScheme="green">Correct {feedback.individualEvaluations.filter((e: any) => e.is_correct).length}</Badge>
-                      <Badge colorScheme="red">Incorrect {feedback.individualEvaluations.filter((e: any) => !e.is_correct).length}</Badge>
-                    </HStack>
-                  )}
                 </Box>
 
                 <Box borderWidth="1px" borderColor="gray.200" rounded="lg" p={6} bg="white" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
@@ -96,9 +112,18 @@ export default function FeedbackPage() {
 
                 {feedback.individualEvaluations && feedback.individualEvaluations.length > 0 && (
                   <Box borderWidth="1px" borderColor="gray.200" rounded="lg" p={6} bg="white" boxShadow="0 2px 8px rgba(0,0,0,0.06)">
-                    <Heading size="md" mb={3}>Per-Question Marking</Heading>
+                    <HStack justify="space-between" align="center" mb={3}>
+                      <Heading size="md">Per-Question Marking</Heading>
+                      <HStack>
+                        <Button size="sm" variant={filter === 'all' ? 'solid' : 'ghost'} colorScheme="purple" onClick={() => setFilter('all')}>All</Button>
+                        <Button size="sm" variant={filter === 'correct' ? 'solid' : 'ghost'} colorScheme="green" onClick={() => setFilter('correct')}>Correct</Button>
+                        <Button size="sm" variant={filter === 'incorrect' ? 'solid' : 'ghost'} colorScheme="red" onClick={() => setFilter('incorrect')}>Incorrect</Button>
+                        <Divider orientation="vertical" />
+                        <Button size="sm" variant="outline" onClick={() => setCollapseExplanations(v => !v)}>{collapseExplanations ? 'Expand explanations' : 'Collapse explanations'}</Button>
+                      </HStack>
+                    </HStack>
                     <VStack align="stretch" spacing={4}>
-                      {feedback.individualEvaluations.map((ev: any, idx: number) => (
+                      {filteredEvaluations.map((ev: any, idx: number) => (
                         <Box
                           key={idx}
                           id={`ev-${idx}`}
@@ -126,7 +151,7 @@ export default function FeedbackPage() {
                             </Text>
                           )}
                           {'score' in ev && <Text mt={1}>Score: <Badge>{Math.round(Number(ev.score) || 0)}%</Badge></Text>}
-                          {ev.feedback && (
+                          {ev.feedback && !collapseExplanations && (
                             <Box mt={2}>
                               <Markdown source={String(ev.feedback)} />
                             </Box>

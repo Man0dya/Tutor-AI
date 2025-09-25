@@ -1,15 +1,13 @@
-import { Box, Button, Flex, HStack, Heading, Spacer, Avatar, Text, useDisclosure } from '@chakra-ui/react'
+import { Box, Button, Flex, HStack, Heading, Spacer, Avatar, Text } from '@chakra-ui/react'
 import { useEffect } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Badge } from '@chakra-ui/react'
 import { createBillingPortal } from '../api/client'
-import UserProfileModal from './UserProfileModal'
 
 export default function Navbar() {
   const { user, plan, upgrade, logout, refreshBilling } = useAuth()
   const navigate = useNavigate()
-  const profile = useDisclosure()
 
   // Ensure plan is always fresh when the navbar mounts or user changes
   useEffect(() => {
@@ -76,14 +74,6 @@ export default function Navbar() {
                 Manage Billing
               </Button>
             )}
-            <Button
-              onClick={profile.onOpen}
-              variant="ghost"
-              size="sm"
-              borderRadius="8px"
-            >
-              Settings
-            </Button>
             <Button 
               onClick={() => { logout(); navigate('/'); }} 
               colorScheme="red" 
@@ -120,7 +110,6 @@ export default function Navbar() {
           </HStack>
         )}
       </Flex>
-      <UserProfileModal isOpen={profile.isOpen} onClose={profile.onClose} />
     </Box>
   )
 }

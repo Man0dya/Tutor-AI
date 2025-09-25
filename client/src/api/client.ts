@@ -34,6 +34,17 @@ export async function signup(name: string, email: string, password: string) {
   return res.data
 }
 
+export type UserProfile = {
+  id: string
+  email: string
+  name: string
+}
+
+export async function getCurrentUser() {
+  const res = await api.get<UserProfile>('/auth/me')
+  return res.data
+}
+
 // Content generation
 export type ContentRequest = {
   topic: string

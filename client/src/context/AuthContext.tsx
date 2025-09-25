@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { login as apiLogin, setAuthToken, signup as apiSignup } from '../api/client'
+import { login as apiLogin, setAuthToken, signup as apiSignup, getCurrentUser } from '../api/client'
 
 export type User = {
   email: string
@@ -26,8 +26,23 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     if (savedToken) {
       setToken(savedToken)
       setAuthToken(savedToken)
-    }
-    if (savedUser) {
+      
+      // Try to refresh user profile from server
+      getCurrentUser()
+        .then(userProfile => {
+          const u: User = { email: userProfile.email, name: userProfile.name }
+          setUser(u)
+          localStorage.setItem('auth_user', JSON.stringify(u))
+        })
+        .catch(() => {
+          // If refresh fails, use saved user data
+          if (savedUser) {
+            try {
+              setUser(JSON.parse(savedUser))
+            } catch {}
+          }
+        })
+    } else if (savedUser) {
       try {
         setUser(JSON.parse(savedUser))
       } catch {}
@@ -39,10 +54,19 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setToken(res.access_token)
     setAuthToken(res.access_token)
     localStorage.setItem('auth_token', res.access_token)
-    // Minimal user derived from email until backend has profile endpoint
-    const u: User = { email }
-    setUser(u)
-    localStorage.setItem('auth_user', JSON.stringify(u))
+    
+    // Fetch user profile with name
+    try {
+      const userProfile = await getCurrentUser()
+      const u: User = { email: userProfile.email, name: userProfile.name }
+      setUser(u)
+      localStorage.setItem('auth_user', JSON.stringify(u))
+    } catch (error) {
+      // Fallback to email-only if profile fetch fails
+      const u: User = { email }
+      setUser(u)
+      localStorage.setItem('auth_user', JSON.stringify(u))
+    }
   }
 
   const signup = async (name: string, email: string, password: string) => {

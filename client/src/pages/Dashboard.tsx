@@ -4,6 +4,7 @@ import { Link as RouterLink } from 'react-router-dom'
 import { MdDescription, MdQuiz, MdTrendingUp, MdArrowForward, MdCreate, MdAnalytics } from 'react-icons/md'
 import { useEffect, useState } from 'react'
 import { getMyProgress, ProgressOut } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 
 const quickActions = [
   {
@@ -33,6 +34,7 @@ const quickActions = [
 ]
 
 export default function Dashboard() {
+  const { user } = useAuth()
   const [progressData, setProgressData] = useState<ProgressOut>({})
   const [loading, setLoading] = useState(true)
 
@@ -81,7 +83,9 @@ export default function Dashboard() {
     <PrivateLayout>
       <Stack spacing={8}>
         <Box>
-          <Heading size="xl" color="gray.800" mb={2}>Welcome back!</Heading>
+          <Heading size="xl" color="gray.800" mb={2}>
+            Welcome back{user?.name ? `, ${user.name}` : ''}!
+          </Heading>
           <Text color="gray.600" fontSize="lg">Ready to continue your learning journey?</Text>
         </Box>
 

@@ -19,6 +19,7 @@ export default function ContentViewPage() {
   const navigate = useNavigate()
   const toast = useToast()
   const contentRef = useRef<HTMLDivElement | null>(null)
+  const [activeId, setActiveId] = useState<string>('')
 
   const headings = useMemo(() => {
     if (!data?.content) return [] as Array<{ id: string; text: string; level: number }>
@@ -66,6 +67,37 @@ export default function ContentViewPage() {
       .finally(() => { if (!cancelled) setLoading(false) })
     return () => { cancelled = true }
   }, [id])
+
+  useEffect(() => {
+    if (!contentRef.current) return
+    const container = contentRef.current
+    const headingsEls = container.querySelectorAll('h1, h2, h3, h4, h5, h6')
+    if (!headingsEls.length) return
+
+    const observer = new IntersectionObserver(
+      (entries) => {
+        const visible = entries
+          .filter(e => e.isIntersecting)
+          .sort((a, b) => (a.target as HTMLElement).offsetTop - (b.target as HTMLElement).offsetTop)
+        if (visible.length > 0) {
+          const id = (visible[0].target as HTMLElement).id
+          if (id) setActiveId(id)
+        } else {
+          const scrollTop = window.scrollY
+          let candidate = ''
+          headingsEls.forEach((el) => {
+            const rectTop = (el as HTMLElement).getBoundingClientRect().top + window.scrollY
+            if (rectTop - 90 <= scrollTop) candidate = (el as HTMLElement).id || candidate
+          })
+          if (candidate) setActiveId(candidate)
+        }
+      },
+      { root: null, rootMargin: '0px 0px -70% 0px', threshold: 0.1 }
+    )
+
+    headingsEls.forEach((el) => observer.observe(el))
+    return () => observer.disconnect()
+  }, [data?.content])
 
   return (
     <PrivateLayout>
@@ -115,12 +147,15 @@ export default function ContentViewPage() {
                       size="sm"
                       bg="transparent"
                       _hover={{ bg: 'purple.100' }}
-                      color="gray.800"
+                      color={activeId === h.id ? 'purple.800' : 'gray.800'}
+                      fontWeight={activeId === h.id ? '700' : '500'}
+                      bg={activeId === h.id ? 'purple.50' : 'transparent'}
                       rounded="md"
                       pl={Math.min((h.level - 1) * 4, 12)}
+                      aria-current={activeId === h.id ? 'true' : undefined}
                     >
                       <HStack>
-                        <Box w="6px" h="6px" rounded="full" bg="purple.400" />
+                        <Box w="6px" h="6px" rounded="full" bg={activeId === h.id ? 'purple.600' : 'purple.400'} />
                         <Text noOfLines={1} fontSize="sm">{h.text}</Text>
                       </HStack>
                     </Button>

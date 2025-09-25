@@ -4,6 +4,7 @@ import PrivateLayout from '../components/PrivateLayout'
 import { generateContent, getErrorMessage } from '../api/client'
 import { useNavigate } from 'react-router-dom'
 import { MdAutoAwesome, MdArrowForward } from 'react-icons/md'
+import Markdown from '../components/Markdown'
 
 export default function ContentPage() {
   const [topic, setTopic] = useState('')
@@ -208,16 +209,7 @@ export default function ContentPage() {
             </Box>
             
             <Box p={8}>
-              <Box
-                className="content-display"
-                dangerouslySetInnerHTML={{ __html: content }}
-                sx={{
-                  '& h1, & h2, & h3': { color: 'gray.800', mb: 4 },
-                  '& p': { color: 'gray.700', lineHeight: '1.6', mb: 4 },
-                  '& ul, & ol': { color: 'gray.700', pl: 6, mb: 4 },
-                  '& li': { mb: 2 }
-                }}
-              />
+              <Markdown source={content} />
             </Box>
 
             <Divider />

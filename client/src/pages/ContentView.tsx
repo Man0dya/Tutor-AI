@@ -3,6 +3,7 @@ import PrivateLayout from '../components/PrivateLayout'
 import { useEffect, useState } from 'react'
 import { getContentById, type ContentOut } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
+import Markdown from '../components/Markdown'
 
 function useQuery() {
   const { search } = useLocation()
@@ -35,7 +36,7 @@ export default function ContentViewPage() {
           <Box>
             <Heading mb={4}>{data.topic || 'Study Content'}</Heading>
             <Box borderWidth="1px" rounded="md" p={4}>
-              <div dangerouslySetInnerHTML={{ __html: data.content }} />
+              <Markdown source={data.content} />
             </Box>
             <Stack direction={{ base: 'column', md: 'row' }} mt={6}>
               <Button onClick={() => navigate(`/questions?content_id=${encodeURIComponent(data.id)}`)} colorScheme="purple">Create Questions</Button>

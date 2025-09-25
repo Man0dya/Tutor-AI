@@ -122,7 +122,6 @@ export default function ContentViewPage() {
                 </HStack>
               </HStack>
               <Box ref={contentRef} borderWidth="1px" rounded="lg" p={6} bg="white" position="relative">
-                <Button size="sm" position="absolute" right="12px" bottom="12px" onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}>Top</Button>
                 <Markdown source={data.content} />
               </Box>
               <Stack direction={{ base: 'column', md: 'row' }} mt={6}>

@@ -24,11 +24,6 @@ export default function Navbar() {
         >
           <RouterLink to={user ? '/dashboard' : '/'}>Tutor AI</RouterLink>
         </Heading>
-        {!user && (
-          <HStack spacing={6}>
-            <Button as={RouterLink} to="/" variant="ghost" fontWeight="500">Home</Button>
-          </HStack>
-        )}
         <Spacer />
         {user ? (
           <HStack spacing={4}>

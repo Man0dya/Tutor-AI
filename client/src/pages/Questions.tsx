@@ -50,7 +50,7 @@ export default function QuestionsPage() {
     try {
   const res = await submitAnswers({ questionSetId: questionSetId, answers })
     toast({ title: `Score: ${res.overallScore ?? 0}%`, status: 'info' })
-      navigate('/dashboard')
+      navigate(`/feedback?id=${encodeURIComponent(res.id)}`)
     } catch (err: any) {
       toast({ title: 'Submit failed', description: getErrorMessage(err) || 'Try again', status: 'error' })
     } finally {

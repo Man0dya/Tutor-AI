@@ -38,7 +38,10 @@ class FeedbackEvaluatorAgent:
             total_score = 0
             
             for i, question in enumerate(questions):
-                user_answer = user_answers.get(i, "")
+                # Accept both int and str keys from client submissions
+                user_answer = user_answers.get(i)
+                if user_answer is None:
+                    user_answer = user_answers.get(str(i), "")
                 evaluation = self._evaluate_single_answer(question, user_answer)
                 individual_evaluations.append(evaluation)
                 

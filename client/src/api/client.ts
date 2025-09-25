@@ -98,6 +98,7 @@ export type FeedbackOut = {
   overallScore: number
   detailedFeedback: string
   studySuggestions?: string
+  individualEvaluations?: Array<Record<string, any>>
 }
 
 export async function submitAnswers(payload: AnswerSubmitRequest) {

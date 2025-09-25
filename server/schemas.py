@@ -51,3 +51,4 @@ class FeedbackOut(BaseModel):
     overallScore: float
     detailedFeedback: str
     studySuggestions: Optional[str] = None
+    individualEvaluations: Optional[List[Dict[str, Any]]] = None

@@ -35,6 +35,7 @@ async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_
             "overallScore": feedback.get("overall_score", 0.0),
             "detailedFeedback": feedback.get("detailed_feedback", ""),
             "studySuggestions": feedback.get("study_suggestions"),
+            "individualEvaluations": feedback.get("individual_evaluations"),
             "createdAt": datetime.utcnow().isoformat(),
         }
         await col("feedback").insert_one(fb_doc)
@@ -56,8 +57,23 @@ async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_
             overallScore=fb_doc["overallScore"],
             detailedFeedback=fb_doc["detailedFeedback"],
             studySuggestions=fb_doc.get("studySuggestions"),
+            individualEvaluations=fb_doc.get("individualEvaluations"),
         )
     except HTTPException:
         raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Answer submission failed: {e}")
+
+@router.get("/feedback/{feedback_id}", response_model=FeedbackOut)
+async def get_feedback(feedback_id: str, user=Depends(get_current_user)) -> FeedbackOut:
+    doc = await col("feedback").find_one({"_id": feedback_id, "userId": user.get("sub")})
+    if not doc:
+        raise HTTPException(status_code=404, detail="Feedback not found")
+    return FeedbackOut(
+        id=doc["_id"],
+        questionSetId=doc["questionSetId"],
+        overallScore=doc.get("overallScore", 0.0),
+        detailedFeedback=doc.get("detailedFeedback", ""),
+        studySuggestions=doc.get("studySuggestions"),
+        individualEvaluations=doc.get("individualEvaluations"),
+    )

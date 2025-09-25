@@ -122,16 +122,7 @@ function MarkdownComponent({ source }: MarkdownProps) {
       className="markdown-body"
       dangerouslySetInnerHTML={{ __html: html }}
       sx={{
-        '& h1, & h2, & h3, & h4, & h5, & h6': {
-          color: 'gray.800',
-          marginBottom: 3,
-          marginTop: 6,
-          fontWeight: 700,
-          letterSpacing: '-0.02em'
-        },
-        '& h1': { fontSize: { base: '2xl', md: '3xl' }, borderBottom: '1px solid', borderColor: 'gray.200', paddingBottom: 2 },
-        '& h2': { fontSize: { base: 'xl', md: '2xl' }, marginTop: 6 },
-        '& h3': { fontSize: { base: 'lg', md: 'xl' }, marginTop: 5 },
+        '& h1, & h2, & h3, & h4, & h5, & h6': { color: 'gray.800', marginBottom: 3, marginTop: 5 },
         '& h1[id]::before, & h2[id]::before, & h3[id]::before, & h4[id]::before, & h5[id]::before, & h6[id]::before': {
           content: '""',
           display: 'block',
@@ -139,22 +130,12 @@ function MarkdownComponent({ source }: MarkdownProps) {
           marginTop: '-80px',
           visibility: 'hidden'
         },
-        '& p': { color: 'gray.700', lineHeight: '1.9', marginBottom: 4, fontSize: { base: 'md', md: 'lg' } },
-        '& ul, & ol': { color: 'gray.800', paddingLeft: 6, marginBottom: 4 },
+        '& p': { color: 'gray.700', lineHeight: '1.8', marginBottom: 3 },
+        '& ul, & ol': { color: 'gray.700', paddingLeft: 6, marginBottom: 3 },
         '& li': { marginBottom: 1.5 },
-        '& pre': { background: 'gray.900', color: 'gray.100', padding: 4, borderRadius: '10px', overflowX: 'auto', marginY: 4, fontSize: 'sm' },
-        '& code': { background: 'gray.100', borderRadius: '6px', paddingX: 2, paddingY: 0.5, fontSize: '0.95em' },
-        '& a': { color: 'purple.600', textDecoration: 'underline', fontWeight: 500 },
-        '& blockquote': {
-          borderLeft: '4px solid',
-          borderColor: 'purple.200',
-          background: 'purple.50',
-          color: 'gray.700',
-          padding: '12px 16px',
-          borderRadius: '8px',
-          marginY: 4
-        },
-        '& hr': { borderColor: 'gray.200', marginY: 6 }
+        '& pre': { background: 'gray.900', color: 'gray.100', padding: 3, borderRadius: '8px', overflowX: 'auto', marginY: 3 },
+        '& code': { background: 'gray.100', borderRadius: '4px', paddingX: 1 },
+        '& a': { color: 'blue.500', textDecoration: 'underline' }
       }}
     />
   )

@@ -1,9 +1,9 @@
-import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
-import { Box, Button, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, Input, NumberInput, NumberInputField, Radio, RadioGroup, Select, Stack, Text, Textarea, VStack, useToast } from '@chakra-ui/react'
+import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
+import { Box, Button, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, Input, NumberInput, NumberInputField, Radio, RadioGroup, Select, Stack, Text, Textarea, VStack, useToast, Badge, Progress, Flex } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
 import { generateQuestions, Question, submitAnswers, getErrorMessage } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
-import { MdQuiz, MdBolt } from 'react-icons/md'
+import { MdQuiz, MdBolt, MdCheckCircle } from 'react-icons/md'
 
 function useQuery() {
   const { search } = useLocation()
@@ -21,6 +21,7 @@ export default function QuestionsPage() {
   const [questionSetId, setQuestionSetId] = useState<string>('')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const qRefs = useRef<Array<HTMLDivElement | null>>([])
 
   useEffect(() => {
     const cid = query.get('content_id')
@@ -59,9 +60,15 @@ export default function QuestionsPage() {
     }
   }
 
+  const answeredCount = useMemo(() => Object.keys(answers).length, [answers])
+  const progressPct = useMemo(() => {
+    if (questions.length === 0) return 0
+    return Math.round((answeredCount / questions.length) * 100)
+  }, [answeredCount, questions.length])
+
   return (
     <PrivateLayout>
-      <Container maxW="5xl" py={2}>
+      <Container maxW="7xl" py={2}>
         <HStack mb={2} spacing={2} align="center">
           <Icon as={MdQuiz} boxSize={7} color="purple.500" />
           <Heading size="lg">Practice Questions</Heading>
@@ -118,35 +125,95 @@ export default function QuestionsPage() {
           </Box>
         )}
 
-        <VStack spacing={4} align="stretch">
-          {questions.map((q: Question, idx: number) => (
-            <Box key={idx} p={6} bg="white" borderWidth="1px" borderColor="gray.200" borderRadius="12px" boxShadow="0 2px 6px rgba(0,0,0,0.04)">
-              <Text fontWeight="700" mb={2}>{`Q${idx + 1}. ${q.question}`}</Text>
-              <Text fontSize="sm" color="gray.500" mb={3}>{q.type}</Text>
-              {q.type === 'Multiple Choice' && (
-                <RadioGroup value={answers[idx]?.toString() || ''} onChange={(val: string) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: val }))}>
-                  <VStack align="stretch" spacing={2}>
-                    {q.options?.map((opt: string, j: number) => (
-                      <Radio key={j} value={opt}>{String.fromCharCode(65 + j)}. {opt}</Radio>
-                    ))}
-                  </VStack>
-                </RadioGroup>
-              )}
-              {q.type === 'True/False' && (
-                <RadioGroup value={answers[idx]?.toString() || ''} onChange={(val: string) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: val }))}>
-                  <HStack spacing={6}>
-                    {['True', 'False'].map((opt) => (
-                      <Radio key={opt} value={opt}>{opt}</Radio>
-                    ))}
-                  </HStack>
-                </RadioGroup>
-              )}
-              {q.type === 'Short Answer' && (
-                <Textarea placeholder="Your answer" value={answers[idx]?.toString() || ''} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: e.target.value }))} />
-              )}
+        {questions.length > 0 && (
+          <>
+            <Box mb={4}>
+              <HStack justify="space-between" align="center">
+                <Text color="gray.700" fontWeight="600">Progress</Text>
+                <Text color="gray.600" fontSize="sm">{answeredCount}/{questions.length} answered</Text>
+              </HStack>
+              <Progress value={progressPct} colorScheme="purple" size="sm" rounded="md" mt={2} />
             </Box>
-          ))}
-        </VStack>
+            <Flex gap={8} align="flex-start">
+              <Box flex="1 1 0%">
+                <VStack spacing={4} align="stretch">
+                  {questions.map((q: Question, idx: number) => (
+                    <Box
+                      key={idx}
+                      id={`q-${idx}`}
+                      ref={(el) => { qRefs.current[idx] = el }}
+                      p={6}
+                      bg="white"
+                      borderWidth="1px"
+                      borderColor={answers[idx] ? 'purple.300' : 'gray.200'}
+                      borderRadius="12px"
+                      boxShadow="0 2px 6px rgba(0,0,0,0.04)"
+                    >
+                      <HStack justify="space-between" align="center" mb={2}>
+                        <Text fontWeight="700">{`Q${idx + 1}. ${q.question}`}</Text>
+                        <Badge colorScheme="purple" variant="subtle">{q.type}</Badge>
+                      </HStack>
+                      {q.type === 'Multiple Choice' && (
+                        <RadioGroup value={answers[idx]?.toString() || ''} onChange={(val: string) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: val }))}>
+                          <VStack align="stretch" spacing={2}>
+                            {q.options?.map((opt: string, j: number) => (
+                              <Radio key={j} value={opt}>{String.fromCharCode(65 + j)}. {opt}</Radio>
+                            ))}
+                          </VStack>
+                        </RadioGroup>
+                      )}
+                      {q.type === 'True/False' && (
+                        <RadioGroup value={answers[idx]?.toString() || ''} onChange={(val: string) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: val }))}>
+                          <HStack spacing={6}>
+                            {['True', 'False'].map((opt) => (
+                              <Radio key={opt} value={opt}>{opt}</Radio>
+                            ))}
+                          </HStack>
+                        </RadioGroup>
+                      )}
+                      {q.type === 'Short Answer' && (
+                        <Textarea placeholder="Your answer" value={answers[idx]?.toString() || ''} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: e.target.value }))} />
+                      )}
+                    </Box>
+                  ))}
+                </VStack>
+              </Box>
+              <VStack as="aside" minW={{ base: '0', md: '280px' }} display={{ base: 'none', md: 'flex' }} position="sticky" top="92px" align="stretch">
+                <Box borderWidth="1px" borderColor="purple.200" rounded="lg" p={4} bg="gray.50" boxShadow="sm">
+                  <Text fontWeight="700" color="purple.700" mb={2}>Questions</Text>
+                  <Divider borderColor="purple.200" mb={3} />
+                  <VStack align="stretch" spacing={1} maxH="70vh" overflowY="auto">
+                    {questions.map((_q, idx) => {
+                      const answered = Boolean(answers[idx])
+                      return (
+                        <Button
+                          key={idx}
+                          variant="ghost"
+                          justifyContent="space-between"
+                          onClick={() => {
+                            const el = qRefs.current[idx]
+                            if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                          }}
+                          size="sm"
+                          bg="transparent"
+                          _hover={{ bg: 'purple.100' }}
+                          color={answered ? 'purple.800' : 'gray.800'}
+                          fontWeight={answered ? '700' : '500'}
+                          rounded="md"
+                        >
+                          <HStack>
+                            <Text fontSize="sm">Q{idx + 1}</Text>
+                          </HStack>
+                          {answered && <Icon as={MdCheckCircle} color="purple.500" />}
+                        </Button>
+                      )
+                    })}
+                  </VStack>
+                </Box>
+              </VStack>
+            </Flex>
+          </>
+        )}
 
         {questions.length > 0 && (
           <>

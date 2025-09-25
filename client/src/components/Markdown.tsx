@@ -34,6 +34,18 @@ function convertBasicMarkdownToHtml(markdown: string): string {
   while (i < lines.length) {
     const line = lines[i]
 
+    // Blockquotes: one or more lines starting with ">"
+    if (/^\s*>\s?/.test(line)) {
+      const quoteLines: string[] = []
+      while (i < lines.length && /^\s*>\s?/.test(lines[i])) {
+        quoteLines.push(lines[i].replace(/^\s*>\s?/, ''))
+        i += 1
+      }
+      const inner = convertBasicMarkdownToHtml(quoteLines.join('\n'))
+      blocks.push(`<blockquote>${inner}</blockquote>`)
+      continue
+    }
+
     // Headings
     const hMatch = /^(#{1,6})\s+(.*)$/.exec(line)
     if (hMatch) {
@@ -101,6 +113,8 @@ function convertBasicMarkdownToHtml(markdown: string): string {
     // Italic *text* or _text_
     t = t.replace(/(?<!\*)\*([^*]+)\*(?!\*)/g, '<em>$1</em>')
     t = t.replace(/_([^_]+)_/g, '<em>$1</em>')
+    // Images ![alt](url)
+    t = t.replace(/!\[([^\]]*)\]\(([^)\s]+)\)/g, '<img alt="$1" src="$2" />')
     // Links [text](url)
     t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     return t
@@ -122,7 +136,9 @@ function MarkdownComponent({ source }: MarkdownProps) {
       className="markdown-body"
       dangerouslySetInnerHTML={{ __html: html }}
       sx={{
-        '& h1, & h2, & h3, & h4, & h5, & h6': { color: 'gray.800', marginBottom: 3, marginTop: 5 },
+        '& h1': { color: 'gray.900', marginBottom: 4, marginTop: 6, fontWeight: 700, fontSize: '2xl' },
+        '& h2': { color: 'gray.900', marginBottom: 3, marginTop: 5, fontWeight: 700, fontSize: 'xl' },
+        '& h3, & h4, & h5, & h6': { color: 'gray.800', marginBottom: 2.5, marginTop: 4, fontWeight: 600 },
         '& h1[id]::before, & h2[id]::before, & h3[id]::before, & h4[id]::before, & h5[id]::before, & h6[id]::before': {
           content: '""',
           display: 'block',
@@ -130,12 +146,23 @@ function MarkdownComponent({ source }: MarkdownProps) {
           marginTop: '-80px',
           visibility: 'hidden'
         },
-        '& p': { color: 'gray.700', lineHeight: '1.8', marginBottom: 3 },
+        '& p': { color: 'gray.700', lineHeight: '1.9', marginBottom: 3, fontSize: 'md' },
         '& ul, & ol': { color: 'gray.700', paddingLeft: 6, marginBottom: 3 },
         '& li': { marginBottom: 1.5 },
         '& pre': { background: 'gray.900', color: 'gray.100', padding: 3, borderRadius: '8px', overflowX: 'auto', marginY: 3 },
         '& code': { background: 'gray.100', borderRadius: '4px', paddingX: 1 },
-        '& a': { color: 'blue.500', textDecoration: 'underline' }
+        '& a': { color: 'blue.500', textDecoration: 'underline' },
+        '& blockquote': {
+          borderLeft: '4px solid',
+          borderColor: 'purple.300',
+          background: 'purple.50',
+          paddingX: 4,
+          paddingY: 3,
+          marginY: 4,
+          borderRadius: '8px',
+          color: 'gray.800'
+        },
+        '& img': { maxWidth: '100%', borderRadius: '8px', marginY: 3 }
       }}
     />
   )

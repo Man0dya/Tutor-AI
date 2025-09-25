@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { login as apiLogin, setAuthToken, signup as apiSignup, getCurrentUser, getBillingStatus } from '../api/client'
+import { login as apiLogin, setAuthToken, signup as apiSignup, getCurrentUser, getBillingStatus, SubscriptionSummary } from '../api/client'
 
 export type User = {
   email: string
@@ -16,6 +16,8 @@ interface AuthContextValue {
   plan: 'free' | 'standard' | 'premium'
   refreshBilling: () => Promise<void>
   upgrade: () => void
+  usage: Record<string, any> | null
+  subscription: SubscriptionSummary | null
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -34,6 +36,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     const saved = localStorage.getItem('billing_plan')
     return saved === 'standard' || saved === 'premium' ? (saved as 'standard' | 'premium') : 'free'
   })
+  const [usage, setUsage] = useState<Record<string, any> | null>(null)
+  const [subscription, setSubscription] = useState<SubscriptionSummary | null>(null)
 
   useEffect(() => {
     const savedToken = localStorage.getItem('auth_token')
@@ -61,6 +65,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       getBillingStatus().then(b => {
         const p = (b.plan === 'standard' || b.plan === 'premium') ? b.plan : 'free'
         setPlan(p)
+        setUsage(b.usage || null)
+        setSubscription(b.subscription || null)
         localStorage.setItem('billing_plan', p)
       }).catch(() => {})
     } else if (savedUser) {
@@ -86,6 +92,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
         const b = await getBillingStatus()
         const p = (b.plan === 'standard' || b.plan === 'premium') ? b.plan : 'free'
         setPlan(p)
+        setUsage(b.usage || null)
+        setSubscription(b.subscription || null)
         localStorage.setItem('billing_plan', p)
       } catch {}
     } catch (error) {
@@ -129,6 +137,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const b = await getBillingStatus()
       const p = (b.plan === 'standard' || b.plan === 'premium') ? b.plan : 'free'
       setPlan(p)
+      setUsage(b.usage || null)
+      setSubscription(b.subscription || null)
       localStorage.setItem('billing_plan', p)
     } catch {}
   }
@@ -138,8 +148,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   }
 
   const value = useMemo(
-    () => ({ user, token, login, signup, logout, refreshUser, plan, refreshBilling, upgrade }),
-    [user, token, plan]
+    () => ({ user, token, login, signup, logout, refreshUser, plan, refreshBilling, upgrade, usage, subscription }),
+    [user, token, plan, usage, subscription]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

@@ -21,7 +21,7 @@ import {
 } from '@chakra-ui/react';
 import { IoEye, IoEyeOff } from 'react-icons/io5';
 import { useAuth } from '../context/AuthContext';
-import { updateProfile, getErrorMessage } from '../api/client';
+import { updateProfile, getErrorMessage, createBillingPortal, cancelSubscription, resumeSubscription } from '../api/client';
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -29,7 +29,7 @@ interface UserProfileModalProps {
 }
 
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
-  const { user, refreshUser } = useAuth();
+  const { user, refreshUser, plan, subscription, refreshBilling, upgrade } = useAuth();
   const toast = useToast();
   
   // Form state
@@ -270,7 +270,85 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
                   </InputGroup>
                 </FormControl>
               </VStack>
+
+              <Divider />
+
+              {/* Billing Section */}
+              <VStack spacing={4} align="stretch">
+                <Text fontSize="md" fontWeight="semibold" color="gray.700">
+                  Billing
+                </Text>
+                <Text fontSize="sm" color="gray.600">
+                  Your current plan is <b>{(plan || 'free').toUpperCase()}</b>.
+                </Text>
+                {plan !== 'free' && (
+                  <VStack spacing={2} align="stretch">
+                    <Text fontSize="sm" color="gray.600">
+                      Status: {subscription?.status ? subscription.status.replace(/_/g, ' ') : '—'}
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Renews on: {subscription?.current_period_end ? new Date(subscription.current_period_end * 1000).toLocaleDateString() : '—'}
+                    </Text>
+                    <Text fontSize="sm" color="gray.600">
+                      Next invoice: {subscription?.next_invoice_amount_due != null ? `${(subscription.next_invoice_amount_due/100).toFixed(2)} ${(subscription.next_invoice_currency || 'usd').toUpperCase()}` : '—'}
+                    </Text>
+                    {subscription?.cancel_at_period_end && (
+                      <Text fontSize="sm" color="orange.500" fontWeight="semibold">
+                        Cancellation scheduled at period end
+                      </Text>
+                    )}
+                    <VStack align="start" spacing={2} pt={2}>
+                      {!subscription?.cancel_at_period_end ? (
+                        <Button size="sm" variant="outline" colorScheme="red" onClick={async () => {
+                          try {
+                            await cancelSubscription(true)
+                            await refreshBilling()
+                            toast({ title: 'Will cancel at period end', status: 'info', duration: 3000, isClosable: true })
+                          } catch (e) {
+                            toast({ title: 'Failed to schedule cancel', description: getErrorMessage(e), status: 'error', duration: 4000, isClosable: true })
+                          }
+                        }}>
+                          Cancel at period end
+                        </Button>
+                      ) : (
+                        <Button size="sm" variant="outline" onClick={async () => {
+                          try {
+                            await resumeSubscription()
+                            await refreshBilling()
+                            toast({ title: 'Subscription resumed', status: 'success', duration: 3000, isClosable: true })
+                          } catch (e) {
+                            toast({ title: 'Failed to resume', description: getErrorMessage(e), status: 'error', duration: 4000, isClosable: true })
+                          }
+                        }}>
+                          Resume subscription
+                        </Button>
+                      )}
+                      <Button size="sm" onClick={async () => {
+                        try {
+                          const p = await createBillingPortal()
+                          if (p.url) window.location.assign(p.url)
+                        } catch (e) {
+                          toast({ title: 'Failed to open billing portal', description: getErrorMessage(e), status: 'error', duration: 4000, isClosable: true })
+                        }
+                      }}>
+                        Manage Billing
+                      </Button>
+                    </VStack>
+                  </VStack>
+                )}
+                {plan === 'free' && (
+                  <VStack align="start" spacing={2}>
+                    <Text fontSize="sm" color="gray.600">Upgrade to unlock all features and higher limits.</Text>
+                    <Button size="sm" colorScheme="purple" onClick={() => {
+                      try { upgrade() } catch {}
+                    }}>
+                      Upgrade
+                    </Button>
+                  </VStack>
+                )}
+              </VStack>
             </VStack>
+            
           </ModalBody>
 
           <ModalFooter>

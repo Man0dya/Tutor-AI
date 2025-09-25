@@ -39,7 +39,8 @@ function convertBasicMarkdownToHtml(markdown: string): string {
     if (hMatch) {
       const level = hMatch[1].length
       const content = hMatch[2].trim()
-      blocks.push(`<h${level}>${inline(content)}</h${level}>`)
+      const id = slugify(content)
+      blocks.push(`<h${level} id="${id}">${inline(content)}</h${level}>`)
       i += 1
       continue
     }
@@ -104,6 +105,14 @@ function convertBasicMarkdownToHtml(markdown: string): string {
     t = t.replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, '<a href="$2" target="_blank" rel="noopener noreferrer">$1</a>')
     return t
   }
+
+  function slugify(s: string): string {
+    return s
+      .toLowerCase()
+      .replace(/[^a-z0-9\s-]/g, '')
+      .trim()
+      .replace(/\s+/g, '-')
+  }
 }
 
 function MarkdownComponent({ source }: MarkdownProps) {
@@ -114,6 +123,13 @@ function MarkdownComponent({ source }: MarkdownProps) {
       dangerouslySetInnerHTML={{ __html: html }}
       sx={{
         '& h1, & h2, & h3, & h4, & h5, & h6': { color: 'gray.800', marginBottom: 3, marginTop: 5 },
+        '& h1[id]::before, & h2[id]::before, & h3[id]::before, & h4[id]::before, & h5[id]::before, & h6[id]::before': {
+          content: '""',
+          display: 'block',
+          height: '80px',
+          marginTop: '-80px',
+          visibility: 'hidden'
+        },
         '& p': { color: 'gray.700', lineHeight: '1.8', marginBottom: 3 },
         '& ul, & ol': { color: 'gray.700', paddingLeft: 6, marginBottom: 3 },
         '& li': { marginBottom: 1.5 },

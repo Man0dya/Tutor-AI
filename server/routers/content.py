@@ -61,3 +61,21 @@ async def generate_content(payload: ContentRequest, user=Depends(get_current_use
         return ContentOut(id=doc_id, topic=payload.topic, content=content_text, metadata=metadata)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Content generation failed: {e}")
+
+
+@router.get("/{id}", response_model=ContentOut)
+async def get_content_by_id(id: str, user=Depends(get_current_user)) -> ContentOut:
+    try:
+        doc = await col("content").find_one({"_id": id, "userId": user.get("sub")})
+        if not doc:
+            raise HTTPException(status_code=404, detail="Content not found")
+        return ContentOut(
+            id=doc.get("_id"),
+            topic=doc.get("topic", ""),
+            content=doc.get("content", ""),
+            metadata=doc.get("metadata", {}) or {},
+        )
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to fetch content: {e}")

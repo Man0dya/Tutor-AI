@@ -55,6 +55,11 @@ export async function generateContent(payload: ContentRequest) {
   return res.data
 }
 
+export async function getContentById(id: string) {
+  const res = await api.get<ContentOut>(`/content/${encodeURIComponent(id)}`)
+  return res.data
+}
+
 // Questions
 export type QuestionsRequest = {
   contentId: string
@@ -115,6 +120,19 @@ export type ProgressOut = {
   score_history?: { date: string; score: number }[]
   subject_performance?: Record<string, number>
   recent_activity?: Array<Record<string, any>>
+  recent_contents?: Array<{ id: string; topic: string; createdAt: string }>
+  recent_question_sets?: Array<{ id: string; contentId: string; questionCount: number; createdAt: string }>
+  recent_feedback?: Array<{ id: string; questionSetId: string; overallScore: number; createdAt: string }>
+  threads?: Array<{
+    content: { id: string; topic: string; createdAt: string }
+    questionSets: Array<{
+      id: string
+      createdAt: string
+      questionCount: number
+      answers: Array<{ id: string; submittedAt: string }>
+      feedback: Array<{ id: string; overallScore: number; createdAt: string }>
+    }>
+  }>
 }
 
 export async function getMyProgress() {

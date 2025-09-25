@@ -1,7 +1,8 @@
-import { Box, Container, Heading, SimpleGrid, Stat, StatHelpText, StatLabel, StatNumber } from '@chakra-ui/react'
+import { Box, Button, Container, Heading, HStack, SimpleGrid, Stack, Stat, StatHelpText, StatLabel, StatNumber, Text } from '@chakra-ui/react'
 import Navbar from '../components/Navbar'
 import { useEffect, useState } from 'react'
 import { getMyProgress, ProgressOut } from '../api/client'
+import { Link as RouterLink } from 'react-router-dom'
 
 export default function ProgressPage() {
   const [data, setData] = useState<ProgressOut>({})
@@ -34,6 +35,53 @@ export default function ProgressPage() {
             <StatHelpText>Keep it going!</StatHelpText>
           </Stat>
         </SimpleGrid>
+
+        <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6} mt={8}>
+          <Box borderWidth="1px" rounded="md" p={4}>
+            <Heading size="md" mb={3}>Past Contents</Heading>
+            <Stack spacing={2}>
+              {(data.recent_contents ?? []).map((c) => (
+                <HStack key={c.id} justify="space-between">
+                  <Text noOfLines={1}>{c.topic}</Text>
+                  <HStack>
+                    <Text fontSize="sm" color="gray.500">{new Date(c.createdAt).toLocaleString()}</Text>
+                    <Button as={RouterLink} to={`/content/view?id=${encodeURIComponent(c.id)}`} size="xs" variant="outline">View</Button>
+                  </HStack>
+                </HStack>
+              ))}
+              {!(data.recent_contents ?? []).length && <Text color="gray.500">No content yet</Text>}
+            </Stack>
+          </Box>
+          <Box borderWidth="1px" rounded="md" p={4}>
+            <Heading size="md" mb={3}>Past Question Sets</Heading>
+            <Stack spacing={2}>
+              {(data.recent_question_sets ?? []).map((q) => (
+                <HStack key={q.id} justify="space-between">
+                  <Text>Questions: {q.questionCount}</Text>
+                  <Text fontSize="sm" color="gray.500">{new Date(q.createdAt).toLocaleString()}</Text>
+                </HStack>
+              ))}
+              {!(data.recent_question_sets ?? []).length && <Text color="gray.500">No question sets yet</Text>}
+            </Stack>
+          </Box>
+          <Box borderWidth="1px" rounded="md" p={4}>
+            <Heading size="md" mb={3}>Past Marks</Heading>
+            <Stack spacing={2}>
+              {(data.recent_feedback ?? []).map((f) => (
+                <HStack key={f.id} justify="space-between">
+                  <Text>Score: {(f.overallScore ?? 0).toFixed(1)}%</Text>
+                  <HStack>
+                    <Text fontSize="sm" color="gray.500">{new Date(f.createdAt).toLocaleString()}</Text>
+                    <Button as={RouterLink} to={`/feedback?id=${encodeURIComponent(f.id)}`} size="xs" variant="outline">View</Button>
+                  </HStack>
+                </HStack>
+              ))}
+              {!(data.recent_feedback ?? []).length && <Text color="gray.500">No feedback yet</Text>}
+            </Stack>
+          </Box>
+        </SimpleGrid>
+
+        {/* Past Chats removed per request */}
       </Container>
     </Box>
   )

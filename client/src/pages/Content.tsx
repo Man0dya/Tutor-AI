@@ -208,13 +208,13 @@ export default function ContentPage() {
               <Text color="purple.600">Ready for your review</Text>
             </Box>
             
-            <Box p={8}>
+            <Box p={8} maxW="3xl" mx="auto" lineHeight="tall">
               <Markdown source={content} />
             </Box>
 
             <Divider />
             
-            <Box p={8}>
+            <Box p={8} maxW="3xl" mx="auto">
               <Text fontSize="sm" color="gray.600" mb={4}>
                 What would you like to do next?
               </Text>

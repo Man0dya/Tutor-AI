@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState, type ChangeEvent } from 'react'
 import { Box, Button, Container, FormControl, FormLabel, Heading, Input, NumberInput, NumberInputField, Select, Stack, Text, useToast } from '@chakra-ui/react'
-import Navbar from '../components/Navbar'
+import PrivateLayout from '../components/PrivateLayout'
 import { generateQuestions, Question, submitAnswers, getErrorMessage } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
 
@@ -59,9 +59,8 @@ export default function QuestionsPage() {
   }
 
   return (
-    <Box>
-      <Navbar />
-      <Container maxW="5xl" py={10}>
+    <PrivateLayout>
+      <Container maxW="5xl" py={2}>
         <Heading mb={6}>Question Setter</Heading>
         <Stack direction={{ base: 'column', md: 'row' }} spacing={4} mb={6}>
           <FormControl isRequired>
@@ -104,6 +103,6 @@ export default function QuestionsPage() {
           <Button onClick={onSubmit} isLoading={loading} colorScheme="purple">Submit Answers</Button>
         )}
       </Container>
-    </Box>
+    </PrivateLayout>
   )
 }

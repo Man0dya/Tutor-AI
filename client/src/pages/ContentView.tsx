@@ -1,5 +1,5 @@
 import { Box, Button, Container, Heading, Stack, Text } from '@chakra-ui/react'
-import Navbar from '../components/Navbar'
+import PrivateLayout from '../components/PrivateLayout'
 import { useEffect, useState } from 'react'
 import { getContentById, type ContentOut } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -27,9 +27,8 @@ export default function ContentViewPage() {
   }, [id])
 
   return (
-    <Box>
-      <Navbar />
-      <Container maxW="5xl" py={10}>
+    <PrivateLayout>
+      <Container maxW="5xl" py={2}>
         {loading && <Text>Loading content...</Text>}
         {!loading && !data && <Text>Content not found.</Text>}
         {data && (
@@ -45,6 +44,6 @@ export default function ContentViewPage() {
           </Box>
         )}
       </Container>
-    </Box>
+    </PrivateLayout>
   )
 }

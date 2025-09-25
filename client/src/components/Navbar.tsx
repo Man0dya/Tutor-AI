@@ -42,11 +42,7 @@ export default function Navbar() {
             <Flex align="center" gap={3}>
               <Avatar size="sm" name={user.email} bg="purple.500" />
               <Text fontSize="sm" fontWeight="500" color="gray.700">{user.email}</Text>
-              <Badge
-                colorScheme={plan === 'premium' ? 'purple' : plan === 'standard' ? 'blue' : 'gray'}
-                variant="subtle"
-                borderRadius="6px"
-              >
+              <Badge colorScheme={plan === 'premium' ? 'purple' : plan === 'standard' ? 'blue' : 'gray'} variant="subtle" borderRadius="6px">
                 {plan.toUpperCase()}
               </Badge>
             </Flex>

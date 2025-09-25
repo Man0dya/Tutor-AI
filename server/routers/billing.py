@@ -3,7 +3,7 @@ from __future__ import annotations
 from fastapi import APIRouter, Depends, HTTPException, Request
 from fastapi.responses import JSONResponse
 from bson import ObjectId
-from typing import Dict, Any
+from typing import Dict, Any, Optional
 
 from ..auth import get_current_user
 from ..database import col
@@ -33,7 +33,44 @@ async def my_billing_status(user=Depends(get_current_user)) -> Dict[str, Any]:
     u = await col("users").find_one({"_id": ObjectId(user.get("sub"))})
     plan = (u.get("plan") if u else None) or "free"
     usage = (u.get("usage") if u else None) or {}
-    return {"plan": plan, "usage": usage}
+    # Optionally enrich with subscription summary if Stripe configured and we have subscriptionId
+    subscription: Optional[Dict[str, Any]] = None
+    try:
+        if stripe and STRIPE_SECRET_KEY and u and u.get("subscriptionId"):
+            stripe.api_key = STRIPE_SECRET_KEY
+            sub = stripe.Subscription.retrieve(u.get("subscriptionId"))  # type: ignore
+            # Basic summary
+            item = (sub.get("items") or {}).get("data", [{}])[0]
+            price = (item or {}).get("price") or {}
+            subscription = {
+                "status": sub.get("status"),
+                "current_period_end": sub.get("current_period_end"),
+                "cancel_at_period_end": sub.get("cancel_at_period_end", False),
+                "price": {
+                    "id": price.get("id"),
+                    "unit_amount": (price.get("unit_amount") or 0),
+                    "currency": price.get("currency"),
+                    "interval": (price.get("recurring") or {}).get("interval"),
+                },
+            }
+            # Try to fetch upcoming invoice for next amount due
+            try:
+                upcoming = stripe.Invoice.upcoming(subscription=sub.get("id"))  # type: ignore
+                if upcoming:
+                    subscription["next_invoice_amount_due"] = upcoming.get("amount_due")
+                    subscription["next_invoice_currency"] = upcoming.get("currency")
+                    subscription["next_payment_attempt"] = upcoming.get("next_payment_attempt")
+            except Exception:
+                # Swallow errors when upcoming invoice is not available
+                pass
+    except Exception:
+        # Non-fatal: ignore subscription enrichment if anything fails
+        subscription = None
+
+    out: Dict[str, Any] = {"plan": plan, "usage": usage}
+    if subscription:
+        out["subscription"] = subscription
+    return out
 
 
 @router.post("/checkout/session")
@@ -176,6 +213,48 @@ async def create_customer_portal(user=Depends(get_current_user)) -> Dict[str, An
         return_url="http://localhost:5173/dashboard",
     )
     return {"url": session["url"]}
+
+
+@router.post("/subscription/cancel")
+async def cancel_subscription(payload: Dict[str, Any], user=Depends(get_current_user)) -> Dict[str, Any]:
+    """Cancel a subscription. By default, cancels at period end. Pass atPeriodEnd=False to cancel immediately."""
+    _require_stripe()
+    at_period_end = payload.get("atPeriodEnd", True)
+    udoc = await col("users").find_one({"_id": ObjectId(user.get("sub"))})
+    sub_id = (udoc or {}).get("subscriptionId")
+    if not sub_id:
+        raise HTTPException(status_code=400, detail="No active subscription")
+    try:
+        if at_period_end:
+            sub = stripe.Subscription.modify(sub_id, cancel_at_period_end=True)  # type: ignore
+            # Keep plan as-is until end of period
+        else:
+            stripe.Subscription.delete(sub_id)  # type: ignore
+            # Immediate cancellation: downgrade to free
+            await col("users").update_one(
+                {"_id": ObjectId(user.get("sub"))},
+                {"$set": {"plan": "free"}, "$unset": {"subscriptionId": ""}},
+            )
+            return {"status": "canceled", "plan": "free"}
+        # Return updated summary
+        return {"status": sub.get("status"), "cancel_at_period_end": sub.get("cancel_at_period_end", False)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to cancel subscription: {e}")
+
+
+@router.post("/subscription/resume")
+async def resume_subscription(user=Depends(get_current_user)) -> Dict[str, Any]:
+    """Resume a subscription that was set to cancel at period end."""
+    _require_stripe()
+    udoc = await col("users").find_one({"_id": ObjectId(user.get("sub"))})
+    sub_id = (udoc or {}).get("subscriptionId")
+    if not sub_id:
+        raise HTTPException(status_code=400, detail="No active subscription")
+    try:
+        sub = stripe.Subscription.modify(sub_id, cancel_at_period_end=False)  # type: ignore
+        return {"status": sub.get("status"), "cancel_at_period_end": sub.get("cancel_at_period_end", False)}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to resume subscription: {e}")
 
 
 @router.post("/webhook")

@@ -88,9 +88,19 @@ export async function generateContent(payload: ContentRequest) {
 }
 
 // Billing
+export type SubscriptionSummary = {
+  status?: string
+  current_period_end?: number
+  cancel_at_period_end?: boolean
+  price?: { id?: string; unit_amount?: number; currency?: string; interval?: string }
+  next_invoice_amount_due?: number
+  next_invoice_currency?: string
+  next_payment_attempt?: number
+}
+
 export async function getBillingStatus() {
   const res = await api.get('/billing/me')
-  return res.data as { plan: string; usage: Record<string, unknown> }
+  return res.data as { plan: string; usage: Record<string, unknown>; subscription?: SubscriptionSummary }
 }
 
 export async function createCheckoutSession(
@@ -108,6 +118,16 @@ export async function createCheckoutSession(
 export async function createBillingPortal() {
   const res = await api.post('/billing/portal')
   return res.data as { url: string }
+}
+
+export async function cancelSubscription(atPeriodEnd: boolean = true) {
+  const res = await api.post('/billing/subscription/cancel', { atPeriodEnd })
+  return res.data as { status: string; cancel_at_period_end?: boolean; plan?: string }
+}
+
+export async function resumeSubscription() {
+  const res = await api.post('/billing/subscription/resume')
+  return res.data as { status: string; cancel_at_period_end?: boolean }
 }
 
 export async function getContentById(id: string) {

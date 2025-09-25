@@ -1,110 +1,202 @@
-# AI Tutoring System
+# Tutor AI
 
-A Streamlit-based multi-agent tutoring app with content generation, question setting, feedback evaluation, and knowledge-base search.
+Multi Agent AI tutoring system with a Python FastAPI backend and a modern React (Vite + TypeScript + Chakra UI) frontend. Generate personalized content, set practice questions, and receive actionable feedback—all in one place.
 
-## Prereqs
-- Python 3.10 or 3.11 (recommended)
-- A Google Generative AI API key in the env var `GEMINI_API_KEY` (for content/questions/feedback). If not set, parts of the app will fall back to simple heuristics but AI features may fail.
+## Table of Contents
 
-## Setup
+- [Overview](#overview)
+- [Key Features](#key-features)
+- [Plans and Pricing](#plans-and-pricing)
+- [Project Structure](#project-structure)
+- [Backend (FastAPI)](#backend-fastapi)
+	- [Setup](#setup)
+	- [Run](#run)
+	- [Notable Endpoints](#notable-endpoints)
+- [Frontend (React + Vite + TypeScript)](#frontend-react--vite--typescript)
+	- [Setup & Run](#setup--run)
+- [Usage Flow](#usage-flow)
+- [Quotas & Enforcement](#quotas--enforcement)
+- [Billing Notes](#billing-notes)
+- [Security](#security)
+- [Troubleshooting](#troubleshooting)
+- [License](#license)
+
+## Overview
+
+Tutor AI helps learners create study materials, practice with intelligent question sets, and track progress with feedback and analytics. It includes:
+
+- React frontend (`client/`) for the user experience
+- FastAPI backend (`server/`) for APIs, auth, persistence, and billing
+- MongoDB storage (via Motor) for users, content, questions, and progress
+- Optional Stripe subscriptions for Standard/Premium plans
+
+## Key Features
+
+- Personalized content generation (topics, difficulty, objectives)
+- Intelligent question generation (types, distribution, Bloom levels)
+- Feedback and scoring for submitted answers
+- Progress dashboard and recent activity
+- Authentication with JWT
+- Plans and quotas (free vs paid) with server-side enforcement
+- Billing: Stripe Checkout, Billing Portal, cancel/resume at period end
+
+## Plans and Pricing
+
+| Plan     | Price       | Content Generations | Question Generations | Feedback Evaluations | Notes          |
+|----------|-------------|---------------------|----------------------|----------------------|----------------|
+| Free     | Free        | —                   | 10                   | —                    | Basic features |
+| Standard | $10/month   | 100                 | 100                  | 100                  | —              |
+| Premium  | $50/month   | Unlimited           | Unlimited            | Unlimited            | —              |
+
+When limits are exceeded or a paid-only feature is accessed on the Free plan, the server returns HTTP 402 (Payment Required). The client intercepts 402 responses and redirects to the Pricing page.
+
+## Project Structure
+
+```
+Tutor-AI/
+	client/                # React + Vite + TS + Chakra UI frontend
+		src/
+			pages/             # Pages (Landing, Login, Signup, Dashboard, Content, Questions, Feedback, Progress)
+			components/        # Reusable UI (Navbar, PricingPlans, etc.)
+			api/               # Axios API client and types
+			context/           # Auth context (JWT, plan, usage, subscription)
+	server/                # FastAPI backend
+		routers/             # Feature routers (auth, content, questions, answers, progress, billing)
+		main.py              # App wiring
+		config.py            # Environment configuration
+		database.py          # Mongo (Motor) connection
+		auth.py              # Auth helpers
+		schemas.py           # Pydantic models
+	agents/                # Multi-agent content/question/feedback logic
+	utils/                 # NLP/information retrieval helpers
+	database/              # Session management helpers
+	requirements.txt       # Python dependencies
+```
+
+## Backend (FastAPI)
+
+Prereqs:
+- Python 3.10+ (3.11 recommended)
+- MongoDB (set `MONGODB_URI`)
+
+### Setup
 ```powershell
-# From the repo root
+# From repo root
 python -m venv .venv
 .\.venv\Scripts\Activate.ps1
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# Download NLTK data (one-time)
+# (Optional) Download NLTK data for NLP helpers
 python download_nltk_data.py
 
-# Set your API key for this session (or use a .env file)
-$env:GEMINI_API_KEY = "<your_api_key_here>"
+# Configure environment (create .env at project root)
 ```
 
-Optionally create a `.env` file in the project root:
-```
-GEMINI_API_KEY=<your_api_key_here>
-```
+Create a `.env` file at the project root:
 
+```env
+MONGODB_URI=mongodb+srv://... (or mongodb://localhost:27017)
+MONGODB_DB=tutor_ai
+JWT_SECRET=change-me
+ALLOWED_ORIGINS=http://localhost:5173
 
+# Optional: AI provider key if used by agents
+GEMINI_API_KEY=your_key
 
-
-## Run
-```powershell
-streamlit run app.py
-```
-
-The app will start on http://localhost:8501 (or the port configured in `.streamlit/config.toml`).
-
-## Notes
-- Data persists under `data/sessions` as JSON files.
-- If you see NLTK lookup errors (e.g., `punkt`), re-run `python download_nltk_data.py`.
-- If Google API calls fail, ensure `google-genai` is installed and `GEMINI_API_KEY` is set.
-
-
-## FastAPI backend (React client)
-
-This repo also includes a FastAPI backend under `server/` and a React client under `client/`.
-
-Run the API locally:
-
-```powershell
-cd server
-uvicorn server.main:app --host 127.0.0.1 --port 8001 --reload
-```
-
-Run the React client:
-
-```powershell
-cd client
-npm install
-npm run dev
-```
-
-The client expects `VITE_API_BASE_URL` (e.g., `http://127.0.0.1:8001`). In dev, you can either:
-1) Set `VITE_API_BASE_URL=http://127.0.0.1:8001` in `client/.env.local`, or
-2) Use the Vite proxy at `/api` (already configured) and call the API with a base URL of `/api`.
-
-### Plans and limits
-
-- New users start on plan `free`.
-- Free plan: up to 10 content generations per month.
-- Questions generation and feedback evaluation require a paid plan (`standard` or `premium`).
-
-### Optional: Stripe billing
-
-Set these environment variables (e.g., in `.env`) to enable Stripe subscription checkout and webhooks:
-
-```
-STRIPE_SECRET_KEY=sk_live_or_test
+# Optional: Stripe billing
+STRIPE_SECRET_KEY=sk_test_...
 STRIPE_WEBHOOK_SECRET=whsec_...
 STRIPE_PRICE_STANDARD=price_...
 STRIPE_PRICE_PREMIUM=price_...
 ```
 
-Dev flow without webhooks: the server also exposes `POST /billing/confirm` which accepts `{ session_id }` and will verify the Checkout Session and update the user's plan. The React client will call this automatically when you land back on `/dashboard?session=success&session_id=...`.
-
-Optionally, you can provide Stripe price IDs from the client-side env (useful if you don't want to set price IDs on the server):
-
+### Run
+```powershell
+uvicorn server.main:app --host 127.0.0.1 --port 8001 --reload
 ```
-# client/.env.local
-VITE_STRIPE_PRICE_STANDARD=price_...
-VITE_STRIPE_PRICE_PREMIUM=price_...
+
+### Notable Endpoints
+- Auth: `/auth/signup`, `/auth/login`, `/auth/me`, `/auth/profile`
+- Content: `/content/generate`, `/content/{id}`
+- Questions: `/questions/generate`
+- Answers/Feedback: `/answers/submit`
+- Progress: `/progress/me`
+- Billing:
+	- `GET /billing/me` – plan, usage, optional subscription summary
+	- `POST /billing/checkout/session` – start Stripe Checkout (price=standard|premium)
+	- `POST /billing/confirm` – confirm session in dev (no webhooks)
+	- `POST /billing/portal` – open Billing Portal
+	- `POST /billing/webhook` – Stripe webhook (prod)
+	- `POST /billing/subscription/cancel` – schedule/immediate cancel
+	- `POST /billing/subscription/resume` – undo cancel-at-period-end
+
+## Frontend (React + Vite + TypeScript)
+
+Prereqs:
+- Node 18+
+
+### Setup & Run
+```powershell
+cd client
+npm install
+
+# Configure client env (client/.env.local)
+```
+
+Create `client/.env.local`:
+
+```env
 VITE_API_BASE_URL=http://127.0.0.1:8001
+VITE_STRIPE_PRICE_STANDARD=price_...  # optional
+VITE_STRIPE_PRICE_PREMIUM=price_...   # optional
 ```
 
-If both server-side `STRIPE_PRICE_*` and client-side `VITE_STRIPE_PRICE_*` are set, the client will pass its price ID explicitly and the server will accept it.
+```powershell
+npm run dev
+```
 
-Endpoints:
+The dev server runs at http://localhost:5173. If `VITE_API_BASE_URL` is not set, the client can use the dev proxy `/api` configured in Vite.
 
-- `GET /billing/me` – get current plan and usage
-- `POST /billing/checkout/session` – create a checkout session (`{ price: "standard" | "premium" }`)
-- `POST /billing/portal` – open the customer billing portal
-- `POST /billing/webhook` – Stripe webhook to update user plan (configure in Stripe dashboard)
-- `GET /billing/prices` – dev helper to list active Stripe Price IDs you can use
+## Usage Flow
 
-If you see a 400 with message "Invalid or unconfigured price":
-- Provide `priceId` explicitly when calling `/billing/checkout/session`, or
-- Set server envs `STRIPE_PRICE_STANDARD` / `STRIPE_PRICE_PREMIUM`, or
-- Set client envs `VITE_STRIPE_PRICE_STANDARD` / `VITE_STRIPE_PRICE_PREMIUM` (the client will pass `priceId`).
+1) Create an account (Signup) and login
+2) Generate content (topic, difficulty, objectives)
+3) Create question sets for the content
+4) Submit answers to receive feedback and scores
+5) Track progress on the Dashboard
+6) Upgrade to Standard/Premium for higher or unlimited limits
+
+## Quotas & Enforcement
+
+- Free users are limited and certain routes are paid-only
+- Server raises HTTP 402 when over quota or for paid-only features
+- Client intercepts 402 and redirects to the Pricing page
+
+## Billing Notes
+
+- Development without webhooks: after Stripe Checkout returns to `/dashboard?session_id=...`, the client calls `POST /billing/confirm` to update the plan
+- Production: configure `STRIPE_WEBHOOK_SECRET` and point Stripe webhooks to `/billing/webhook`
+- Manage/cancel subscription via Billing Portal or the Settings modal (sidebar)
+
+## Security
+
+- JWT-based auth (HS256) with configurable expiry
+- CORS origins controlled by `ALLOWED_ORIGINS`
+
+## Troubleshooting
+
+- Backend not starting (exit code 1):
+	- Check `.env` values (MongoDB URI, JWT_SECRET)
+	- Ensure MongoDB is reachable
+	- Verify Python version and that `requirements.txt` is installed
+- 402 Payment Required on client:
+	- You’ve hit a limit or a paid-only feature on a free plan
+	- Upgrade via Pricing or log in as a paid user
+- Stripe: "Invalid or unconfigured price":
+	- Provide `priceId` from client env, or set server `STRIPE_PRICE_*`
+
+## License
+
+This project is for educational purposes. Please review and adapt licensing as needed for your use case.
 

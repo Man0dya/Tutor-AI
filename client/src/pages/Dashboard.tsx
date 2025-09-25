@@ -2,6 +2,8 @@ import { Button, SimpleGrid, Heading, Stack, Text, Icon, Flex, Box, Badge, HStac
 import PrivateLayout from '../components/PrivateLayout'
 import { Link as RouterLink } from 'react-router-dom'
 import { MdDescription, MdQuiz, MdTrendingUp, MdArrowForward, MdCreate, MdAnalytics } from 'react-icons/md'
+import { useEffect, useState } from 'react'
+import { getMyProgress, ProgressOut } from '../api/client'
 
 const quickActions = [
   {
@@ -30,13 +32,51 @@ const quickActions = [
   }
 ]
 
-const recentStats = [
-  { label: 'Study Sessions', value: '12', change: '+3 this week' },
-  { label: 'Questions Answered', value: '48', change: '+15 today' },
-  { label: 'Average Score', value: '85%', change: '+5% improvement' }
-]
-
 export default function Dashboard() {
+  const [progressData, setProgressData] = useState<ProgressOut>({})
+  const [loading, setLoading] = useState(true)
+
+  useEffect(() => {
+    getMyProgress()
+      .then(setProgressData)
+      .catch(() => {})
+      .finally(() => setLoading(false))
+  }, [])
+
+  // Calculate study sessions from content count (content creation sessions)
+  const studySessions = (progressData.content_count ?? 0) + (progressData.recent_question_sets?.length ?? 0)
+  
+  const recentStats = [
+    { 
+      label: 'Study Sessions', 
+      value: studySessions.toString(), 
+      change: progressData.content_count ? `${progressData.content_count} content created` : 'Start creating content'
+    },
+    { 
+      label: 'Questions Answered', 
+      value: (progressData.questions_answered ?? 0).toString(), 
+      change: progressData.questions_answered ? 'Keep practicing!' : 'Start answering questions'
+    },
+    { 
+      label: 'Average Score', 
+      value: `${(progressData.average_score ?? 0).toFixed(1)}%`, 
+      change: progressData.average_score ? (progressData.average_score >= 70 ? 'Great performance!' : 'Room for improvement') : 'Take your first quiz'
+    }
+  ]
+
+  if (loading) {
+    return (
+      <PrivateLayout>
+        <Stack spacing={8}>
+          <Box>
+            <Heading size="xl" color="gray.800" mb={2}>Loading...</Heading>
+            <Text color="gray.600" fontSize="lg">Fetching your progress data</Text>
+          </Box>
+        </Stack>
+      </PrivateLayout>
+    )
+  }
+
   return (
     <PrivateLayout>
       <Stack spacing={8}>
@@ -128,12 +168,113 @@ export default function Dashboard() {
             borderRadius="12px"
             borderWidth="1px"
             borderColor="gray.200"
-            p={6}
             boxShadow="0 2px 4px rgba(0, 0, 0, 0.04)"
+            overflow="hidden"
           >
-            <Text color="gray.500" textAlign="center" py={8}>
-              Your recent study sessions will appear here
-            </Text>
+            {(() => {
+              const activities: Array<{
+                type: string
+                title: string
+                time: string
+                icon: any
+                color: string
+                link: string
+              }> = []
+              
+              // Add recent content activities
+              if (progressData.recent_contents?.length) {
+                progressData.recent_contents.slice(0, 3).forEach(content => {
+                  activities.push({
+                    type: 'content',
+                    title: `Created study material: ${content.topic}`,
+                    time: content.createdAt,
+                    icon: MdDescription,
+                    color: 'purple',
+                    link: `/content/view?id=${content.id}`
+                  })
+                })
+              }
+              
+              // Add recent question set activities
+              if (progressData.recent_question_sets?.length) {
+                progressData.recent_question_sets.slice(0, 2).forEach(qs => {
+                  activities.push({
+                    type: 'questions',
+                    title: `Generated ${qs.questionCount} practice questions`,
+                    time: qs.createdAt,
+                    icon: MdQuiz,
+                    color: 'blue',
+                    link: `/questions?content_id=${qs.contentId}`
+                  })
+                })
+              }
+              
+              // Add recent feedback activities
+              if (progressData.recent_feedback?.length) {
+                progressData.recent_feedback.slice(0, 2).forEach(feedback => {
+                  activities.push({
+                    type: 'feedback',
+                    title: `Completed quiz - Score: ${feedback.overallScore.toFixed(1)}%`,
+                    time: feedback.createdAt,
+                    icon: MdTrendingUp,
+                    color: feedback.overallScore >= 70 ? 'green' : 'orange',
+                    link: `/feedback?id=${feedback.id}`
+                  })
+                })
+              }
+              
+              // Sort by most recent
+              activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
+              
+              return activities.length > 0 ? (
+                <Stack spacing={0}>
+                  {activities.slice(0, 5).map((activity, index) => (
+                    <Box key={index}>
+                      <HStack
+                        as={RouterLink}
+                        to={activity.link}
+                        p={4}
+                        _hover={{ bg: 'gray.50' }}
+                        transition="background 0.2s ease"
+                        textDecoration="none"
+                        _focus={{ outline: 'none' }}
+                      >
+                        <Flex
+                          align="center"
+                          justify="center"
+                          w={10}
+                          h={10}
+                          borderRadius="10px"
+                          bg={`${activity.color}.100`}
+                        >
+                          <Icon as={activity.icon} boxSize={5} color={`${activity.color}.500`} />
+                        </Flex>
+                        <Box flex="1">
+                          <Text fontWeight="500" color="gray.800" fontSize="sm" mb={1}>
+                            {activity.title}
+                          </Text>
+                          <Text fontSize="xs" color="gray.500">
+                            {new Date(activity.time).toLocaleString()}
+                          </Text>
+                        </Box>
+                        <Icon as={MdArrowForward} boxSize={4} color="gray.400" />
+                      </HStack>
+                      {index < activities.slice(0, 5).length - 1 && (
+                        <Box height="1px" bg="gray.100" mx={4} />
+                      )}
+                    </Box>
+                  ))}
+                </Stack>
+              ) : (
+                <Box p={8} textAlign="center">
+                  <Icon as={MdCreate} boxSize={12} color="gray.300" mb={4} />
+                  <Text color="gray.500" mb={2}>No recent activity yet</Text>
+                  <Text color="gray.400" fontSize="sm">
+                    Start by creating some study content or taking a quiz
+                  </Text>
+                </Box>
+              )
+            })()}
           </Box>
         </Box>
       </Stack>

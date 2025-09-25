@@ -151,6 +151,18 @@ export async function getMyProgress() {
   return res.data
 }
 
+export interface ProfileUpdateRequest {
+  name: string
+  email: string
+  current_password?: string
+  new_password?: string
+}
+
+export async function updateProfile(data: ProfileUpdateRequest) {
+  const res = await api.put<UserProfile>('/auth/profile', data)
+  return res.data
+}
+
 // Helper: extract a human-friendly error message from Axios/FastAPI errors
 export function getErrorMessage(err: any): string {
   const d = err?.response?.data

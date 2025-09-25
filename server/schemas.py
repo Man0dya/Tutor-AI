@@ -10,6 +10,12 @@ class LoginRequest(BaseModel):
     email: EmailStr
     password: str
 
+class ProfileUpdateRequest(BaseModel):
+    name: str = Field(min_length=1)
+    email: EmailStr
+    current_password: Optional[str] = None
+    new_password: Optional[str] = Field(None, min_length=6)
+
 class UserOut(BaseModel):
     id: str
     email: EmailStr

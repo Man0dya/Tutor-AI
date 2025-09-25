@@ -6,12 +6,13 @@ export type User = {
   name?: string
 }
 
-type AuthContextValue = {
+interface AuthContextValue {
   user: User | null
   token: string | null
   login: (email: string, password: string) => Promise<void>
   signup: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
+  refreshUser: () => Promise<void>
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
@@ -83,8 +84,20 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     localStorage.removeItem('auth_user')
   }
 
+  const refreshUser = async () => {
+    try {
+      const userProfile = await getCurrentUser()
+      const u: User = { email: userProfile.email, name: userProfile.name }
+      setUser(u)
+      localStorage.setItem('auth_user', JSON.stringify(u))
+    } catch (error) {
+      // If refresh fails, keep current user data
+      console.error('Failed to refresh user profile:', error)
+    }
+  }
+
   const value = useMemo(
-    () => ({ user, token, login, signup, logout }),
+    () => ({ user, token, login, signup, logout, refreshUser }),
     [user, token]
   )
 

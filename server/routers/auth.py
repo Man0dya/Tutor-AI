@@ -2,9 +2,10 @@ from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta
 from typing import Optional
+from bson import ObjectId
 from ..auth import verify_password, get_password_hash, create_access_token, get_current_user
 from ..database import get_db
-from ..schemas import SignupRequest, LoginRequest, UserOut
+from ..schemas import SignupRequest, LoginRequest, UserOut, ProfileUpdateRequest
 from ..config import JWT_EXPIRE_MINUTES
 from pymongo.errors import DuplicateKeyError
 
@@ -57,4 +58,52 @@ async def get_current_user_profile(user=Depends(get_current_user)) -> UserOut:
         id=user.get("sub"),
         email=user.get("email"),
         name=user.get("name", "")
+    )
+
+@router.put("/profile", response_model=UserOut)
+async def update_profile(
+    payload: ProfileUpdateRequest, 
+    user=Depends(get_current_user), 
+    db=Depends(get_db)
+) -> UserOut:
+    user_id = user.get("sub")
+    current_user = await db.users.find_one({"_id": ObjectId(user_id)})
+    
+    if not current_user:
+        raise HTTPException(status_code=404, detail="User not found")
+    
+    # Check if email is being changed and if it's already taken by another user
+    if payload.email != current_user.get("email"):
+        existing_user = await db.users.find_one({"email": payload.email})
+        if existing_user and str(existing_user["_id"]) != user_id:
+            raise HTTPException(status_code=400, detail="Email already registered")
+    
+    # Prepare update data
+    update_data = {
+        "name": payload.name,
+        "email": payload.email
+    }
+    
+    # Handle password change if provided
+    if payload.new_password:
+        if not payload.current_password:
+            raise HTTPException(status_code=400, detail="Current password is required to set new password")
+        
+        # Verify current password
+        if not verify_password(payload.current_password, current_user.get("password")):
+            raise HTTPException(status_code=400, detail="Current password is incorrect")
+        
+        # Hash and set new password
+        update_data["password"] = get_password_hash(payload.new_password)
+    
+    # Update user in database
+    await db.users.update_one(
+        {"_id": ObjectId(user_id)},
+        {"$set": update_data}
+    )
+    
+    return UserOut(
+        id=user_id,
+        email=payload.email,
+        name=payload.name
     )

@@ -234,60 +234,7 @@ export default function Landing() {
 
         
 
-        {/* Testimonial Section */}
-        <Box mt={24} mb={8}>
-          <Heading size="lg" mb={8} textAlign="center" color="gray.700" fontWeight="extrabold" letterSpacing="tight">
-            What Our Users Say
-          </Heading>
-          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8}>
-            {[
-              {
-                name: 'Ava R.',
-                text: '“Tutor AI made studying so much easier and more fun. The questions are spot on and the feedback is super helpful!”',
-                role: 'University Student',
-                color: 'purple.500',
-              },
-              {
-                name: 'James T.',
-                text: '“I love the personalized content and analytics. My grades improved after just a few weeks!”',
-                role: 'High School Student',
-                color: 'blue.500',
-              },
-              {
-                name: 'Priya S.',
-                text: '“The Pro plan is worth every cent. The support is fast and the AI is amazing!”',
-                role: 'Parent',
-                color: 'teal.500',
-              },
-            ].map((t, i) => (
-              <Box
-                key={i}
-                bg="white"
-                borderRadius="2xl"
-                boxShadow="0 4px 24px rgba(128,90,213,0.10)"
-                p={8}
-                textAlign="center"
-                borderLeftWidth="8px"
-                borderLeftColor={t.color}
-                position="relative"
-                _before={{
-                  content: '"“"',
-                  position: 'absolute',
-                  top: 4,
-                  left: 6,
-                  fontSize: '5xl',
-                  color: t.color,
-                  opacity: 0.18,
-                  zIndex: 0,
-                }}
-              >
-                <Text fontSize="lg" color="gray.700" fontWeight="medium" mb={4} position="relative" zIndex={1}>{t.text}</Text>
-                <Text fontWeight="bold" color={t.color}>{t.name}</Text>
-                <Text fontSize="sm" color="gray.400">{t.role}</Text>
-              </Box>
-            ))}
-          </SimpleGrid>
-        </Box>
+        
 
         {/* Pricing Plans Section */}
         <Box mt={20} position="relative" zIndex={2} animation="fadeInUp 1.2s cubic-bezier(.4,0,.2,1)">

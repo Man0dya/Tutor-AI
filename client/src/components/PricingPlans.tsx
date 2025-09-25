@@ -6,11 +6,10 @@ import { createCheckoutSession } from "../api/client";
 const plans = [
   {
     name: "Free",
-    price: "$0/month",
+    price: "Free",
     icon: FaAt,
     features: [
-      "10 free question generations",
-      "5 free feedback evaluations",
+      "10 question generations",
       "Basic features",
     ],
     gradient: "linear(to-br, gray.100, gray.50)",
@@ -20,13 +19,13 @@ const plans = [
     highlight: false,
   },
   {
-    name: "Pro",
-    price: "$9.99/month",
+    name: "Standard",
+    price: "$10/month",
     icon: FaStar,
     features: [
-      "Unlimited question generations",
-      "Unlimited feedback evaluations",
-      "Priority support",
+      "100 content generations",
+      "100 question generations",
+      "100 feedback evaluations",
     ],
     gradient: "linear(to-br, purple.400, blue.400)",
     color: "white",
@@ -35,13 +34,13 @@ const plans = [
     highlight: true,
   },
   {
-    name: "Enterprise",
-    price: "$29.99/month",
+    name: "Premium",
+    price: "$50/month",
     icon: FaCheck,
     features: [
-      "Custom AI models",
-      "Team access",
-      "Dedicated support",
+      "Unlimited content generations",
+      "Unlimited question generations",
+      "Unlimited feedback evaluations",
     ],
     gradient: "linear(to-br, blue.400, teal.400)",
     color: "white",
@@ -148,10 +147,12 @@ const PricingPlans: React.FC = () => {
             onClick={async () => {
               if (plan.name.toLowerCase() === 'free') {
                 // Free plan: no checkout; maybe just notify
-                alert('You are on the Free plan with 10 content generations per month.')
+                alert('You are on the Free plan with 10 question generations and basic features.')
                 return
               }
-              const key = plan.name.toLowerCase() === 'pro' ? 'standard' : 'premium'
+              let key: 'standard' | 'premium' = 'standard'
+              if (plan.name.toLowerCase() === 'standard') key = 'standard'
+              else if (plan.name.toLowerCase() === 'premium') key = 'premium'
               // Allow passing a direct Stripe Price ID from client env as a fallback
               const priceId = key === 'standard'
                 ? (import.meta.env.VITE_STRIPE_PRICE_STANDARD as string | undefined)

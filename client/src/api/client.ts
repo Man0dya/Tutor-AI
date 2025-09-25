@@ -6,6 +6,23 @@ export const api = axios.create({
   baseURL,
 })
 
+// Redirect to pricing if server signals payment required
+api.interceptors.response.use(
+  (res) => res,
+  (error) => {
+    const status = error?.response?.status
+    if (status === 402) {
+      // Optionally pass code/message to UI via querystring
+      const code = error?.response?.data?.code
+      const url = code ? `/pricing?code=${encodeURIComponent(code)}` : '/pricing'
+      try {
+        if (typeof window !== 'undefined') window.location.assign(url)
+      } catch {}
+    }
+    return Promise.reject(error)
+  }
+)
+
 export function setAuthToken(token?: string) {
   if (token) {
     api.defaults.headers.common['Authorization'] = `Bearer ${token}`
@@ -59,11 +76,38 @@ export type ContentOut = {
   topic: string
   content: string
   metadata: Record<string, unknown>
+  // Optional denormalized fields used in UI
+  subject?: string
+  difficulty?: string
+  contentType?: string
 }
 
 export async function generateContent(payload: ContentRequest) {
   const res = await api.post<ContentOut>('/content/generate', payload)
   return res.data
+}
+
+// Billing
+export async function getBillingStatus() {
+  const res = await api.get('/billing/me')
+  return res.data as { plan: string; usage: Record<string, unknown> }
+}
+
+export async function createCheckoutSession(
+  price: 'standard' | 'premium',
+  successUrl?: string,
+  cancelUrl?: string,
+  priceId?: string
+) {
+  const payload: any = { price, successUrl, cancelUrl }
+  if (priceId) payload.priceId = priceId
+  const res = await api.post('/billing/checkout/session', payload)
+  return res.data as { id: string; url?: string }
+}
+
+export async function createBillingPortal() {
+  const res = await api.post('/billing/portal')
+  return res.data as { url: string }
 }
 
 export async function getContentById(id: string) {

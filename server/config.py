@@ -12,3 +12,9 @@ GEMINI_API_KEY = os.getenv("GEMINI_API_KEY", "")
 
 APP_NAME = "Tutor AI API"
 ALLOWED_ORIGINS = os.getenv("ALLOWED_ORIGINS", "*").split(",")
+
+# Billing / Stripe (optional; enable if provided)
+STRIPE_SECRET_KEY = os.getenv("STRIPE_SECRET_KEY", "")
+STRIPE_WEBHOOK_SECRET = os.getenv("STRIPE_WEBHOOK_SECRET", "")
+STRIPE_PRICE_STANDARD = os.getenv("STRIPE_PRICE_STANDARD", "")
+STRIPE_PRICE_PREMIUM = os.getenv("STRIPE_PRICE_PREMIUM", "")

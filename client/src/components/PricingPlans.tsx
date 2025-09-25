@@ -1,6 +1,7 @@
 import React from "react";
 import { Box, Button, Flex, Heading, Text, List, ListItem, ListIcon, useColorModeValue, Icon } from "@chakra-ui/react";
 import { FaCheck, FaStar, FaAt } from "react-icons/fa";
+import { createCheckoutSession } from "../api/client";
 
 const plans = [
   {
@@ -144,6 +145,34 @@ const PricingPlans: React.FC = () => {
             fontWeight="bold"
             borderRadius="xl"
             letterSpacing="wide"
+            onClick={async () => {
+              if (plan.name.toLowerCase() === 'free') {
+                // Free plan: no checkout; maybe just notify
+                alert('You are on the Free plan with 10 content generations per month.')
+                return
+              }
+              const key = plan.name.toLowerCase() === 'pro' ? 'standard' : 'premium'
+              // Allow passing a direct Stripe Price ID from client env as a fallback
+              const priceId = key === 'standard'
+                ? (import.meta.env.VITE_STRIPE_PRICE_STANDARD as string | undefined)
+                : (import.meta.env.VITE_STRIPE_PRICE_PREMIUM as string | undefined)
+              try {
+                const session = await createCheckoutSession(
+                  key as 'standard' | 'premium',
+                  window.location.origin + '/dashboard',
+                  window.location.origin + '/pricing',
+                  priceId
+                )
+                if (session.url) {
+                  window.location.assign(session.url)
+                } else {
+                  alert('Checkout session created. Please check your email if the redirect did not happen.')
+                }
+              } catch (e) {
+                console.error(e)
+                alert('Failed to start checkout. Please try again later.')
+              }
+            }}
             _hover={{
               bgGradient: plan.highlight
                 ? "linear(to-r, purple.600, blue.600)"

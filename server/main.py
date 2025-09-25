@@ -9,7 +9,9 @@ from .routers.content import router as content_router
 from .routers.questions import router as questions_router
 from .routers.answers import router as answers_router
 from .routers.progress import router as progress_router
+from .routers.billing import router as billing_router
 
+# Trigger reloads when file changes; .env values are read on process start
 app = FastAPI(title="Tutor-AI API", version="0.1.0")
 
 # CORS for future React app and local Streamlit
@@ -41,6 +43,7 @@ app.include_router(content_router)
 app.include_router(questions_router)
 app.include_router(answers_router)
 app.include_router(progress_router)
+app.include_router(billing_router)
 
 if __name__ == "__main__":
     uvicorn.run("server.main:app", host="0.0.0.0", port=8000, reload=True)

@@ -1,9 +1,10 @@
-import { Button, SimpleGrid, Heading, Stack, Text, Icon, Flex, Box, Badge, HStack } from '@chakra-ui/react'
+import { Button, SimpleGrid, Heading, Stack, Text, Icon, Flex, Box, Badge, HStack, useToast } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
-import { Link as RouterLink } from 'react-router-dom'
+import { Link as RouterLink, useLocation } from 'react-router-dom'
 import { MdDescription, MdQuiz, MdTrendingUp, MdArrowForward, MdCreate, MdAnalytics } from 'react-icons/md'
 import { useEffect, useState } from 'react'
 import { getMyProgress, ProgressOut } from '../api/client'
+import { api } from '../api/client'
 import { useAuth } from '../context/AuthContext'
 
 const quickActions = [
@@ -34,7 +35,9 @@ const quickActions = [
 ]
 
 export default function Dashboard() {
-  const { user } = useAuth()
+  const { user, refreshBilling } = useAuth()
+  const toast = useToast()
+  const location = useLocation()
   const [progressData, setProgressData] = useState<ProgressOut>({})
   const [loading, setLoading] = useState(true)
 
@@ -43,6 +46,19 @@ export default function Dashboard() {
       .then(setProgressData)
       .catch(() => {})
       .finally(() => setLoading(false))
+    // If returning from Stripe checkout success, refresh billing status
+    const params = new URLSearchParams(location.search)
+    const sid = params.get('session_id') || undefined
+    // Confirm if we have a session_id, regardless of presence of a 'session=success' flag
+    if (sid) {
+      api.post('/billing/confirm', { session_id: sid })
+        .catch(() => {})
+        .finally(() => {
+          refreshBilling().then(() => {
+            toast({ title: 'Subscription activated', status: 'success', duration: 4000, isClosable: true })
+          }).catch(() => {})
+        })
+    }
   }, [])
 
   // Calculate study sessions from content count (content creation sessions)

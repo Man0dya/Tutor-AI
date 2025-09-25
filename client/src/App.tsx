@@ -9,10 +9,21 @@ import QuestionsPage from './pages/Questions'
 import ProgressPage from './pages/Progress'
 import FeedbackPage from './pages/Feedback'
 import ContentViewPage from './pages/ContentView'
+import PricingPage from './pages/Pricing'
 import { useAuth } from './context/AuthContext'
+import { useEffect, useState } from 'react'
 
 function PrivateRoute({ children }: { children: ReactElement }) {
   const { user } = useAuth()
+  const [checking, setChecking] = useState(true)
+
+  useEffect(() => {
+    // Allow one tick for AuthContext to hydrate from localStorage
+    const t = setTimeout(() => setChecking(false), 0)
+    return () => clearTimeout(t)
+  }, [])
+
+  if (checking) return <></>
   return user ? children : <Navigate to="/login" replace />
 }
 
@@ -22,6 +33,7 @@ export default function App() {
       <Route path="/" element={<Landing />} />
       <Route path="/login" element={<Login />} />
       <Route path="/signup" element={<Signup />} />
+  <Route path="/pricing" element={<PricingPage />} />
       <Route
         path="/dashboard"
         element={

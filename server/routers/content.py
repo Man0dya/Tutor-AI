@@ -7,6 +7,7 @@ from ..schemas import ContentRequest, ContentOut
 from agents.content_generator import ContentGeneratorAgent
 from ..auth import get_current_user
 from ..database import col
+from ..plan import ensure_content_quota, record_content_generation
 
 router = APIRouter(prefix="/content", tags=["content"])
 
@@ -16,6 +17,9 @@ _content_agent = ContentGeneratorAgent()
 @router.post("/generate", response_model=ContentOut)
 async def generate_content(payload: ContentRequest, user=Depends(get_current_user)) -> ContentOut:
     try:
+        # Enforce plan quota for free users
+        await ensure_content_quota(user.get("sub"))
+
         result = _content_agent.generate_content(
             topic=payload.topic,
             difficulty=payload.difficulty,
@@ -57,8 +61,12 @@ async def generate_content(payload: ContentRequest, user=Depends(get_current_use
             "createdAt": datetime.utcnow().isoformat(),
         }
         await col("content").insert_one(doc)
-
+        # Record successful content generation towards quota
+        await record_content_generation(user.get("sub"))
         return ContentOut(id=doc_id, topic=payload.topic, content=content_text, metadata=metadata)
+    except HTTPException:
+        # Preserve explicit HTTP errors (e.g., 402 quota exceeded)
+        raise
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Content generation failed: {e}")
 

@@ -7,6 +7,7 @@ from ..schemas import AnswerSubmitRequest, FeedbackOut
 from agents.feedback_evaluator import FeedbackEvaluatorAgent
 from ..auth import get_current_user
 from ..database import col
+from ..plan import require_paid_feature
 
 router = APIRouter(prefix="/answers", tags=["answers"]) 
 
@@ -15,6 +16,8 @@ _feedback_agent = FeedbackEvaluatorAgent()
 @router.post("/submit", response_model=FeedbackOut)
 async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_user)) -> FeedbackOut:
     try:
+        # Only available on Standard/Premium
+        await require_paid_feature(user.get("sub"))
         qset = await col("question_sets").find_one({"_id": payload.questionSetId})
         if not qset:
             raise HTTPException(status_code=404, detail="Question set not found")

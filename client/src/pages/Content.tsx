@@ -1,12 +1,14 @@
 import { useState, type ChangeEvent, useMemo, useRef, useEffect } from 'react'
 import { Box, Button, FormControl, FormLabel, Heading, Input, Select, Stack, Textarea, useToast, SimpleGrid, Text, Icon, HStack, Divider, Badge, Wrap, WrapItem, Spacer, Flex, VStack, Progress, Collapse, InputGroup, InputLeftElement } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
-import { generateContent, getErrorMessage } from '../api/client'
+import { generateContent, getErrorMessage, getBillingStatus } from '../api/client'
+import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { MdAutoAwesome, MdArrowForward, MdDownload, MdFiberManualRecord, MdRadioButtonChecked, MdExpandMore, MdChevronRight, MdSearch } from 'react-icons/md'
 import Markdown from '../components/Markdown'
 
 export default function ContentPage() {
+  const { plan, refreshBilling } = useAuth()
   const [topic, setTopic] = useState('')
   const [subject, setSubject] = useState('General')
   const [difficulty, setDifficulty] = useState('Beginner')
@@ -22,6 +24,8 @@ export default function ContentPage() {
   const [progress, setProgress] = useState<number>(0)
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set())
   const [tocQuery, setTocQuery] = useState<string>('')
+  const [usageCount, setUsageCount] = useState<number>(0)
+  const FREE_LIMIT = 10
 
   const headings = useMemo(() => {
     if (!content) return [] as Array<{ id: string; text: string; level: number }>
@@ -99,6 +103,22 @@ export default function ContentPage() {
     setExpandedIds(next)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [headingTree, activePathIds])
+
+  // Load billing usage for free plan
+  useEffect(() => {
+    let cancelled = false
+    const load = async () => {
+      try {
+        // Ensure latest plan/usage
+        await refreshBilling()
+        const b = await getBillingStatus()
+        const count = Number((b.usage as any)?.content?.count ?? 0)
+        if (!cancelled) setUsageCount(Number.isFinite(count) ? count : 0)
+      } catch {}
+    }
+    load()
+    return () => { cancelled = true }
+  }, [refreshBilling])
 
   const toggleNode = (id: string) => {
     setExpandedIds(prev => {
@@ -258,6 +278,10 @@ export default function ContentPage() {
       const res = await generateContent({ topic, subject, difficulty, contentType, learningObjectives: learning_objectives })
       setContent(res.content)
       setContentId(res.id)
+      // Optimistically bump local usage if on free plan
+      if (plan === 'free') {
+        setUsageCount((c) => c + 1)
+      }
       toast({ 
         title: 'Content Generated Successfully!', 
         description: 'Your personalized study material is ready',
@@ -303,6 +327,13 @@ export default function ContentPage() {
             <HStack>
               <Heading size="md" color="gray.800">Generation Settings</Heading>
               <Spacer />
+              {plan === 'free' && (
+                <HStack spacing={3}>
+                  <Badge colorScheme={usageCount >= FREE_LIMIT ? 'red' : 'purple'} variant="subtle">
+                    Free quota: {Math.min(usageCount, FREE_LIMIT)} / {FREE_LIMIT}
+                  </Badge>
+                </HStack>
+              )}
               {!!topic && (
                 <Wrap>
                   <WrapItem><Badge colorScheme="purple" variant="subtle">{subject}</Badge></WrapItem>

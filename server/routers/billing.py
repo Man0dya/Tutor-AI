@@ -1,0 +1,223 @@
+from __future__ import annotations
+
+from fastapi import APIRouter, Depends, HTTPException, Request
+from fastapi.responses import JSONResponse
+from bson import ObjectId
+from typing import Dict, Any
+
+from ..auth import get_current_user
+from ..database import col
+from ..config import (
+    STRIPE_SECRET_KEY,
+    STRIPE_WEBHOOK_SECRET,
+    STRIPE_PRICE_STANDARD,
+    STRIPE_PRICE_PREMIUM,
+)
+
+router = APIRouter(prefix="/billing", tags=["billing"])
+
+try:
+    import stripe  # type: ignore
+except Exception:
+    stripe = None
+
+
+def _require_stripe():
+    if not stripe or not STRIPE_SECRET_KEY:
+        raise HTTPException(status_code=501, detail="Stripe not configured on server")
+    stripe.api_key = STRIPE_SECRET_KEY
+
+
+@router.get("/me")
+async def my_billing_status(user=Depends(get_current_user)) -> Dict[str, Any]:
+    u = await col("users").find_one({"_id": ObjectId(user.get("sub"))})
+    plan = (u.get("plan") if u else None) or "free"
+    usage = (u.get("usage") if u else None) or {}
+    return {"plan": plan, "usage": usage}
+
+
+@router.post("/checkout/session")
+async def create_checkout_session(payload: Dict[str, Any], user=Depends(get_current_user)) -> Dict[str, Any]:
+    _require_stripe()
+    price_key = payload.get("price")  # "standard" | "premium"
+    price_id_override = payload.get("priceId")  # optional direct price id
+    success_url = payload.get("successUrl") or payload.get("success_url") or ""
+    cancel_url = payload.get("cancelUrl") or payload.get("cancel_url") or ""
+
+    price_id = None
+    if price_id_override:
+        price_id = price_id_override
+    elif price_key == "standard":
+        price_id = STRIPE_PRICE_STANDARD
+    elif price_key == "premium":
+        price_id = STRIPE_PRICE_PREMIUM
+    if not price_id:
+        # Provide a clearer message to help configure prices
+        raise HTTPException(
+            status_code=400,
+            detail={
+                "message": "Invalid or unconfigured price",
+                "hint": (
+                    "Pass a valid 'priceId' in the request or configure STRIPE_PRICE_STANDARD/STRIPE_PRICE_PREMIUM on the server, "
+                    "or set VITE_STRIPE_PRICE_STANDARD/VITE_STRIPE_PRICE_PREMIUM on the client."
+                ),
+                "received": {"price": price_key, "priceId": bool(price_id_override)},
+            },
+        )
+
+    # Ensure customer mapping on user
+    user_id = user.get("sub")
+    udoc = await col("users").find_one({"_id": ObjectId(user_id)})
+    customer_id = (udoc or {}).get("stripeCustomerId")
+
+    if not customer_id:
+        # create customer
+        c = stripe.Customer.create(email=user.get("email"))
+        customer_id = c["id"]
+        await col("users").update_one(
+            {"_id": ObjectId(user_id)},
+            {"$set": {"stripeCustomerId": customer_id}},
+        )
+
+    # Ensure success_url contains the session id placeholder so the client can confirm
+    def with_session_id(url: str) -> str:
+        if not url:
+            return "http://localhost:5173/dashboard?session=success&session_id={CHECKOUT_SESSION_ID}"
+        sep = '&' if ('?' in url) else '?'
+        if '{CHECKOUT_SESSION_ID}' in url or 'session_id=' in url:
+            return url
+        return f"{url}{sep}session_id={{CHECKOUT_SESSION_ID}}"
+
+    # Determine plan label for metadata
+    plan_label = "standard" if price_key == "standard" else ("premium" if price_key == "premium" else "standard")
+
+    checkout = stripe.checkout.Session.create(
+        mode="subscription",
+        customer=customer_id,
+        line_items=[{"price": price_id, "quantity": 1}],
+        success_url=with_session_id(success_url),
+        cancel_url=cancel_url or "http://localhost:5173/pricing?session=cancel",
+        metadata={"user_id": user_id, "plan": plan_label},
+    )
+    return {"id": checkout["id"], "url": checkout.get("url")}
+
+
+@router.get("/prices")
+async def list_prices(user=Depends(get_current_user)) -> Dict[str, Any]:
+    """Dev helper: list active Stripe Prices so you can copy price IDs.
+    Returns minimal safe fields: id, nickname/product name, currency, amount, and interval.
+    """
+    _require_stripe()
+    try:
+        prices = stripe.Price.list(active=True, expand=["data.product"])  # type: ignore
+        items = []
+        for p in prices.get("data", []):
+            product = p.get("product") or {}
+            items.append({
+                "id": p.get("id"),
+                "nickname": p.get("nickname") or product.get("name"),
+                "currency": p.get("currency"),
+                "unit_amount": p.get("unit_amount"),
+                "recurring": (p.get("recurring") or {}).get("interval"),
+            })
+        return {"prices": items}
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to list prices: {e}")
+
+
+@router.post("/confirm")
+async def confirm_checkout(payload: Dict[str, Any], user=Depends(get_current_user)) -> Dict[str, Any]:
+    """Confirm a checkout by session_id after returning from success URL.
+    This is helpful when webhooks are not configured in development.
+    """
+    _require_stripe()
+    session_id = payload.get("session_id") or payload.get("sessionId")
+    if not session_id:
+        raise HTTPException(status_code=400, detail="session_id is required")
+    try:
+        sess = stripe.checkout.Session.retrieve(session_id)
+        customer_id = sess.get("customer")
+        sub_id = sess.get("subscription")
+        if not (customer_id and sub_id):
+            raise HTTPException(status_code=400, detail="Invalid checkout session")
+        sub = stripe.Subscription.retrieve(sub_id)
+        price_id = (sub["items"]["data"][0]["price"]["id"]) if sub["items"]["data"] else None
+        if not price_id:
+            raise HTTPException(status_code=400, detail="Subscription has no price")
+        # Prefer explicit plan label from session metadata if provided
+        meta = sess.get("metadata") or {}
+        plan = meta.get("plan") if meta.get("plan") in ("standard", "premium") else None
+        # Fallback: infer by comparing price IDs configured on server
+        if not plan:
+            plan = "standard"
+        if STRIPE_PRICE_PREMIUM and price_id == STRIPE_PRICE_PREMIUM:
+            plan = "premium"
+        elif STRIPE_PRICE_STANDARD and price_id == STRIPE_PRICE_STANDARD:
+            plan = "standard"
+        await col("users").update_one(
+            {"_id": ObjectId(user.get("sub"))},
+            {"$set": {"plan": plan, "stripeCustomerId": customer_id, "subscriptionId": sub_id}},
+        )
+        return {"plan": plan}
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Failed to confirm session: {e}")
+
+
+@router.post("/portal")
+async def create_customer_portal(user=Depends(get_current_user)) -> Dict[str, Any]:
+    _require_stripe()
+    udoc = await col("users").find_one({"_id": ObjectId(user.get("sub"))})
+    if not udoc or not udoc.get("stripeCustomerId"):
+        raise HTTPException(status_code=400, detail="No Stripe customer for user")
+    session = stripe.billing_portal.Session.create(
+        customer=udoc["stripeCustomerId"],
+        return_url="http://localhost:5173/dashboard",
+    )
+    return {"url": session["url"]}
+
+
+@router.post("/webhook")
+async def stripe_webhook(request: Request):
+    _require_stripe()
+    payload = await request.body()
+    sig_header = request.headers.get("stripe-signature")
+    try:
+        event = stripe.Webhook.construct_event(payload, sig_header, STRIPE_WEBHOOK_SECRET)
+    except Exception as e:
+        raise HTTPException(status_code=400, detail=f"Webhook error: {e}")
+
+    # Handle subscription events to set plan on user
+    event_type = event["type"]
+    data = event["data"]["object"]
+
+    # checkout.session.completed -> get subscription and customer
+    if event_type == "checkout.session.completed":
+        customer_id = data.get("customer")
+        sub_id = data.get("subscription")
+        meta = data.get("metadata") or {}
+        # Look up subscription to determine price
+        if customer_id and sub_id:
+            sub = stripe.Subscription.retrieve(sub_id)
+            # Assume single item
+            price_id = (sub["items"]["data"][0]["price"]["id"]) if sub["items"]["data"] else None
+            # Prefer plan from metadata when available
+            plan = meta.get("plan") if meta.get("plan") in ("standard", "premium") else None
+            if not plan:
+                plan = "standard" if price_id == STRIPE_PRICE_STANDARD else ("premium" if price_id == STRIPE_PRICE_PREMIUM else "free")
+            await col("users").update_one(
+                {"stripeCustomerId": customer_id},
+                {"$set": {"plan": plan, "subscriptionId": sub_id}},
+            )
+
+    # customer.subscription.deleted -> downgrade to free
+    if event_type == "customer.subscription.deleted":
+        customer_id = data.get("customer")
+        if customer_id:
+            await col("users").update_one(
+                {"stripeCustomerId": customer_id},
+                {"$set": {"plan": "free"}, "$unset": {"subscriptionId": ""}},
+            )
+
+    return JSONResponse({"status": "ok"})

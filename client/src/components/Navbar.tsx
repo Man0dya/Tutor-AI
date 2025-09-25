@@ -1,10 +1,22 @@
-import { Box, Button, Flex, HStack, Heading, Spacer, Avatar, Text } from '@chakra-ui/react'
+import { Box, Button, Flex, HStack, Heading, Spacer, Avatar, Text, useDisclosure } from '@chakra-ui/react'
+import { useEffect } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
+import { Badge } from '@chakra-ui/react'
+import { createBillingPortal } from '../api/client'
+import UserProfileModal from './UserProfileModal'
 
 export default function Navbar() {
-  const { user, logout } = useAuth()
+  const { user, plan, upgrade, logout, refreshBilling } = useAuth()
   const navigate = useNavigate()
+  const profile = useDisclosure()
+
+  // Ensure plan is always fresh when the navbar mounts or user changes
+  useEffect(() => {
+    if (user) {
+      refreshBilling().catch(() => {})
+    }
+  }, [user])
   return (
     <Box 
       as="header" 
@@ -30,7 +42,52 @@ export default function Navbar() {
             <Flex align="center" gap={3}>
               <Avatar size="sm" name={user.email} bg="purple.500" />
               <Text fontSize="sm" fontWeight="500" color="gray.700">{user.email}</Text>
+              <Badge
+                colorScheme={plan === 'premium' ? 'purple' : plan === 'standard' ? 'blue' : 'gray'}
+                variant="subtle"
+                borderRadius="6px"
+              >
+                {plan.toUpperCase()}
+              </Badge>
             </Flex>
+            {plan === 'free' ? (
+              <Button 
+                onClick={upgrade}
+                colorScheme="purple"
+                variant="solid"
+                size="sm"
+                borderRadius="8px"
+                className="btn-professional"
+              >
+                Upgrade
+              </Button>
+            ) : (
+              <Button 
+                onClick={async () => {
+                  try {
+                    const p = await createBillingPortal()
+                    if (p.url) window.location.assign(p.url)
+                  } catch (e) {
+                    console.error(e)
+                  }
+                }}
+                colorScheme="purple"
+                variant="outline"
+                size="sm"
+                borderRadius="8px"
+                className="btn-professional"
+              >
+                Manage Billing
+              </Button>
+            )}
+            <Button
+              onClick={profile.onOpen}
+              variant="ghost"
+              size="sm"
+              borderRadius="8px"
+            >
+              Settings
+            </Button>
             <Button 
               onClick={() => { logout(); navigate('/'); }} 
               colorScheme="red" 
@@ -67,6 +124,7 @@ export default function Navbar() {
           </HStack>
         )}
       </Flex>
+      <UserProfileModal isOpen={profile.isOpen} onClose={profile.onClose} />
     </Box>
   )
 }

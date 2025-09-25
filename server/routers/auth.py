@@ -1,4 +1,5 @@
 from fastapi import APIRouter, Depends, HTTPException, status
+from datetime import datetime
 from fastapi.security import OAuth2PasswordBearer, OAuth2PasswordRequestForm
 from datetime import timedelta
 from typing import Optional
@@ -21,7 +22,14 @@ async def signup(payload: SignupRequest, db = Depends(get_db)):
         raise HTTPException(status_code=400, detail="Email already registered")
 
     hashed = get_password_hash(payload.password)
-    doc = {"email": payload.email, "password": hashed, "name": payload.name}
+    # New users start on free plan with zeroed usage counters
+    doc = {
+        "email": payload.email,
+        "password": hashed,
+        "name": payload.name,
+        "plan": "free",
+        "usage": {"content": {"count": 0, "periodStart": datetime.utcnow().isoformat()}},
+    }
     try:
         res = await db.users.insert_one(doc)
     except DuplicateKeyError:

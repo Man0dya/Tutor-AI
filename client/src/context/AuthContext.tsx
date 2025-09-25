@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useEffect, useMemo, useState } from 'react'
-import { login as apiLogin, setAuthToken, signup as apiSignup, getCurrentUser } from '../api/client'
+import { login as apiLogin, setAuthToken, signup as apiSignup, getCurrentUser, getBillingStatus } from '../api/client'
 
 export type User = {
   email: string
@@ -13,13 +13,27 @@ interface AuthContextValue {
   signup: (name: string, email: string, password: string) => Promise<void>
   logout: () => void
   refreshUser: () => Promise<void>
+  plan: 'free' | 'standard' | 'premium'
+  refreshBilling: () => Promise<void>
+  upgrade: () => void
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined)
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<User | null>(null)
-  const [token, setToken] = useState<string | null>(null)
+  const [user, setUser] = useState<User | null>(() => {
+    try {
+      const saved = localStorage.getItem('auth_user')
+      return saved ? JSON.parse(saved) : null
+    } catch {
+      return null
+    }
+  })
+  const [token, setToken] = useState<string | null>(() => localStorage.getItem('auth_token'))
+  const [plan, setPlan] = useState<'free' | 'standard' | 'premium'>(() => {
+    const saved = localStorage.getItem('billing_plan')
+    return saved === 'standard' || saved === 'premium' ? (saved as 'standard' | 'premium') : 'free'
+  })
 
   useEffect(() => {
     const savedToken = localStorage.getItem('auth_token')
@@ -43,6 +57,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             } catch {}
           }
         })
+      // Billing status
+      getBillingStatus().then(b => {
+        const p = (b.plan === 'standard' || b.plan === 'premium') ? b.plan : 'free'
+        setPlan(p)
+        localStorage.setItem('billing_plan', p)
+      }).catch(() => {})
     } else if (savedUser) {
       try {
         setUser(JSON.parse(savedUser))
@@ -62,6 +82,12 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       const u: User = { email: userProfile.email, name: userProfile.name }
       setUser(u)
       localStorage.setItem('auth_user', JSON.stringify(u))
+      try {
+        const b = await getBillingStatus()
+        const p = (b.plan === 'standard' || b.plan === 'premium') ? b.plan : 'free'
+        setPlan(p)
+        localStorage.setItem('billing_plan', p)
+      } catch {}
     } catch (error) {
       // Fallback to email-only if profile fetch fails
       const u: User = { email }
@@ -82,6 +108,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     setAuthToken(undefined)
     localStorage.removeItem('auth_token')
     localStorage.removeItem('auth_user')
+    localStorage.removeItem('billing_plan')
+    setPlan('free')
   }
 
   const refreshUser = async () => {
@@ -96,9 +124,22 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     }
   }
 
+  const refreshBilling = async () => {
+    try {
+      const b = await getBillingStatus()
+      const p = (b.plan === 'standard' || b.plan === 'premium') ? b.plan : 'free'
+      setPlan(p)
+      localStorage.setItem('billing_plan', p)
+    } catch {}
+  }
+
+  const upgrade = () => {
+    try { window.location.assign('/pricing') } catch {}
+  }
+
   const value = useMemo(
-    () => ({ user, token, login, signup, logout, refreshUser }),
-    [user, token]
+    () => ({ user, token, login, signup, logout, refreshUser, plan, refreshBilling, upgrade }),
+    [user, token, plan]
   )
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>

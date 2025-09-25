@@ -7,6 +7,7 @@ from ..schemas import QuestionGenRequest, QuestionSetOut
 from agents.question_setter import QuestionSetterAgent
 from ..auth import get_current_user
 from ..database import col
+from ..plan import require_paid_feature
 
 router = APIRouter(prefix="/questions", tags=["questions"])
 
@@ -15,6 +16,9 @@ _question_agent = QuestionSetterAgent()
 @router.post("/generate", response_model=QuestionSetOut)
 async def generate_questions(payload: QuestionGenRequest, user=Depends(get_current_user)) -> QuestionSetOut:
     try:
+        # Only available on Standard/Premium
+        await require_paid_feature(user.get("sub"))
+
         # Fetch content text for the given contentId
         content_doc = await col("content").find_one({"_id": payload.contentId})
         if not content_doc:

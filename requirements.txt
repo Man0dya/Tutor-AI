@@ -12,3 +12,4 @@ motor
 python-jose[cryptography]
 passlib[bcrypt]
 pydantic[email]
+stripe

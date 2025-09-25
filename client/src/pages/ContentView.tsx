@@ -98,17 +98,31 @@ export default function ContentViewPage() {
               </Stack>
             </Box>
             <VStack as="aside" minW={{ base: '0', md: '300px' }} display={{ base: 'none', md: 'flex' }} position="sticky" top="92px" align="stretch">
-              <Box borderWidth="1px" rounded="lg" p={4} bg="white">
-                <Text fontWeight="600" color="gray.700" mb={2}>On this page</Text>
-                <Divider mb={3} />
-                <VStack align="stretch" spacing={2} maxH="70vh" overflowY="auto">
-                  {headings.length === 0 && <Text color="gray.500">No sections</Text>}
+              <Box borderWidth="1px" borderColor="purple.200" rounded="lg" p={4} bg="gray.50" boxShadow="sm">
+                <Text fontWeight="700" color="purple.700" mb={2}>On this page</Text>
+                <Divider borderColor="purple.200" mb={3} />
+                <VStack align="stretch" spacing={1} maxH="70vh" overflowY="auto">
+                  {headings.length === 0 && <Text color="gray.600">No sections</Text>}
                   {headings.map(h => (
-                    <Button key={h.id} variant="link" justifyContent="flex-start" onClick={() => {
-                      const el = document.getElementById(h.id)
-                      if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
-                    }} pl={Math.min((h.level - 1) * 4, 12)} colorScheme="blackAlpha">
-                      <Text noOfLines={1}>{h.text}</Text>
+                    <Button
+                      key={h.id}
+                      variant="ghost"
+                      justifyContent="flex-start"
+                      onClick={() => {
+                        const el = document.getElementById(h.id)
+                        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
+                      }}
+                      size="sm"
+                      bg="transparent"
+                      _hover={{ bg: 'purple.100' }}
+                      color="gray.800"
+                      rounded="md"
+                      pl={Math.min((h.level - 1) * 4, 12)}
+                    >
+                      <HStack>
+                        <Box w="6px" h="6px" rounded="full" bg="purple.400" />
+                        <Text noOfLines={1} fontSize="sm">{h.text}</Text>
+                      </HStack>
                     </Button>
                   ))}
                 </VStack>

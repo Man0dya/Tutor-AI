@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useRef, useState, type ChangeEvent } from 'react'
-import { Box, Button, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, Input, NumberInput, NumberInputField, Radio, RadioGroup, Select, Stack, Text, Textarea, VStack, useToast, Badge } from '@chakra-ui/react'
+import { Box, Button, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, Input, NumberInput, NumberInputField, Radio, RadioGroup, Select, Stack, Text, Textarea, VStack, useToast, Badge, Alert, AlertIcon } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
 import { generateQuestions, Question, submitAnswers, getErrorMessage } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
@@ -21,6 +21,7 @@ export default function QuestionsPage() {
   const [questionSetId, setQuestionSetId] = useState<string>('')
   const [answers, setAnswers] = useState<Record<string, string>>({})
   const [loading, setLoading] = useState(false)
+  const [generating, setGenerating] = useState(false)
   const questionRefs = useRef<Array<HTMLDivElement | null>>([])
 
   const answeredCount = useMemo(() => questions.reduce((acc, _q, i) => acc + (answers[i] ? 1 : 0), 0), [questions, answers])
@@ -36,6 +37,7 @@ export default function QuestionsPage() {
       return
     }
     setLoading(true)
+    setGenerating(true)
     try {
   const res = await generateQuestions({ contentId, questionCount: count, questionTypes: [type] })
   setQuestions(res.questions)
@@ -45,6 +47,7 @@ export default function QuestionsPage() {
       toast({ title: 'Failed to generate', description: getErrorMessage(err) || 'Try again', status: 'error' })
     } finally {
       setLoading(false)
+      setGenerating(false)
     }
   }
 
@@ -70,6 +73,12 @@ export default function QuestionsPage() {
           <Heading size="lg">Practice Questions</Heading>
         </HStack>
         <Text color="gray.600" mb={4}>Generate questions from your content and answer them below.</Text>
+
+        {generating && (
+          <Alert status="info" variant="subtle" mb={4} borderRadius="12px">
+            <AlertIcon /> Generating questions… this may take a little while.
+          </Alert>
+        )}
 
         <Box
           bg="white"

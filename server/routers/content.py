@@ -25,6 +25,11 @@ async def generate_content(payload: ContentRequest, user=Depends(get_current_use
         # Create query string for similarity check
         query = f"{payload.topic} {payload.difficulty} {payload.subject} {payload.contentType} {' '.join(payload.learningObjectives or [])}".strip()
 
+        # Moderate content for safety
+        moderation_result = _nlp_processor.moderate_content(query)
+        if not moderation_result["safe"]:
+            raise HTTPException(status_code=400, detail=f"Content request rejected: {moderation_result['reason']}. Please ensure your query aligns with educational and safe topics.")
+
         # Generate embedding for the query
         query_embedding = _nlp_processor.get_embedding(query)
 

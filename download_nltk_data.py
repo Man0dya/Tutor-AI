@@ -1,11 +1,25 @@
-# download_nltk_data.py
-# Run this once to fetch common NLTK resources.
-# Usage (from your project folder):
-#   Windows: py download_nltk_data.py  OR  python download_nltk_data.py
-#   macOS/Linux: python3 download_nltk_data.py
+"""
+NLTK Data Downloader
+
+This script downloads essential NLTK (Natural Language Toolkit) resources
+required for the AI Tutoring System. These resources include tokenizers,
+stopwords, wordnet, and part-of-speech taggers used for natural language
+processing tasks.
+
+Run this script once before using the application to ensure all required
+NLTK data is available locally.
+
+Usage:
+    Windows: py download_nltk_data.py  OR  python download_nltk_data.py
+    macOS/Linux: python3 download_nltk_data.py
+
+Required packages: punkt, punkt_tab, stopwords, wordnet, omw-1.4,
+averaged_perceptron_tagger, maxent_ne_chunker, words
+"""
 
 import nltk
 
+# List of NLTK packages required for the tutoring system
 packages = [
     "punkt",                     # tokenizer
     "punkt_tab",                 # resolves common 'punkt_tab' LookupError on newer NLTK

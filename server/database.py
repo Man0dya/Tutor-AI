@@ -1,13 +1,28 @@
+"""
+Database Connection and Management for Tutor AI
+
+This module handles MongoDB connection using Motor (async MongoDB driver).
+Provides connection lifecycle management, database access functions,
+and status checking for the application.
+"""
+
 from typing import Optional
 import motor.motor_asyncio
 from fastapi import HTTPException
 from .config import MONGODB_URI, MONGODB_DB
 
+# Global database connection variables
 _client: Optional[motor.motor_asyncio.AsyncIOMotorClient] = None
 _db = None
 _db_error: Optional[str] = None
 
 async def init_db():
+    """
+    Initialize database connection on application startup.
+    
+    Attempts to connect to MongoDB and create necessary indexes.
+    If connection fails, stores error for later status checks.
+    """
     global _client, _db, _db_error
     if not MONGODB_URI:
         # Allow app to start without DB for local dev; health endpoint will indicate status
@@ -22,9 +37,9 @@ async def init_db():
         await _client.admin.command('ping')
         _db = _client[MONGODB_DB]
         _db_error = None
-        # Ensure indices
+        # Ensure indices for performance
         try:
-            await _db.users.create_index("email", unique=True)
+            await _db.users.create_index("email", unique=True)  # Unique email constraint
         except Exception:
             # Index creation errors should not crash the app
             pass
@@ -35,11 +50,21 @@ async def init_db():
         _db_error = str(e)
 
 async def close_db():
+    """Close database connection on application shutdown"""
     global _client
     if _client:
         _client.close()
 
 def get_db():
+    """
+    Get database instance with error handling.
+    
+    Returns:
+        Motor database instance
+        
+    Raises:
+        HTTPException: If database is unavailable
+    """
     if _db is None:
         hint = "Database unavailable. Check MONGODB_URI, credentials, and IP allowlist."
         if _db_error:
@@ -48,9 +73,22 @@ def get_db():
     return _db
 
 def is_db_connected() -> bool:
+    """Check if database connection is active"""
     return _db is not None
 
 def col(name: str):
+    """
+    Get a database collection with error handling.
+    
+    Args:
+        name: Collection name
+        
+    Returns:
+        Motor collection instance
+        
+    Raises:
+        HTTPException: If database is unavailable
+    """
     if _db is None:
         hint = "Database unavailable. Check MONGODB_URI, credentials, and IP allowlist."
         if _db_error:
@@ -59,4 +97,10 @@ def col(name: str):
     return _db[name]
 
 def db_status() -> dict:
+    """
+    Get detailed database status for health checks.
+    
+    Returns:
+        dict: Connection status and error details
+    """
     return {"connected": _db is not None, "error": _db_error}

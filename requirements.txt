@@ -13,3 +13,5 @@ python-jose[cryptography]
 passlib[bcrypt]
 pydantic[email]
 stripe
+sentence-transformers
+scipy

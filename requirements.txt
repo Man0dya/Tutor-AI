@@ -1,3 +1,5 @@
+# Python dependencies for Tutor AI application
+# Core web framework and API
 streamlit
 python-dotenv
 pandas
@@ -5,13 +7,13 @@ plotly
 numpy
 scikit-learn
 nltk
-google-genai
-fastapi
-uvicorn
-motor
-python-jose[cryptography]
-passlib[bcrypt]
-pydantic[email]
-stripe
-sentence-transformers
-scipy
+google-genai  # Google Gemini AI for content generation
+fastapi       # High-performance async web API
+uvicorn       # ASGI server for FastAPI
+motor         # Async MongoDB driver
+python-jose[cryptography]  # JWT token handling
+passlib[bcrypt]  # Password hashing
+pydantic[email]  # Data validation with email support
+stripe        # Payment processing for subscriptions
+sentence-transformers  # For semantic text embeddings
+scipy         # Scientific computing for similarity calculations

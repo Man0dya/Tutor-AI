@@ -1,3 +1,27 @@
+"""
+Question Setter Agent Module
+
+This module implements the QuestionSetterAgent class, which is responsible for generating
+educational questions and assessments using advanced NLP techniques and Bloom's taxonomy.
+The agent leverages Google Gemini AI for intelligent question generation and incorporates
+content analysis, difficulty tuning, and multiple question types.
+
+Key Features:
+- Bloom's taxonomy-based question generation (Remember, Understand, Apply, Analyze, Evaluate, Create)
+- Multiple question types: Multiple Choice, True/False, Short Answer, Essay, Fill-in-the-Blank
+- Difficulty distribution control (Easy, Medium, Hard)
+- Content structure analysis and key concept extraction
+- Plausible distractor generation for multiple choice questions
+- Fallback question generation for reliability
+
+Dependencies:
+- google.genai: For AI-powered question generation
+- utils.nlp_processor: For natural language processing tasks
+- json, os, re: Standard Python libraries for data handling
+
+Author: Tutor AI Team
+"""
+
 import json
 import os
 from google import genai
@@ -7,11 +31,35 @@ import re
 
 class QuestionSetterAgent:
     """
-    Question Setter Agent for generating questions and assessments
-    Uses NLP techniques for content analysis and question generation
+    Question Setter Agent for generating educational questions and assessments.
+
+    This agent uses advanced NLP techniques and AI to create pedagogically sound
+    questions based on Bloom's taxonomy. It analyzes content structure, extracts
+    key concepts, and generates questions with appropriate difficulty levels.
+
+    Attributes:
+        client: Google Gemini AI client for question generation
+        nlp_processor: NLP processor for content analysis and entity extraction
+        agent_id: Unique identifier for this agent ("question_setter")
+
+    Methods:
+        generate_questions: Main method for question generation
+        validate_questions: Quality validation of generated questions
+        _extract_key_concepts: Extract important concepts from content
+        _analyze_content_structure: Analyze content for question generation hints
+        _generate_bloom_based_questions: Generate questions using Bloom's taxonomy
+        _label_question_difficulty: Assign difficulty labels to questions
+        _enhance_with_distractors: Create plausible wrong answers for MCQs
     """
     
     def __init__(self):
+        """
+        Initialize the Question Setter Agent.
+
+        Sets up the Google Gemini AI client for question generation,
+        initializes the NLP processor for content analysis, and
+        assigns a unique agent identifier.
+        """
         # Using Google Gemini 2.5 Flash for free AI question generation
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
         self.nlp_processor = NLPProcessor()
@@ -19,27 +67,44 @@ class QuestionSetterAgent:
     
     def generate_questions(self, content, question_count=5, question_types=None, difficulty_distribution=None, bloom_levels=None):
         """
-        Generate questions using Bloom's taxonomy and advanced NLP
-        
+        Generate educational questions using Bloom's taxonomy and advanced NLP.
+
+        This is the main method that orchestrates the entire question generation process.
+        It analyzes the input content, extracts key concepts, generates questions across
+        different Bloom's levels, assigns difficulty labels, and enhances with distractors.
+
         Args:
-            content (str or dict): Educational content to generate questions from
-            question_count (int): Number of questions to generate
-            question_types (list): Types of questions to generate
-            difficulty_distribution (dict): Distribution of Easy/Medium/Hard questions
-            bloom_levels (list): Bloom's taxonomy levels to target
-            
+            content (str or dict): Educational content to generate questions from.
+                Can be plain text or structured data with 'content', 'key_concepts',
+                and 'learning_objectives' fields.
+            question_count (int, optional): Number of questions to generate. Defaults to 5.
+            question_types (list, optional): Types of questions to generate.
+                Defaults to ["Multiple Choice", "Short Answer", "True/False"].
+            difficulty_distribution (dict, optional): Distribution of Easy/Medium/Hard questions.
+                Should contain keys "Easy", "Medium", "Hard" with float values summing to 1.0.
+                Defaults to {"Easy": 0.3, "Medium": 0.5, "Hard": 0.2}.
+            bloom_levels (list, optional): Bloom's taxonomy levels to target.
+                Defaults to ["Remember", "Understand", "Apply", "Analyze"].
+
         Returns:
-            dict: Generated questions with metadata and difficulty labels
+            dict: Generated questions with metadata containing:
+                - questions: List of question dictionaries with type, difficulty, etc.
+                - metadata: Statistics about the generated questions including counts,
+                  distributions, and covered concepts.
+
+        Raises:
+            Exception: If question generation fails due to API errors or invalid content.
         """
+        # Set default parameters if not provided
         if question_types is None:
             question_types = ["Multiple Choice", "Short Answer", "True/False"]
-        
+
         if difficulty_distribution is None:
             difficulty_distribution = {"Easy": 0.3, "Medium": 0.5, "Hard": 0.2}
-        
+
         if bloom_levels is None:
             bloom_levels = ["Remember", "Understand", "Apply", "Analyze"]
-        
+
         try:
             # Extract content if it's a structured object
             if isinstance(content, dict):
@@ -50,22 +115,23 @@ class QuestionSetterAgent:
                 text_content = content
                 key_concepts = self._extract_key_concepts(content)
                 learning_objectives = []
-            
-            # Analyze content structure
+
+            # Analyze content structure for better question generation
             content_analysis = self._analyze_content_structure(text_content)
-            
-            # Generate questions using Bloom's taxonomy
+
+            # Generate questions using Bloom's taxonomy approach
             questions = self._generate_bloom_based_questions(
-                text_content, key_concepts, learning_objectives, 
+                text_content, key_concepts, learning_objectives,
                 question_count, question_types, difficulty_distribution, bloom_levels
             )
-            
-            # Add difficulty labels and metadata
+
+            # Add difficulty labels based on the requested distribution
             labeled_questions = self._label_question_difficulty(questions, difficulty_distribution)
-            
-            # Create plausible distractors for MCQ
+
+            # Create plausible distractors for multiple choice questions
             enhanced_questions = self._enhance_with_distractors(labeled_questions, key_concepts)
-            
+
+            # Return structured response with questions and metadata
             return {
                 'questions': enhanced_questions,
                 'metadata': {
@@ -76,38 +142,66 @@ class QuestionSetterAgent:
                     'key_concepts_covered': key_concepts[:10]
                 }
             }
-            
+
         except Exception as e:
             raise Exception(f"Question generation failed: {str(e)}")
     
     def _extract_key_concepts(self, content):
-        """Extract key concepts from content using NLP"""
+        """
+        Extract key concepts from content using NLP techniques.
+
+        Uses entity extraction and keyword analysis to identify important
+        terms and concepts that should be tested in questions.
+
+        Args:
+            content (str): The educational content to analyze.
+
+        Returns:
+            list: List of unique key concepts and important terms (max 20).
+        """
         try:
-            # Extract entities and important terms
+            # Extract named entities using NLP processor
             entities = self.nlp_processor.extract_entities(content)
-            
-            # Extract key phrases (simplified approach)
+
+            # Extract key phrases from important sentences
             sentences = content.split('.')
             key_phrases = []
-            
+
             for sentence in sentences[:10]:  # Analyze first 10 sentences
                 if len(sentence.strip()) > 20:  # Skip very short sentences
                     # Simple keyword extraction based on capitalization and length
                     words = sentence.split()
                     important_words = [w for w in words if len(w) > 4 and (w[0].isupper() or w.lower() in ['important', 'key', 'main'])]
                     key_phrases.extend(important_words[:3])
-            
-            # Combine entities and key phrases
+
+            # Combine entities and key phrases, remove duplicates
             concepts = [ent['text'] for ent in entities] + key_phrases
             return list(set(concepts))[:20]  # Return unique concepts, max 20
-            
+
         except Exception:
-            # Fallback to simple word extraction
+            # Fallback to simple word extraction if NLP fails
             words = content.split()
             return [w for w in words if len(w) > 6][:10]
     
     def _analyze_content_structure(self, content):
-        """Analyze the structure of the content"""
+        """
+        Analyze the structure and characteristics of the content.
+
+        Examines the content for pedagogical features that can guide
+        question generation, such as examples, definitions, processes, etc.
+
+        Args:
+            content (str): The content to analyze.
+
+        Returns:
+            dict: Analysis results containing:
+                - has_examples: Whether content contains examples
+                - has_definitions: Whether content has definitions
+                - has_processes: Whether content describes processes
+                - has_comparisons: Whether content makes comparisons
+                - length: Word count of the content
+                - complexity: Ratio of complex words (length > 8)
+        """
         structure = {
             'has_examples': 'example' in content.lower() or 'for instance' in content.lower(),
             'has_definitions': ':' in content or 'is defined as' in content.lower(),
@@ -119,8 +213,20 @@ class QuestionSetterAgent:
         return structure
     
     def _generate_questions_by_type(self, content, question_type, count, key_concepts):
-        """Generate questions of a specific type"""
-        
+        """
+        Generate questions of a specific type using AI.
+
+        Routes to the appropriate generation method based on question type.
+
+        Args:
+            content (str): The content to generate questions from.
+            question_type (str): Type of questions to generate.
+            count (int): Number of questions to generate.
+            key_concepts (list): Key concepts to focus on.
+
+        Returns:
+            list: List of generated questions of the specified type.
+        """
         if question_type == "Multiple Choice":
             return self._generate_mcq(content, count, key_concepts)
         elif question_type == "True/False":
@@ -135,8 +241,20 @@ class QuestionSetterAgent:
             return self._generate_short_answer(content, count, key_concepts)
     
     def _generate_mcq(self, content, count, key_concepts):
-        """Generate multiple choice questions"""
-        
+        """
+        Generate multiple choice questions using AI.
+
+        Creates MCQs with 4 options each, ensuring one correct answer
+        and plausible distractors.
+
+        Args:
+            content (str): Content to generate questions from.
+            count (int): Number of MCQs to generate.
+            key_concepts (list): Key concepts to focus on.
+
+        Returns:
+            list: List of MCQ dictionaries with question, options, correct_answer, etc.
+        """
         system_prompt = """You are an expert question generator. Create multiple choice questions that test understanding of the given content. 
         Each question should have exactly 4 options (A, B, C, D) with only one correct answer.
         
@@ -152,7 +270,7 @@ class QuestionSetterAgent:
                 }
             ]
         }"""
-        
+
         user_prompt = f"""Based on this content, generate {count} multiple choice questions that test comprehension and application:
 
 {content}
@@ -160,32 +278,43 @@ class QuestionSetterAgent:
 Key concepts to focus on: {', '.join(key_concepts[:10])}
 
 Make questions challenging but fair, testing different levels of understanding."""
-        
+
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=f"{system_prompt}\n\n{user_prompt}"
             )
-            
+
             if response.text:
-                # Extract JSON from response
+                # Extract JSON from response (handle markdown formatting)
                 text = response.text.strip()
                 if text.startswith('```json'):
                     text = text[7:-3].strip()
                 elif text.startswith('```'):
                     text = text[3:-3].strip()
-                
+
                 result = json.loads(text)
                 return result.get("questions", [])
             return []
-            
+
         except Exception as e:
-            # Fallback: create simple questions
+            # Fallback to simple question generation if AI fails
             return self._create_fallback_questions(content, count, "Multiple Choice")
     
     def _generate_true_false(self, content, count):
-        """Generate true/false questions"""
-        
+        """
+        Generate true/false questions using AI.
+
+        Creates statements that are either true or false based on the content,
+        testing factual knowledge and understanding.
+
+        Args:
+            content (str): Content to generate questions from.
+            count (int): Number of true/false questions to generate.
+
+        Returns:
+            list: List of true/false question dictionaries.
+        """
         system_prompt = """Create true/false questions based on the content. Mix true and false statements.
         
         Return in JSON format:
@@ -199,36 +328,48 @@ Make questions challenging but fair, testing different levels of understanding."
                 }
             ]
         }"""
-        
+
         user_prompt = f"""Create {count} true/false questions from this content:
 
 {content}
 
 Make some statements true and others false. Test important facts and concepts."""
-        
+
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=f"{system_prompt}\n\n{user_prompt}"
             )
-            
+
             if response.text:
                 text = response.text.strip()
                 if text.startswith('```json'):
                     text = text[7:-3].strip()
                 elif text.startswith('```'):
                     text = text[3:-3].strip()
-                
+
                 result = json.loads(text)
                 return result.get("questions", [])
             return []
-            
+
         except Exception:
             return self._create_fallback_questions(content, count, "True/False")
     
     def _generate_short_answer(self, content, count, key_concepts):
-        """Generate short answer questions"""
-        
+        """
+        Generate short answer questions using AI.
+
+        Creates questions requiring 1-3 sentence responses that test
+        understanding and application of concepts.
+
+        Args:
+            content (str): Content to generate questions from.
+            count (int): Number of short answer questions to generate.
+            key_concepts (list): Key concepts to focus on.
+
+        Returns:
+            list: List of short answer question dictionaries.
+        """
         system_prompt = """Create short answer questions that require 1-3 sentence responses.
         
         Return in JSON format:
@@ -242,7 +383,7 @@ Make some statements true and others false. Test important facts and concepts.""
                 }
             ]
         }"""
-        
+
         user_prompt = f"""Create {count} short answer questions from this content:
 
 {content}
@@ -250,30 +391,41 @@ Make some statements true and others false. Test important facts and concepts.""
 Focus on these key concepts: {', '.join(key_concepts[:8])}
 
 Questions should test understanding and application, not just memorization."""
-        
+
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=f"{system_prompt}\n\n{user_prompt}"
             )
-            
+
             if response.text:
                 text = response.text.strip()
                 if text.startswith('```json'):
                     text = text[7:-3].strip()
                 elif text.startswith('```'):
                     text = text[3:-3].strip()
-                
+
                 result = json.loads(text)
                 return result.get("questions", [])
             return []
-            
+
         except Exception:
             return self._create_fallback_questions(content, count, "Short Answer")
     
     def _generate_essay(self, content, count):
-        """Generate essay questions"""
-        
+        """
+        Generate essay questions using AI.
+
+        Creates questions requiring detailed, analytical responses that
+        test critical thinking and synthesis of information.
+
+        Args:
+            content (str): Content to generate questions from.
+            count (int): Number of essay questions to generate.
+
+        Returns:
+            list: List of essay question dictionaries.
+        """
         system_prompt = """Create essay questions that require detailed, analytical responses.
         
         Return in JSON format:
@@ -287,65 +439,109 @@ Questions should test understanding and application, not just memorization."""
                 }
             ]
         }"""
-        
+
         user_prompt = f"""Create {count} essay questions from this content:
 
 {content}
 
 Questions should require critical thinking, analysis, and synthesis of information."""
-        
+
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=f"{system_prompt}\n\n{user_prompt}"
             )
-            
+
             if response.text:
                 text = response.text.strip()
                 if text.startswith('```json'):
                     text = text[7:-3].strip()
                 elif text.startswith('```'):
                     text = text[3:-3].strip()
-                
+
                 result = json.loads(text)
                 return result.get("questions", [])
             return []
-            
+
         except Exception:
             return self._create_fallback_questions(content, count, "Essay")
     
     def _generate_bloom_based_questions(self, content, key_concepts, learning_objectives, 
                                       question_count, question_types, difficulty_distribution, bloom_levels):
-        """Generate questions based on Bloom's taxonomy levels"""
+        """
+        Generate questions based on Bloom's taxonomy levels.
+
+        Distributes questions across different Bloom's levels and generates
+        questions targeting specific cognitive levels (Remember, Understand, Apply, etc.).
+
+        Args:
+            content (str): The educational content.
+            key_concepts (list): Key concepts extracted from content.
+            learning_objectives (list): Learning objectives (if provided).
+            question_count (int): Total number of questions to generate.
+            question_types (list): Types of questions to generate.
+            difficulty_distribution (dict): Difficulty distribution preferences.
+            bloom_levels (list): Bloom's taxonomy levels to target.
+
+        Returns:
+            list: List of questions with Bloom's level metadata.
+        """
         questions = []
-        
-        # Calculate questions per Bloom level
+
+        # Calculate how many questions per Bloom level
         bloom_distribution = self._calculate_bloom_distribution(bloom_levels, question_count)
-        
+
         for bloom_level, count in bloom_distribution.items():
             if count > 0:
                 bloom_questions = self._generate_questions_for_bloom_level(
                     content, key_concepts, bloom_level, count, question_types
                 )
                 questions.extend(bloom_questions)
-        
+
         return questions
     
     def _calculate_bloom_distribution(self, bloom_levels, total_count):
-        """Calculate how many questions for each Bloom level"""
+        """
+        Calculate how many questions to generate for each Bloom level.
+
+        Distributes the total question count evenly across the specified
+        Bloom's taxonomy levels, handling remainders appropriately.
+
+        Args:
+            bloom_levels (list): List of Bloom's levels to target.
+            total_count (int): Total number of questions to generate.
+
+        Returns:
+            dict: Mapping of Bloom level to number of questions for that level.
+        """
         distribution = {}
         questions_per_level = total_count // len(bloom_levels)
         remainder = total_count % len(bloom_levels)
-        
+
         for i, level in enumerate(bloom_levels):
             distribution[level] = questions_per_level
             if i < remainder:  # Distribute remainder
                 distribution[level] += 1
-        
+
         return distribution
     
     def _generate_questions_for_bloom_level(self, content, key_concepts, bloom_level, count, question_types):
-        """Generate questions targeting specific Bloom's taxonomy level"""
+        """
+        Generate questions targeting a specific Bloom's taxonomy level.
+
+        Uses AI to create questions that specifically test the cognitive
+        processes associated with the given Bloom's level.
+
+        Args:
+            content (str): The educational content.
+            key_concepts (list): Key concepts to focus on.
+            bloom_level (str): The Bloom's level to target (Remember, Understand, etc.).
+            count (int): Number of questions to generate for this level.
+            question_types (list): Types of questions to generate.
+
+        Returns:
+            list: List of questions targeting the specified Bloom's level.
+        """
         bloom_prompts = {
             "Remember": "Create questions that test recall of facts, terms, and basic concepts.",
             "Understand": "Create questions that test comprehension and explanation of ideas.",
@@ -354,7 +550,7 @@ Questions should require critical thinking, analysis, and synthesis of informati
             "Evaluate": "Create questions that test ability to make judgments and justify decisions.",
             "Create": "Create questions that test ability to synthesize information into new forms."
         }
-        
+
         system_prompt = f"""You are an expert question generator using Bloom's Taxonomy.
         
         Target Level: {bloom_level}
@@ -375,7 +571,7 @@ Questions should require critical thinking, analysis, and synthesis of informati
                 }}
             ]
         }}"""
-        
+
         user_prompt = f"""Create {count} questions at {bloom_level} level from this content:
         
         {content}
@@ -386,35 +582,48 @@ Questions should require critical thinking, analysis, and synthesis of informati
         
         {bloom_level} level means: {bloom_prompts.get(bloom_level, "")}
         """
-        
+
         try:
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=f"{system_prompt}\n\n{user_prompt}"
             )
-            
+
             if response.text:
                 text = response.text.strip()
                 if text.startswith('```json'):
                     text = text[7:-3].strip()
                 elif text.startswith('```'):
                     text = text[3:-3].strip()
-                
+
                 result = json.loads(text)
                 return result.get("questions", [])
             return []
-            
+
         except Exception:
             return self._create_fallback_questions_for_bloom(content, count, bloom_level)
     
     def _label_question_difficulty(self, questions, difficulty_distribution):
-        """Label questions with difficulty based on distribution"""
+        """
+        Assign difficulty labels to questions based on the requested distribution.
+
+        Distributes Easy, Medium, and Hard labels across the questions
+        according to the specified percentages.
+
+        Args:
+            questions (list): List of question dictionaries to label.
+            difficulty_distribution (dict): Target distribution with keys "Easy", "Medium", "Hard"
+                and float values representing proportions.
+
+        Returns:
+            list: Questions with 'difficulty' field added to each question.
+        """
         total_questions = len(questions)
         easy_count = int(total_questions * difficulty_distribution.get("Easy", 0.3))
         medium_count = int(total_questions * difficulty_distribution.get("Medium", 0.5))
         hard_count = total_questions - easy_count - medium_count
-        
-        # Assign difficulty labels
+
+        # Assign difficulty labels sequentially
         for i, question in enumerate(questions):
             if i < easy_count:
                 question['difficulty'] = 'Easy'
@@ -422,31 +631,55 @@ Questions should require critical thinking, analysis, and synthesis of informati
                 question['difficulty'] = 'Medium'
             else:
                 question['difficulty'] = 'Hard'
-        
+
         return questions
     
     def _enhance_with_distractors(self, questions, key_concepts):
-        """Create plausible distractors for multiple choice questions"""
+        """
+        Create plausible distractors for multiple choice questions.
+
+        For MCQs, generates better wrong answer options using AI to make
+        them challenging but clearly incorrect to knowledgeable students.
+
+        Args:
+            questions (list): List of question dictionaries.
+            key_concepts (list): Key concepts to guide distractor generation.
+
+        Returns:
+            list: Questions with enhanced distractors for MCQs.
+        """
         enhanced_questions = []
-        
+
         for question in questions:
             if question.get('type') == 'Multiple Choice' and 'options' in question:
-                # Generate better distractors using NLP
+                # Generate better distractors using NLP and AI
                 enhanced_options = self._generate_plausible_distractors(
                     question, key_concepts
                 )
                 question['options'] = enhanced_options
-            
+
             enhanced_questions.append(question)
-        
+
         return enhanced_questions
     
     def _generate_plausible_distractors(self, question, key_concepts):
-        """Generate plausible but incorrect options for MCQ"""
+        """
+        Generate plausible but incorrect options for multiple choice questions.
+
+        Uses AI to create distractors that are tempting but wrong, making
+        questions more pedagogically effective.
+
+        Args:
+            question (dict): The MCQ question dictionary.
+            key_concepts (list): Key concepts to guide distractor creation.
+
+        Returns:
+            list: List of 4 options including the correct answer and 3 distractors.
+        """
         try:
             existing_options = question.get('options', [])
             correct_answer = question.get('correct_answer', '')
-            
+
             # Use AI to generate better distractors
             distractor_prompt = f"""Create 3 plausible but incorrect options for this multiple choice question:
             
@@ -461,52 +694,76 @@ Questions should require critical thinking, analysis, and synthesis of informati
             - Avoid obvious wrong answers
             
             Return just the 3 distractor options, one per line."""
-            
+
             response = self.client.models.generate_content(
                 model="gemini-2.5-flash",
                 contents=distractor_prompt
             )
-            
+
             if response.text:
                 distractors = [line.strip() for line in response.text.strip().split('\n') if line.strip()]
                 distractors = distractors[:3]  # Take only 3
-                
-                # Combine correct answer with distractors
+
+                # Combine correct answer with distractors and randomize
                 all_options = [correct_answer] + distractors
                 import random
                 random.shuffle(all_options)  # Randomize order
-                
+
                 return all_options[:4]  # Ensure exactly 4 options
-            
+
             return existing_options if existing_options else [correct_answer, "Option B", "Option C", "Option D"]
-            
+
         except Exception:
             return existing_options if existing_options else [correct_answer, "Option B", "Option C", "Option D"]
     
     def _calculate_actual_distribution(self, questions):
-        """Calculate actual difficulty distribution of generated questions"""
+        """
+        Calculate the actual difficulty distribution of generated questions.
+
+        Analyzes the generated questions and returns the percentage breakdown
+        of Easy, Medium, and Hard questions.
+
+        Args:
+            questions (list): List of question dictionaries with difficulty labels.
+
+        Returns:
+            dict: Dictionary with "Easy", "Medium", "Hard" keys and percentage values.
+        """
         distribution = {"Easy": 0, "Medium": 0, "Hard": 0}
         total = len(questions)
-        
+
         for question in questions:
             difficulty = question.get('difficulty', 'Medium')
             if difficulty in distribution:
                 distribution[difficulty] += 1
-        
+
         # Convert to percentages
         if total > 0:
             for key in distribution:
                 distribution[key] = round(distribution[key] / total, 2)
-        
+
         return distribution
     
     def _create_fallback_questions_for_bloom(self, content, count, bloom_level):
-        """Create simple fallback questions for specific Bloom level"""
+        """
+        Create simple fallback questions for a specific Bloom level.
+
+        Generates basic questions when AI generation fails, ensuring
+        the system remains functional even with API issues.
+
+        Args:
+            content (str): The educational content.
+            count (int): Number of questions to generate.
+            bloom_level (str): The Bloom's level to target.
+
+        Returns:
+            list: List of simple fallback questions.
+        """
         questions = []
-        
+
         # Extract some content for basic questions
         lines = [line.strip() for line in content.split('\n') if line.strip() and len(line) > 20]
-        
+
         for i in range(min(count, len(lines), 3)):
             line = lines[i]
             if '.' in line:
@@ -519,11 +776,24 @@ Questions should require critical thinking, analysis, and synthesis of informati
                     'key_concepts': []
                 }
                 questions.append(question)
-        
+
         return questions
     
     def _generate_fill_blank(self, content, count, key_concepts):
-        """Generate fill-in-the-blank questions"""
+        """
+        Generate fill-in-the-blank questions.
+
+        Creates questions where students must fill in missing key concepts
+        from the content, testing recognition and recall.
+
+        Args:
+            content (str): Content to generate questions from.
+            count (int): Number of fill-in-the-blank questions to generate.
+            key_concepts (list): Key concepts to potentially blank out.
+
+        Returns:
+            list: List of fill-in-the-blank question dictionaries.
+        """
         
         # Extract sentences with key concepts
         sentences = content.split('.')
@@ -554,7 +824,20 @@ Questions should require critical thinking, analysis, and synthesis of informati
         return questions
     
     def _create_fallback_questions(self, content, count, question_type):
-        """Create simple fallback questions if AI generation fails"""
+        """
+        Create simple fallback questions if AI generation fails.
+
+        Provides basic question generation as a safety net when
+        the AI service is unavailable or returns errors.
+
+        Args:
+            content (str): Content to generate questions from.
+            count (int): Number of questions to generate.
+            question_type (str): Type of questions to create.
+
+        Returns:
+            list: List of simple fallback questions.
+        """
         questions = []
         sentences = content.split('.')[:count * 2]  # Get enough sentences
         
@@ -583,24 +866,46 @@ Questions should require critical thinking, analysis, and synthesis of informati
         return questions
     
     def validate_questions(self, questions):
-        """Validate generated questions for quality and completeness"""
+        """
+        Validate generated questions for quality and completeness.
+
+        Filters out questions that don't meet minimum quality criteria
+        such as having valid questions, options, and answers.
+
+        Args:
+            questions (list): List of question dictionaries to validate.
+
+        Returns:
+            list: List of validated questions that pass quality checks.
+        """
         validated_questions = []
-        
+
         for question in questions:
             if self._is_valid_question(question):
                 validated_questions.append(question)
-        
+
         return validated_questions
-    
+
     def _is_valid_question(self, question):
-        """Check if a question meets quality criteria"""
+        """
+        Check if a question meets quality criteria.
+
+        Validates that the question has required fields and meets
+        minimum length and completeness requirements.
+
+        Args:
+            question (dict): Question dictionary to validate.
+
+        Returns:
+            bool: True if question passes validation, False otherwise.
+        """
         if not question.get('question') or len(question['question']) < 10:
             return False
-        
+
         if question.get('type') == 'Multiple Choice':
             if not question.get('options') or len(question['options']) < 2:
                 return False
             if not question.get('correct_answer'):
                 return False
-        
+
         return True

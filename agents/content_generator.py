@@ -1,3 +1,18 @@
+"""
+Content Generator Agent
+
+This module contains the ContentGeneratorAgent class, which is responsible for
+generating educational content using Google's Gemini AI. It integrates with
+NLP processing and information retrieval systems to create high-quality,
+student-friendly educational materials.
+
+The agent follows a multi-phase process:
+1. Research and context gathering
+2. Content generation with AI
+3. NLP enhancement and structuring
+4. Study material creation
+"""
+
 import json
 import os
 from google import genai
@@ -7,45 +22,66 @@ from utils.information_retrieval import InformationRetrieval
 
 class ContentGeneratorAgent:
     """
-    Content Generator Agent for creating educational content using LLMs
-    Integrates with NLP processing and information retrieval systems
+    Content Generator Agent for creating educational content using LLMs.
+    
+    This agent uses Google's Gemini AI to generate personalized educational content.
+    It incorporates information retrieval for factual accuracy and NLP processing
+    for content enhancement and structure.
+    
+    Attributes:
+        client: Google Gemini API client
+        nlp_processor: NLP utilities for text processing
+        ir_system: Information retrieval system for research
+        agent_id: Unique identifier for this agent
     """
     
     def __init__(self):
-        # Using Google Gemini 2.5 Flash for free AI content generation
+        # Initialize Google Gemini API client for AI content generation
         self.client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+        # Initialize NLP processor for text analysis and enhancement
         self.nlp_processor = NLPProcessor()
+        # Initialize information retrieval system for research
         self.ir_system = InformationRetrieval()
         self.agent_id = "content_generator"
     
     def generate_content(self, topic, difficulty="Intermediate", subject="General", content_type="Lesson", learning_objectives=None):
         """
-        Generate educational content with improved retrieval and NLP processing
+        Generate educational content with improved retrieval and NLP processing.
+        
+        This method orchestrates a 4-phase content generation process:
+        1. Research reliable sources and gather context
+        2. Generate student-friendly content using AI
+        3. Apply NLP processing for structure and key concepts
+        4. Create supplementary study materials
         
         Args:
-            topic (str): The topic to generate content for
-            difficulty (str): Difficulty level (Beginner, Intermediate, Advanced)
-            subject (str): Subject area
-            content_type (str): Type of content to generate
-            learning_objectives (list): Specific learning goals to focus on
+            topic (str): The main topic to generate content for
+            difficulty (str): Difficulty level - Beginner, Intermediate, or Advanced
+            subject (str): Subject area (e.g., Math, Science, History)
+            content_type (str): Type of content (Lesson, Study Notes, etc.)
+            learning_objectives (list, optional): Specific learning goals to focus on
             
         Returns:
-            dict: Generated educational content with metadata
+            dict: Generated content with metadata including:
+                - content: Main educational text
+                - key_concepts: Important terms and ideas
+                - study_materials: Additional resources
+                - sources: References used
         """
         try:
-            # Phase 1: Retrieve reliable sources and context
+            # Phase 1: Retrieve reliable sources and context for accuracy
             sources = self._retrieve_reliable_sources(topic, subject)
             context = self._gather_enhanced_context(topic, subject, sources)
             
-            # Phase 2: Generate student-friendly content
+            # Phase 2: Generate student-friendly content using AI
             content = self._generate_student_friendly_content(
                 topic, difficulty, subject, content_type, context, learning_objectives
             )
             
-            # Phase 3: NLP processing for key concepts and structure
+            # Phase 3: Apply NLP processing for key concepts and better structure
             processed_content = self._advanced_nlp_processing(content, topic)
             
-            # Phase 4: Create study materials (notes, flashcards, diagrams)
+            # Phase 4: Create supplementary study materials
             study_materials = self._create_study_materials(processed_content, topic)
             
             return {

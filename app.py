@@ -1,3 +1,22 @@
+"""
+AI Tutoring System - Streamlit Web Application
+
+This module implements the main Streamlit web interface for the AI Tutoring System.
+It provides a multi-agent educational platform with the following features:
+
+- Content Generation: AI-powered study material creation
+- Question Setting: Automated quiz and assessment generation
+- Feedback Evaluation: Intelligent answer assessment and feedback
+- Progress Tracking: Learning analytics and performance monitoring
+- Knowledge Base: Information retrieval and search capabilities
+- Adaptive Learning: Personalized learning recommendations
+
+The application uses a multi-agent architecture with specialized AI agents
+for different educational tasks, integrated with session management and security features.
+
+Author: Tutor AI Team
+"""
+
 from dotenv import load_dotenv
 load_dotenv()
 
@@ -56,9 +75,17 @@ content_agent, question_agent, feedback_agent = initialize_agents()
 security = SecurityManager()
 
 def authenticate_user():
-    """Simple authentication interface"""
+    """
+    Simple authentication interface for user login.
+
+    Provides a sidebar-based login form with basic username/password authentication.
+    In production, this should be replaced with proper authentication mechanisms.
+    Currently accepts any non-empty credentials for demo purposes.
+
+    Uses session state to track current user and manage login/logout functionality.
+    """
     st.sidebar.title("🔐 Authentication")
-    
+
     if st.session_state.current_user is None:
         with st.sidebar:
             st.markdown("<div class='content-card'>", unsafe_allow_html=True)
@@ -66,7 +93,7 @@ def authenticate_user():
             password = st.text_input("Password", type="password", placeholder="Enter any password")
             st.caption("Demo login accepts any credentials")
             st.markdown("</div>", unsafe_allow_html=True)
-        
+
         if st.sidebar.button("Login"):
             # Basic authentication (in production, use proper authentication)
             if username and password:
@@ -103,11 +130,25 @@ def authenticate_user():
     st.session_state.nav_choice = nav_choice
 
 def main_interface():
-    """Main tutoring interface"""
+    """
+    Main tutoring interface that routes to different application sections.
+
+    Based on the navigation choice from the sidebar, this function calls the
+    appropriate interface function to display the relevant content. This creates
+    a single-page application experience with different views.
+
+    Navigation options:
+    - Content Generator: Create study materials
+    - Question Setter: Generate practice questions
+    - Feedback Evaluator: Assess answers and provide feedback
+    - Progress Tracking: View learning analytics
+    - Knowledge Base: Search educational resources
+    - Adaptive Learning: Personalized learning recommendations
+    """
     render_header()
 
     # Route based on sidebar selection for a more intuitive UX
-    choice = st.session_state.get("nav_choice", "� Content Generator")
+    choice = st.session_state.get("nav_choice", "📚 Content Generator")
     if choice.startswith("📚"):
         content_generator_interface()
     elif choice.startswith("❓"):
@@ -129,7 +170,14 @@ def main_interface():
             st.rerun()
 
 def render_header():
-    """Hero header with quick stats and theme toggle"""
+    """
+    Hero header with quick stats and theme toggle.
+
+    Displays the main application title and key performance metrics
+    for the current user. Shows content count, questions answered,
+    average score, and study streak. Uses session manager to retrieve
+    user progress data.
+    """
     st.markdown(
         """
         <div class="main-header">
@@ -154,11 +202,25 @@ def render_header():
         st.metric("🔥 Streak", f"{progress.get('study_streak', 0)} days")
 
 def content_generator_interface():
-    """Enhanced Content Generator Agent Interface - Teacher Role"""
+    """
+    Enhanced Content Generator Agent Interface - Teacher Role.
+
+    Provides a comprehensive interface for generating educational content using AI.
+    Features include:
+    - Topic input with quick sample topic chips
+    - Learning objectives specification
+    - Difficulty and subject area selection
+    - Content type selection (study notes, tutorials, etc.)
+    - Advanced options for flashcards and diagrams
+    - Study materials generation with key concepts extraction
+    - Content saving to user session
+
+    Uses the ContentGeneratorAgent to create personalized study materials.
+    """
     st.header("👨‍🏫 Content Generator (Teacher)")
     st.markdown("Create student‑friendly study materials with sources, key concepts, and study aids.")
     st.markdown("<div class='professional-card'>", unsafe_allow_html=True)
-    
+
     # Helpful quick-start chips (handle before widgets so state is set prior to instantiation)
     st.caption("Try a quick topic:")
     chip_cols = st.columns(6)
@@ -175,31 +237,31 @@ def content_generator_interface():
             if st.button(f"{s}", key=f"chip_{i}"):
                 st.session_state["topic_input"] = s
                 st.rerun()
-    
+
     col1, col2 = st.columns([2, 1])
-    
+
     with col1:
         topic = st.text_input("📖 Enter Topic", key="topic_input", placeholder="e.g., Photosynthesis, Machine Learning, World War II")
-        
+
         learning_objectives = st.text_area(
             "🎯 Learning Objectives (Optional)",
             placeholder="What should students understand after studying this topic?",
             height=80
         )
-    
+
     with col2:
-        difficulty = st.select_slider("📊 Difficulty Level", 
+        difficulty = st.select_slider("📊 Difficulty Level",
                                     options=["Beginner", "Intermediate", "Advanced"])
-        
+
         subject = st.selectbox("🎯 Subject Area", [
-            "Science", "Mathematics", "Computer Science", "History", 
+            "Science", "Mathematics", "Computer Science", "History",
             "Literature", "Languages", "Business", "Arts", "General"
         ])
-        
+
         content_type = st.selectbox("📋 Content Type", [
             "Study Notes", "Tutorial", "Explanation", "Summary", "Comprehensive Guide"
         ])
-    
+
     # (Chips moved above so they don't mutate widget state post-instantiation)
 
     # Advanced options
@@ -210,16 +272,16 @@ def content_generator_interface():
             "Source Preference",
             options=["Academic & Educational", "Academic Only", "Educational Only"]
         )
-    
+
     if st.button("🚀 Generate Study Materials", type="primary"):
         if topic:
             with st.spinner("👨‍🏫 Teacher is creating comprehensive study materials..."):
                 try:
-                    # Sanitize input
+                    # Sanitize input for security
                     clean_topic = security.sanitize_input(topic)
-                    # Parse learning objectives
+                    # Parse learning objectives into list
                     objectives = [obj.strip() for obj in learning_objectives.split('\n') if obj.strip()] if learning_objectives else None
-                    # Generate enhanced content using updated agent
+                    # Generate enhanced content using AI agent
                     content_result = content_agent.generate_content(
                         topic=clean_topic,
                         difficulty=difficulty,
@@ -227,10 +289,10 @@ def content_generator_interface():
                         content_type=content_type,
                         learning_objectives=objectives
                     )
-                    
+
                     st.success("✅ Study materials created successfully!")
-                    
-                    # Handle both old and new content format
+
+                    # Handle both old and new content format for backward compatibility
                     if isinstance(content_result, dict):
                         main_content = content_result.get('content', str(content_result))
                         study_materials = content_result.get('study_materials', {})
@@ -244,16 +306,16 @@ def content_generator_interface():
                         key_concepts = []
                         objectives_list = objectives or []
                         source_quality_score = 0.5
-                    
-                    # Display main content
+
+                    # Display main content in expandable section
                     with st.expander("📖 Study Notes", expanded=True):
                         st.markdown("<div class='content-card'>", unsafe_allow_html=True)
                         st.markdown(main_content)
                         st.markdown("</div>", unsafe_allow_html=True)
-                    
-                    # Display study materials in tabs
+
+                    # Display study materials in organized tabs
                     tab1, tab2, tab3, tab4 = st.tabs(["🎯 Key Concepts", "🃏 Flashcards", "📊 Objectives", "🎨 Study Aids"])
-                    
+
                     with tab1:
                         st.markdown("#### 🔑 Key Concepts Identified")
                         if key_concepts:
@@ -263,7 +325,7 @@ def content_generator_interface():
                             st.markdown("</div>", unsafe_allow_html=True)
                         else:
                             st.info("Key concepts will be extracted from the content")
-                    
+
                     with tab2:
                         if include_flashcards:
                             st.markdown("#### 🃏 Generated Flashcards")
@@ -277,7 +339,7 @@ def content_generator_interface():
                                         st.markdown("</div>", unsafe_allow_html=True)
                             else:
                                 st.info("Flashcards will be generated based on key concepts")
-                    
+
                     with tab3:
                         st.markdown("#### 📚 Learning Objectives")
                         if objectives_list:
@@ -287,7 +349,7 @@ def content_generator_interface():
                             st.markdown("</div>", unsafe_allow_html=True)
                         else:
                             st.info("Learning objectives will be created based on the topic")
-                    
+
                     with tab4:
                         if include_diagrams:
                             st.markdown("#### 🎨 Suggested Diagrams")
@@ -299,7 +361,7 @@ def content_generator_interface():
                                 st.markdown("</div>", unsafe_allow_html=True)
                             else:
                                 st.info("Diagram suggestions will be provided based on topic analysis")
-                        
+
                         st.markdown("#### 📝 Study Notes Summary")
                         bullet_notes = study_materials.get('study_notes', '')
                         if bullet_notes:
@@ -308,12 +370,12 @@ def content_generator_interface():
                             st.markdown("</div>", unsafe_allow_html=True)
                         else:
                             st.info("Study notes summary will be created from main content")
-                    
-                    # Source quality indicator
+
+                    # Source quality indicator with color coding
                     quality_color = "🟢" if source_quality_score > 0.7 else "🟡" if source_quality_score > 0.4 else "🔴"
                     st.markdown(f"**Source Quality:** {quality_color} {source_quality_score:.1%}")
-                    
-                    # Save enhanced content to session
+
+                    # Save enhanced content to session for persistence
                     st.session_state.session_manager.save_content(
                         user=st.session_state.current_user,
                         topic=clean_topic,
@@ -328,11 +390,11 @@ def content_generator_interface():
                             "timestamp": datetime.now().isoformat()
                         }
                     )
-                    
+
                     # Store in session state for workflow continuation
                     st.session_state.last_generated_content = content_result
                     st.session_state.last_content_topic = clean_topic
-                    
+
                     # Quick action to continue workflow
                     st.markdown("### 🔄 Next Step")
                     col1, col2 = st.columns(2)
@@ -344,7 +406,7 @@ def content_generator_interface():
                         if st.button("� View Progress", type="secondary"):
                             st.session_state.nav_choice = "📊 Progress Tracking"
                             st.rerun()
-                    
+
                 except Exception as e:
                     st.error(f"❌ Error generating content: {str(e)}")
                     st.info("The system will fall back to basic content generation if enhanced features aren't available.")
@@ -1005,10 +1067,20 @@ def knowledge_base_interface():
                 st.session_state.search_query = topic
                 st.rerun()
 
-# Main application flow
 def main():
+    """
+    Main application entry point.
+
+    Handles the overall application flow:
+    1. Shows authentication interface in sidebar
+    2. If user is authenticated, displays main tutoring interface
+    3. If not authenticated, shows welcome screen with feature overview
+
+    This creates a single-page application experience with conditional rendering
+    based on authentication state.
+    """
     authenticate_user()
-    
+
     if st.session_state.current_user:
         main_interface()
     else:

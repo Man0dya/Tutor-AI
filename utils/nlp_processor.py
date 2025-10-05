@@ -1,3 +1,11 @@
+"""
+Natural Language Processing Utilities for Tutor AI
+
+This module provides NLP functions for text analysis, similarity computation,
+content moderation, and educational content processing. Uses NLTK for basic
+text processing and scikit-learn for embeddings and similarity.
+"""
+
 import re
 import nltk
 from nltk.tokenize import sent_tokenize, word_tokenize
@@ -12,7 +20,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 import numpy as np
 
-# Download required NLTK data
+# Download required NLTK data (only once)
 try:
     nltk.data.find('tokenizers/punkt')
 except LookupError:
@@ -45,15 +53,18 @@ except LookupError:
 
 class NLPProcessor:
     """
-    Natural Language Processing utilities for the tutoring system
-    Handles text analysis, entity extraction, summarization, and other NLP tasks
+    Natural Language Processing utilities for the tutoring system.
+    
+    Handles text analysis, entity extraction, summarization, similarity computation,
+    content moderation, and educational content processing.
     """
     
     def __init__(self):
-        self.stop_words = set(stopwords.words('english'))
-        self.lemmatizer = WordNetLemmatizer()
+        # Initialize NLP tools
+        self.stop_words = set(stopwords.words('english'))  # Common words to ignore
+        self.lemmatizer = WordNetLemmatizer()  # Reduce words to base form
         
-        # Educational keywords that are important to preserve
+        # Educational keywords that are important to preserve in analysis
         self.educational_keywords = {
             'definition', 'concept', 'theory', 'principle', 'method', 'process',
             'example', 'application', 'analysis', 'synthesis', 'evaluation',
@@ -77,7 +88,7 @@ class NLPProcessor:
             'virus', 'malware', 'trojan', 'exploit', 'phishing'
         }
         
-        # Initialize TF-IDF vectorizer for embeddings
+        # Initialize TF-IDF vectorizer for embeddings (used in similarity search)
         self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
     
     def extract_entities(self, text):
@@ -435,7 +446,10 @@ class NLPProcessor:
     
     def compute_similarity(self, text1, text2):
         """
-        Compute similarity between two texts using sequence matching
+        Compute similarity between two texts using sequence matching.
+        
+        Uses difflib's SequenceMatcher for basic string similarity.
+        Good for exact/near-exact matches but not semantic understanding.
         
         Args:
             text1 (str): First text
@@ -453,13 +467,16 @@ class NLPProcessor:
     
     def get_embedding(self, text):
         """
-        Generate simple TF-IDF based embedding for text
+        Generate simple TF-IDF based embedding for text.
+        
+        Creates a basic vector representation using word frequencies.
+        Used for semantic similarity in content caching.
         
         Args:
             text (str): Input text
             
         Returns:
-            list: Embedding vector as list
+            list: Embedding vector as list of floats
         """
         try:
             # For simplicity, use word frequencies as embedding
@@ -473,11 +490,14 @@ class NLPProcessor:
     
     def compute_semantic_similarity(self, embedding1, embedding2):
         """
-        Compute cosine similarity between two embedding vectors
+        Compute cosine similarity between two embedding vectors.
+        
+        Measures semantic similarity between text embeddings.
+        Used in content caching to find similar queries.
         
         Args:
-            embedding1 (list): First embedding
-            embedding2 (list): Second embedding
+            embedding1 (list): First embedding vector
+            embedding2 (list): Second embedding vector
             
         Returns:
             float: Similarity score between 0 and 1
@@ -495,17 +515,20 @@ class NLPProcessor:
     
     def moderate_content(self, query):
         """
-        Moderate content query for safety and appropriateness
+        Moderate content query for safety and appropriateness.
+        
+        Checks the query against banned terms and dangerous patterns to prevent
+        generation of harmful, illegal, or inappropriate content.
         
         Args:
             query (str): The content query to check
             
         Returns:
-            dict: {"safe": bool, "reason": str}
+            dict: {"safe": bool, "reason": str} - approval status and explanation
         """
         query_lower = query.lower()
         
-        # Check for banned terms
+        # Check for banned terms (direct keyword matching)
         for term in self.banned_terms:
             if term in query_lower:
                 return {
@@ -513,11 +536,11 @@ class NLPProcessor:
                     "reason": f"Query contains inappropriate content: '{term}'"
                 }
         
-        # Check for patterns (e.g., "how to" + banned term)
+        # Check for dangerous patterns (e.g., "how to make bomb")
         dangerous_patterns = [
-            r"how to.*(?:make|build|create).*(?:bomb|explosive|weapon)",
-            r"how to.*(?:hack|steal|kill)",
-            r"recipe for.*(?:drug|explosive)",
+            r"how to.*(?:make|build|create).*(?:bomb|explosive|weapon)",  # Instructions for dangerous items
+            r"how to.*(?:hack|steal|kill)",  # Harmful actions
+            r"recipe for.*(?:drug|explosive)",  # Illegal recipes
         ]
         
         for pattern in dangerous_patterns:

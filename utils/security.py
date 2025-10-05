@@ -1,3 +1,49 @@
+"""
+Security Utilities Module
+
+This module provides comprehensive security utilities for the Tutor AI system, including
+input sanitization, validation, rate limiting, session management, and content safety checks.
+It implements multiple layers of security to protect against common web application vulnerabilities.
+
+Key Features:
+- Input sanitization and validation against XSS and injection attacks
+- Rate limiting to prevent abuse and DoS attacks
+- Session token generation and validation
+- Content safety analysis for educational appropriateness
+- Filename sanitization for secure file operations
+- CSRF protection token management
+
+Security Layers:
+1. Input Sanitization: HTML escaping, pattern blocking, length limits
+2. Input Validation: Type-specific validation (email, username, topic)
+3. Rate Limiting: Request throttling with configurable limits
+4. Content Safety: Pattern-based inappropriate content detection
+5. Session Security: Secure token generation and validation
+6. File Security: Safe filename handling and path traversal prevention
+
+Attack Mitigations:
+- XSS: HTML escaping and script pattern blocking
+- SQL Injection: Pattern detection and blocking
+- Command Injection: Dangerous command pattern filtering
+- DoS: Rate limiting and input length restrictions
+- CSRF: Token-based form protection
+- Path Traversal: Filename sanitization
+
+Configuration:
+- max_input_length: Maximum allowed input length (default: 10,000 chars)
+- rate_limit_requests: Max requests per hour (default: 100)
+- rate_limit_window: Rate limit time window in seconds (default: 3,600)
+
+Dependencies:
+- re: Regular expression pattern matching
+- html: HTML entity escaping
+- hashlib: Cryptographic hashing for tokens
+- secrets: Cryptographically secure random number generation
+- time: Time-based operations for rate limiting
+- datetime: Timestamp handling
+- typing: Type hints for better code documentation
+"""
+
 import re
 import html
 import hashlib
@@ -10,10 +56,18 @@ class SecurityManager:
     """
     Security utilities for the tutoring system
     Handles input sanitization, validation, and basic security measures
+
+    This class provides a comprehensive security toolkit for the Tutor AI application,
+    implementing multiple security layers to protect against common web vulnerabilities.
+    It includes input sanitization, rate limiting, session management, and content safety
+    analysis specifically tailored for educational content and user interactions.
     """
-    
+
     def __init__(self):
+        """Initialize the SecurityManager with default security configurations."""
         self.rate_limit_store = {}
+
+        # Define patterns for blocking potentially malicious input
         self.blocked_patterns = [
             # Common injection patterns
             r'<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>',
@@ -35,7 +89,8 @@ class SecurityManager:
             r';\s*ls\s+',
             r'&&\s*rm\s+',
         ]
-        
+
+        # Security configuration parameters
         self.max_input_length = 10000  # Maximum input length
         self.rate_limit_requests = 100  # Max requests per hour
         self.rate_limit_window = 3600  # 1 hour in seconds
@@ -43,12 +98,19 @@ class SecurityManager:
     def sanitize_input(self, text: str) -> str:
         """
         Sanitize user input to prevent XSS and injection attacks
-        
+
+        This method applies multiple sanitization techniques:
+        1. Length validation and truncation
+        2. HTML entity escaping
+        3. Malicious pattern removal
+        4. Whitespace normalization
+        5. Control character removal
+
         Args:
             text (str): Input text to sanitize
-            
+
         Returns:
-            str: Sanitized text
+            str: Sanitized text safe for processing and display
         """
         if not isinstance(text, str):
             return str(text)
@@ -74,14 +136,20 @@ class SecurityManager:
     
     def validate_input(self, text: str, input_type: str = 'text') -> Dict[str, bool]:
         """
-        Validate input according to type
-        
+        Validate input according to type and security requirements
+
+        Performs comprehensive validation including:
+        - Empty input checking
+        - Length validation
+        - Malicious pattern detection
+        - Type-specific format validation
+
         Args:
             text (str): Input to validate
-            input_type (str): Type of input (text, email, username, etc.)
-            
+            input_type (str): Type of input ('text', 'email', 'username', 'topic')
+
         Returns:
-            dict: Validation results
+            dict: Validation results with 'is_valid' boolean and 'errors' list
         """
         validation_result = {
             'is_valid': True,
@@ -142,14 +210,19 @@ class SecurityManager:
     
     def check_rate_limit(self, user_id: str, endpoint: str = 'default') -> Dict[str, Any]:
         """
-        Check if user has exceeded rate limits
-        
+        Check if user has exceeded rate limits for the specified endpoint
+
+        Implements sliding window rate limiting to prevent abuse:
+        - Tracks requests per user per endpoint
+        - Blocks users exceeding limits for the configured window
+        - Automatically cleans old requests outside the window
+
         Args:
-            user_id (str): User identifier
-            endpoint (str): Endpoint being accessed
-            
+            user_id (str): User identifier for rate limiting
+            endpoint (str): Endpoint being accessed (default: 'default')
+
         Returns:
-            dict: Rate limit status
+            dict: Rate limit status with 'allowed', 'reason', and timing information
         """
         current_time = time.time()
         key = f"{user_id}:{endpoint}"
@@ -193,7 +266,21 @@ class SecurityManager:
         }
     
     def generate_session_token(self, user_id: str) -> str:
-        """Generate a secure session token"""
+        """
+        Generate a secure session token for user authentication
+
+        Creates cryptographically secure session tokens using:
+        - User ID for identification
+        - Timestamp for expiration tracking
+        - Random bytes for uniqueness
+        - SHA256 hashing for security
+
+        Args:
+            user_id (str): User identifier for token association
+
+        Returns:
+            str: Secure session token hash
+        """
         timestamp = str(int(time.time()))
         random_bytes = secrets.token_bytes(16)
         
@@ -206,7 +293,21 @@ class SecurityManager:
         return token_hash
     
     def validate_session_token(self, token: str, user_id: str, max_age_hours: int = 24) -> bool:
-        """Validate a session token (simplified implementation)"""
+        """
+        Validate a session token (simplified implementation)
+
+        Note: This is a simplified version for demonstration.
+        In production, implement proper token storage and validation
+        with database-backed session management.
+
+        Args:
+            token (str): Session token to validate
+            user_id (str): Associated user ID
+            max_age_hours (int): Maximum token age in hours
+
+        Returns:
+            bool: True if token is valid, False otherwise
+        """
         # In a real implementation, you would store and validate tokens properly
         # This is a simplified version for demonstration
         
@@ -220,7 +321,20 @@ class SecurityManager:
         return True
     
     def encrypt_sensitive_data(self, data: str, key: Optional[str] = None) -> str:
-        """Simple encryption for sensitive data (placeholder implementation)"""
+        """
+        Simple encryption for sensitive data (placeholder implementation)
+
+        WARNING: This is a simplified example for demonstration only.
+        In production, use proper encryption libraries like the 'cryptography' package
+        with proper key management, IVs, and authenticated encryption.
+
+        Args:
+            data (str): Data to encrypt
+            key (Optional[str]): Encryption key (uses default if None)
+
+        Returns:
+            str: Base64-encoded encrypted data
+        """
         # In production, use proper encryption libraries like cryptography
         # This is a simplified example
         
@@ -256,7 +370,17 @@ class SecurityManager:
             return ""
     
     def log_security_event(self, event_type: str, user_id: str, details: str):
-        """Log security events for monitoring"""
+        """
+        Log security events for monitoring and auditing
+
+        Records security-related events for analysis and compliance.
+        In production, integrate with proper logging systems and SIEM tools.
+
+        Args:
+            event_type (str): Type of security event (e.g., 'rate_limit_exceeded')
+            user_id (str): User associated with the event
+            details (str): Detailed description of the event
+        """
         log_entry = {
             'timestamp': datetime.now().isoformat(),
             'event_type': event_type,
@@ -269,7 +393,18 @@ class SecurityManager:
         print(f"SECURITY LOG: {log_entry}")
     
     def check_content_safety(self, content: str) -> Dict[str, Any]:
-        """Check if content is safe for educational use"""
+        """
+        Check if content is safe for educational use
+
+        Analyzes content for inappropriate material and personal information
+        that should not be present in educational contexts.
+
+        Args:
+            content (str): Content to analyze for safety
+
+        Returns:
+            dict: Safety analysis with 'is_safe' boolean and 'issues' list
+        """
         safety_result = {
             'is_safe': True,
             'issues': []
@@ -304,7 +439,20 @@ class SecurityManager:
         return safety_result
     
     def sanitize_filename(self, filename: str) -> str:
-        """Sanitize filename for safe file operations"""
+        """
+        Sanitize filename for safe file operations
+
+        Removes dangerous characters and patterns to prevent:
+        - Directory traversal attacks
+        - Command injection through filenames
+        - Filesystem corruption
+
+        Args:
+            filename (str): Filename to sanitize
+
+        Returns:
+            str: Safe filename for file operations
+        """
         # Remove directory traversal attempts
         filename = filename.replace('..', '').replace('/', '').replace('\\', '')
         
@@ -319,11 +467,30 @@ class SecurityManager:
         return filename or 'default_filename'
     
     def generate_csrf_token(self) -> str:
-        """Generate CSRF token for form protection"""
+        """
+        Generate CSRF token for form protection
+
+        Creates cryptographically secure tokens to prevent
+        Cross-Site Request Forgery attacks.
+
+        Returns:
+            str: URL-safe CSRF token
+        """
         return secrets.token_urlsafe(32)
     
     def validate_csrf_token(self, token: str, stored_token: str) -> bool:
-        """Validate CSRF token"""
+        """
+        Validate CSRF token against stored token
+
+        Uses constant-time comparison to prevent timing attacks.
+
+        Args:
+            token (str): Token from request
+            stored_token (str): Expected token from session
+
+        Returns:
+            bool: True if tokens match, False otherwise
+        """
         if not token or not stored_token:
             return False
         

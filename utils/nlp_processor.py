@@ -7,6 +7,10 @@ from nltk.chunk import ne_chunk
 from nltk.tag import pos_tag
 from collections import Counter
 import os
+from difflib import SequenceMatcher
+from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
+import numpy as np
 
 # Download required NLTK data
 try:
@@ -56,6 +60,9 @@ class NLPProcessor:
             'compare', 'contrast', 'explain', 'describe', 'identify', 'calculate',
             'solve', 'prove', 'demonstrate', 'illustrate', 'implement'
         }
+        
+        # Initialize TF-IDF vectorizer for embeddings
+        self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
     
     def extract_entities(self, text):
         """
@@ -409,3 +416,63 @@ class NLPProcessor:
                 objectives.append(cleaned_sentence.strip())
         
         return objectives[:5]  # Return top 5 objectives
+    
+    def compute_similarity(self, text1, text2):
+        """
+        Compute similarity between two texts using sequence matching
+        
+        Args:
+            text1 (str): First text
+            text2 (str): Second text
+            
+        Returns:
+            float: Similarity score between 0 and 1
+        """
+        try:
+            # Use SequenceMatcher for simple similarity
+            matcher = SequenceMatcher(None, text1.lower(), text2.lower())
+            return matcher.ratio()
+        except Exception as e:
+            return 0.0
+    
+    def get_embedding(self, text):
+        """
+        Generate simple TF-IDF based embedding for text
+        
+        Args:
+            text (str): Input text
+            
+        Returns:
+            list: Embedding vector as list
+        """
+        try:
+            # For simplicity, use word frequencies as embedding
+            words = self.lemmatizer.lemmatize(text.lower()).split()
+            words = [w for w in words if w not in self.stop_words and w.isalpha()]
+            embedding = [words.count(w) for w in set(words)]  # Simple count vector
+            return embedding
+        except Exception as e:
+            print(f"Error generating embedding: {e}")
+            return []
+    
+    def compute_semantic_similarity(self, embedding1, embedding2):
+        """
+        Compute cosine similarity between two embedding vectors
+        
+        Args:
+            embedding1 (list): First embedding
+            embedding2 (list): Second embedding
+            
+        Returns:
+            float: Similarity score between 0 and 1
+        """
+        if not embedding1 or not embedding2:
+            return 0.0
+        try:
+            vec1 = np.array(embedding1).reshape(1, -1)
+            vec2 = np.array(embedding2).reshape(1, -1)
+            similarity = cosine_similarity(vec1, vec2)[0][0]
+            return float(similarity)
+        except Exception as e:
+            print(f"Error computing similarity: {e}")
+            return 0.0

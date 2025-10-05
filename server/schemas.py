@@ -34,6 +34,17 @@ class ContentOut(BaseModel):
     content: str
     metadata: Dict[str, Any]
 
+class GeneratedContent(BaseModel):
+    query: str
+    embedding: List[float] = []
+    content: str
+    topic: str
+    difficulty: str
+    objectives: Optional[List[str]] = None
+    similarity_threshold: float = 0.8
+    created_at: str
+    updated_at: Optional[str] = None
+
 class QuestionGenRequest(BaseModel):
     contentId: str
     questionCount: int = 5

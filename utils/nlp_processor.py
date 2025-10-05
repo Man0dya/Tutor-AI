@@ -61,6 +61,22 @@ class NLPProcessor:
             'solve', 'prove', 'demonstrate', 'illustrate', 'implement'
         }
         
+        # Banned keywords and phrases for content moderation
+        self.banned_terms = {
+            # Violence and harm
+            'bomb', 'explosive', 'gun', 'weapon', 'kill', 'murder', 'suicide', 'harm',
+            'attack', 'terrorism', 'violent', 'assault', 'abuse',
+            # Illegal activities
+            'drug', 'narcotic', 'illegal', 'crime', 'hack', 'steal', 'fraud', 'scam',
+            'pirate', 'counterfeit', 'smuggle',
+            # Hate and discrimination
+            'hate', 'racist', 'sexist', 'discrimination', 'slur', 'offensive',
+            # Adult content
+            'porn', 'sex', 'nude', 'adult', 'explicit',
+            # Other harmful
+            'virus', 'malware', 'trojan', 'exploit', 'phishing'
+        }
+        
         # Initialize TF-IDF vectorizer for embeddings
         self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
     
@@ -476,3 +492,43 @@ class NLPProcessor:
         except Exception as e:
             print(f"Error computing similarity: {e}")
             return 0.0
+    
+    def moderate_content(self, query):
+        """
+        Moderate content query for safety and appropriateness
+        
+        Args:
+            query (str): The content query to check
+            
+        Returns:
+            dict: {"safe": bool, "reason": str}
+        """
+        query_lower = query.lower()
+        
+        # Check for banned terms
+        for term in self.banned_terms:
+            if term in query_lower:
+                return {
+                    "safe": False,
+                    "reason": f"Query contains inappropriate content: '{term}'"
+                }
+        
+        # Check for patterns (e.g., "how to" + banned term)
+        dangerous_patterns = [
+            r"how to.*(?:make|build|create).*(?:bomb|explosive|weapon)",
+            r"how to.*(?:hack|steal|kill)",
+            r"recipe for.*(?:drug|explosive)",
+        ]
+        
+        for pattern in dangerous_patterns:
+            if re.search(pattern, query_lower, re.IGNORECASE):
+                return {
+                    "safe": False,
+                    "reason": "Query matches harmful pattern"
+                }
+        
+        # If no issues, approve
+        return {
+            "safe": True,
+            "reason": "Content approved"
+        }

@@ -48,12 +48,15 @@ from agents.feedback_evaluator import FeedbackEvaluatorAgent
 from ..auth import get_current_user
 from ..database import col
 from ..plan import require_paid_feature
+from utils.security import SecurityManager
+from ..config import PRIVACY_MODE, REDACT_FEEDBACK
 
 # Create router with answers prefix and tags for API documentation
 router = APIRouter(prefix="/answers", tags=["answers"])
 
 # Initialize feedback evaluator agent for answer assessment
 _feedback_agent = FeedbackEvaluatorAgent()
+_security = SecurityManager()
 
 @router.post("/submit", response_model=FeedbackOut)
 async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_user)) -> FeedbackOut:
@@ -88,6 +91,11 @@ async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_
 
         questions = qset.get("questions", [])
 
+        # In STRICT mode, block submissions containing PII
+        if PRIVACY_MODE == 'STRICT':
+            if _security.detect_pii(str(payload.answers)):
+                raise HTTPException(status_code=400, detail="Your answers include personal information. Please remove private details before submitting.")
+
         # Generate comprehensive feedback using AI agent
         feedback = _feedback_agent.evaluate_answers(
             questions=questions,
@@ -95,6 +103,13 @@ async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_
             feedback_type="Detailed",
             include_suggestions=True,
         )
+
+        # Redact any potential PII from AI-generated feedback and user answers before storing (configurable)
+        if REDACT_FEEDBACK:
+            feedback = _security.redact_pii_in_obj(feedback)
+            safe_answers_obj = _security.redact_pii_in_obj(payload.answers)
+        else:
+            safe_answers_obj = payload.answers
 
         # Prepare feedback document for database storage
         fb_doc = {
@@ -112,7 +127,7 @@ async def submit_answers(payload: AnswerSubmitRequest, user=Depends(get_current_
         await col("feedback").insert_one(fb_doc)
 
         # Store answers with string keys (MongoDB requirement)
-        safe_answers = {str(k): v for k, v in payload.answers.items()}
+        safe_answers = {str(k): v for k, v in safe_answers_obj.items()}
         ans_doc = {
             "_id": str(uuid4()),
             "userId": user.get("sub"),

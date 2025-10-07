@@ -18,6 +18,7 @@ from ..database import col
 from ..plan import ensure_content_quota, record_content_generation
 from utils.nlp_processor import NLPProcessor
 from utils.security import SecurityManager
+from ..config import PRIVACY_MODE, REDACT_CONTENT
 
 router = APIRouter(prefix="/content", tags=["content"])
 
@@ -75,6 +76,14 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
             raise HTTPException(
                 status_code=400,
                 detail=f"Content request rejected: {moderation_result['reason']}. Please ensure your query aligns with educational and safe topics."
+            )
+        # Additional privacy check: detect PII in user-supplied query and block
+        pii = _security.detect_pii(query)
+        if pii:
+            # In STRICT mode, always reject; in BALANCED, reject for content generation requests
+            raise HTTPException(
+                status_code=400,
+                detail="Your request appears to include personal or sensitive information (PII). Please remove private details before generating content."
             )
 
         # Step 4: Generate embedding for semantic similarity search using only the meaningful parts
@@ -167,6 +176,10 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                 "content_type": payload.contentType,
                 "learning_objectives": payload.learningObjectives,
             }
+
+        # Redact any PII in generated content before persisting
+        if REDACT_CONTENT:
+            content_text = _security.redact_pii(content_text)
 
         # Step 9: Save to global cache for future requests
         cache_doc = {

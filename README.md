@@ -44,7 +44,7 @@ Tutor AI helps learners create study materials, practice with intelligent questi
 
 | Plan     | Price       | Content Generations | Question Generations | Feedback Evaluations | Notes          |
 |----------|-------------|---------------------|----------------------|----------------------|----------------|
-| Free     | Free        | —                   | 10                   | —                    | Basic features |
+| Free     | Free        | 10                  |  —                   | —                    | Basic features |
 | Standard | $10/month   | 100                 | 100                  | 100                  | Standard features |
 | Premium  | $50/month   | Unlimited           | Unlimited            | Unlimited            | Premium features |
 

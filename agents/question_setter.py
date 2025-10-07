@@ -28,6 +28,7 @@ from google import genai
 from google.genai import types
 from utils.nlp_processor import NLPProcessor
 import re
+from server.config import QS_BATCH_MODE, QS_SUMMARIZE_INPUT, QS_MAX_EXPLANATION_SENTENCES, QS_DEFAULT_MODEL
 
 class QuestionSetterAgent:
     """
@@ -115,15 +116,38 @@ class QuestionSetterAgent:
                 text_content = content
                 key_concepts = self._extract_key_concepts(content)
                 learning_objectives = []
+            
+            # Optionally summarize input to keep prompt compact
+            compact_context = text_content
+            if QS_SUMMARIZE_INPUT and isinstance(self.nlp_processor, NLPProcessor):
+                # 1) Short summary
+                summary = self.nlp_processor.summarize_text(text_content, max_sentences=4)
+                # 2) Top key phrases
+                phrases = [kp.get('phrase') for kp in (self.nlp_processor.extract_key_phrases(text_content, max_phrases=8) or [])]
+                phrases = [p for p in phrases if isinstance(p, str)]
+                # 3) Use provided key_concepts if available
+                kc = [k for k in key_concepts[:10] if isinstance(k, str)]
+                compact_context = f"SUMMARY:\n{summary}\n\nKEY_PHRASES: {', '.join(phrases)}\nKEY_CONCEPTS: {', '.join(kc)}\n"
 
-            # Analyze content structure for better question generation
-            content_analysis = self._analyze_content_structure(text_content)
-
-            # Generate questions using Bloom's taxonomy approach
-            questions = self._generate_bloom_based_questions(
-                text_content, key_concepts, learning_objectives,
-                question_count, question_types, difficulty_distribution, bloom_levels
-            )
+            # Batch mode: generate all questions in one structured JSON response
+            if QS_BATCH_MODE:
+                questions = self._generate_questions_batch(
+                    compact_context,
+                    full_context=text_content,
+                    key_concepts=key_concepts,
+                    learning_objectives=learning_objectives,
+                    question_count=question_count,
+                    question_types=question_types,
+                    bloom_levels=bloom_levels,
+                )
+            else:
+                # Legacy path: multi-pass Bloom-based generation
+                # Analyze content structure for better question generation
+                content_analysis = self._analyze_content_structure(text_content)
+                questions = self._generate_bloom_based_questions(
+                    text_content, key_concepts, learning_objectives,
+                    question_count, question_types, difficulty_distribution, bloom_levels
+                )
 
             # Add difficulty labels based on the requested distribution
             labeled_questions = self._label_question_difficulty(questions, difficulty_distribution)
@@ -148,6 +172,75 @@ class QuestionSetterAgent:
 
         except Exception as e:
             raise Exception(f"Question generation failed: {str(e)}")
+
+    def _generate_questions_batch(self, compact_context: str, full_context: str, key_concepts, learning_objectives,
+                                  question_count: int, question_types, bloom_levels):
+        """Single-call batch generation with strict JSON output and token budgeting."""
+        # Keep explanations short to bound tokens
+        max_expl = max(0, min(3, QS_MAX_EXPLANATION_SENTENCES))
+
+        # Build a compact yet explicit system instruction
+        system_prompt = f"""
+You are an expert question generator for educational content.
+Generate exactly {question_count} questions as compact JSON only (no markdown, no commentary).
+Allowed types: {', '.join(question_types)}.
+Target Bloom's levels: {', '.join(bloom_levels)}.
+Rules:
+- Prefer 'Multiple Choice' where possible; include 'True/False' or 'Short Answer' if requested.
+- For MCQ: options must be exactly 4 plain strings; correct_answer must equal one of the options.
+- Explanations must be concise (<= {max_expl} sentence{'s' if max_expl!=1 else ''}).
+- Do not include letters (A/B/C/D) in option text.
+- Output MUST be valid JSON with this shape:
+{{
+  "questions": [
+    {{
+      "question": "...",
+      "type": "Multiple Choice" | "True/False" | "Short Answer",
+      "options": ["...","...","...","..."] (MCQ only),
+      "correct_answer": "...",  (for MCQ, must match one of options; for TF use True/False; for SA use short key answer)
+      "explanation": "...",
+      "bloom_level": "{bloom_levels[0] if bloom_levels else 'Remember'}"
+    }}
+  ]
+}}
+"""
+
+        # User prompt with compact context, then a reference to full if needed
+        key_concepts_text = ', '.join([k for k in key_concepts[:10] if isinstance(k, str)])
+        lo_text = ', '.join([l for l in learning_objectives[:6] if isinstance(l, str)]) if learning_objectives else ''
+
+        user_prompt = f"""
+CONTENT (COMPACT):
+{compact_context}
+
+FOCUS CONCEPTS: {key_concepts_text}
+LEARNING OBJECTIVES: {lo_text}
+"""
+
+        try:
+            gen_cfg = types.GenerateContentConfig(
+                temperature=0.6,
+                max_output_tokens=min(1200, max(300, question_count * (120 if max_expl else 80))),
+            )
+            response = self.client.models.generate_content(
+                model=QS_DEFAULT_MODEL,
+                contents=f"{system_prompt}\n\n{user_prompt}",
+                generation_config=gen_cfg,
+            )
+
+            if response.text:
+                text = response.text.strip()
+                if text.startswith('```json'):
+                    text = text[7:-3].strip()
+                elif text.startswith('```'):
+                    text = text[3:-3].strip()
+                data = json.loads(text)
+                qs = data.get('questions', [])
+                return qs
+            return []
+        except Exception:
+            # Fallback: minimal legacy path
+            return self._create_fallback_questions(full_context, question_count, "Multiple Choice")
     
     def _extract_key_concepts(self, content):
         """

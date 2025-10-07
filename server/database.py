@@ -40,6 +40,19 @@ async def init_db():
         # Ensure indices for performance
         try:
             await _db.users.create_index("email", unique=True)  # Unique email constraint
+            # Speed up content reads per user and by createdAt
+            await _db.content.create_index([("userId", 1), ("createdAt", -1)])
+            await _db.content.create_index([("_id", 1)], unique=True)
+            # Global generated content matching
+            await _db.generated_content.create_index([("created_at", -1)])
+            await _db.generated_content.create_index([("topic", 1)])
+            await _db.generated_content.create_index([("similarity_basis", 1)])
+            # Question sets retrieval
+            await _db.question_sets.create_index([("userId", 1), ("createdAt", -1)])
+            await _db.question_sets.create_index([("contentId", 1), ("createdAt", -1)])
+            # Answers and feedback lookups
+            await _db.answers.create_index([("userId", 1), ("submittedAt", -1)])
+            await _db.feedback.create_index([("userId", 1), ("createdAt", -1)])
         except Exception:
             # Index creation errors should not crash the app
             pass

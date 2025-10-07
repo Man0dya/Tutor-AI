@@ -24,3 +24,9 @@ STRIPE_PRICE_PREMIUM = os.getenv("STRIPE_PRICE_PREMIUM", "")
 PRIVACY_MODE = os.getenv("PRIVACY_MODE", "BALANCED").upper()
 REDACT_FEEDBACK = os.getenv("REDACT_FEEDBACK", "true").lower() == "true"
 REDACT_CONTENT = os.getenv("REDACT_CONTENT", "true").lower() == "true"
+
+# Question generation performance tuning
+QS_BATCH_MODE = os.getenv("QS_BATCH_MODE", "true").lower() == "true"  # Use single-call batch generation
+QS_SUMMARIZE_INPUT = os.getenv("QS_SUMMARIZE_INPUT", "true").lower() == "true"  # Summarize content before sending
+QS_MAX_EXPLANATION_SENTENCES = int(os.getenv("QS_MAX_EXPLANATION_SENTENCES", "1"))  # Keep explanations short
+QS_DEFAULT_MODEL = os.getenv("QS_DEFAULT_MODEL", "gemini-2.5-flash")  # Fast model variant

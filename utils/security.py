@@ -51,6 +51,7 @@ import secrets
 import time
 from datetime import datetime, timedelta
 from typing import Dict, List, Optional, Any
+from dataclasses import dataclass
 
 class SecurityManager:
     """
@@ -94,6 +95,110 @@ class SecurityManager:
         self.max_input_length = 10000  # Maximum input length
         self.rate_limit_requests = 100  # Max requests per hour
         self.rate_limit_window = 3600  # 1 hour in seconds
+
+        # Compile basic PII detection patterns
+        # Note: Keep patterns conservative to avoid excessive false positives
+        self._pii_patterns: Dict[str, re.Pattern] = {
+            # Emails
+            "email": re.compile(r"\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}\b"),
+            # Simple international phone formats (e.g., +1 555-123-4567, 071-234-5678)
+            "phone": re.compile(r"\b(?:\+?\d{1,3}[-.\s]?)?(?:\(\d{2,4}\)[-.\s]?|\d{2,4}[-.\s]?)?\d{3,4}[-.\s]?\d{3,4}\b"),
+            # US SSN
+            "ssn": re.compile(r"\b\d{3}-\d{2}-\d{4}\b"),
+            # IBAN (very rough)
+            "iban": re.compile(r"\b[A-Z]{2}\d{2}[A-Z0-9]{11,30}\b"),
+        }
+
+    # ---------------------------
+    # PII detection and redaction
+    # ---------------------------
+    def _luhn_check(self, number: str) -> bool:
+        """Validate a number using the Luhn algorithm (for credit cards)."""
+        try:
+            digits = [int(d) for d in number if d.isdigit()]
+        except ValueError:
+            return False
+        if len(digits) < 13 or len(digits) > 19:
+            return False
+        checksum = 0
+        parity = (len(digits) - 2) % 2
+        for i, d in enumerate(digits[:-1]):
+            if i % 2 == parity:
+                d = d * 2
+                if d > 9:
+                    d -= 9
+            checksum += d
+        return (checksum + digits[-1]) % 10 == 0
+
+    def detect_pii(self, text: str) -> Dict[str, List[str]]:
+        """
+        Detect potential PII elements in text.
+
+        Returns a dict mapping PII type -> list of matched strings.
+        Types: email, phone, ssn, credit_card, iban
+        """
+        if not isinstance(text, str) or not text:
+            return {}
+        found: Dict[str, List[str]] = {k: [] for k in ["email", "phone", "ssn", "credit_card", "iban"]}
+
+        # Regex-based detection
+        for t, pattern in self._pii_patterns.items():
+            matches = pattern.findall(text)
+            if matches:
+                found[t].extend(matches if isinstance(matches, list) else [matches])
+
+        # Credit card detection using Luhn on 13-19 digit sequences
+        for m in re.findall(r"\b(?:\d[ -]?){13,19}\b", text):
+            digits_only = re.sub(r"[^\d]", "", m)
+            if self._luhn_check(digits_only):
+                found["credit_card"].append(m)
+
+        # Remove empty entries
+        return {k: v for k, v in found.items() if v}
+
+    def redact_pii(self, text: str) -> str:
+        """
+        Redact detected PII from text, replacing with type-specific masks.
+        - email -> [REDACTED:EMAIL]
+        - phone -> [REDACTED:PHONE]
+        - ssn -> ***-**-****
+        - credit card -> **** **** **** 1234 (keep last 4)
+        - iban -> [REDACTED:IBAN]
+        """
+        if not isinstance(text, str) or not text:
+            return text
+
+        # Emails
+        text = self._pii_patterns["email"].sub("[REDACTED:EMAIL]", text)
+        # Phones
+        text = self._pii_patterns["phone"].sub("[REDACTED:PHONE]", text)
+        # SSN
+        text = self._pii_patterns["ssn"].sub("***-**-****", text)
+        # IBAN
+        text = self._pii_patterns["iban"].sub("[REDACTED:IBAN]", text)
+        # Credit cards (mask keep last 4)
+        def _mask_card(m: re.Match) -> str:
+            raw = m.group(0)
+            digits = re.sub(r"[^\d]", "", raw)
+            if not self._luhn_check(digits):
+                return raw
+            last4 = digits[-4:]
+            return "**** **** **** " + last4
+        text = re.sub(r"\b(?:\d[ -]?){13,19}\b", _mask_card, text)
+
+        return text
+
+    def redact_pii_in_obj(self, obj: Any) -> Any:
+        """Recursively redact PII in strings within dicts/lists/tuples."""
+        if isinstance(obj, str):
+            return self.redact_pii(obj)
+        if isinstance(obj, list):
+            return [self.redact_pii_in_obj(x) for x in obj]
+        if isinstance(obj, tuple):
+            return tuple(self.redact_pii_in_obj(x) for x in obj)
+        if isinstance(obj, dict):
+            return {k: self.redact_pii_in_obj(v) for k, v in obj.items()}
+        return obj
     
     def sanitize_input(self, text: str) -> str:
         """
@@ -381,11 +486,12 @@ class SecurityManager:
             user_id (str): User associated with the event
             details (str): Detailed description of the event
         """
+        safe_details = self.redact_pii(details) if isinstance(details, str) else details
         log_entry = {
             'timestamp': datetime.now().isoformat(),
             'event_type': event_type,
             'user_id': user_id,
-            'details': details,
+            'details': safe_details,
             'ip_address': 'unknown'  # In production, get from request
         }
         
@@ -425,16 +531,10 @@ class SecurityManager:
                 safety_result['issues'].append(f'Content may contain inappropriate material')
                 break
         
-        # Check for personal information patterns
-        personal_info_patterns = [
-            r'\b\d{3}-\d{2}-\d{4}\b',  # SSN
-            r'\b\d{16}\b',             # Credit card
-            r'\b[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Z|a-z]{2,}\b'  # Email
-        ]
-        
-        for pattern in personal_info_patterns:
-            if re.search(pattern, content):
-                safety_result['issues'].append('Content may contain personal information')
+        # Check for personal information using PII detector
+        pii_found = self.detect_pii(content)
+        if pii_found:
+            safety_result['issues'].append('Content may contain personal information')
         
         return safety_result
     

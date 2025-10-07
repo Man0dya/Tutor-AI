@@ -6,6 +6,7 @@ import { useAuth } from '../context/AuthContext'
 import { useNavigate } from 'react-router-dom'
 import { MdAutoAwesome, MdArrowForward, MdDownload, MdFiberManualRecord, MdRadioButtonChecked, MdExpandMore, MdChevronRight, MdSearch } from 'react-icons/md'
 import Markdown from '../components/Markdown'
+import { hasPII, detectPII } from '../utils/pii'
 
 export default function ContentPage() {
   const { plan, refreshBilling } = useAuth()
@@ -298,6 +299,21 @@ export default function ContentPage() {
       })
       return
     }
+    // Block submission if potential PII is detected
+    try {
+      const joined = `${topic}\n${objectives}`
+      if (hasPII(joined)) {
+        const types = detectPII(joined).join(', ')
+        toast({
+          title: 'Personal information detected',
+          description: `We detected possible ${types}. Please remove private details before generating content.`,
+          status: 'warning',
+          duration: 6000,
+          isClosable: true
+        })
+        return
+      }
+    } catch {}
     setLoading(true)
     try {
       const learning_objectives = objectives

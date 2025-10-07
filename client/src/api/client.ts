@@ -6,6 +6,14 @@ export const api = axios.create({
   baseURL,
 })
 
+// Prevent browser/proxy caching of API GETs by default
+api.defaults.headers.get = {
+  ...(api.defaults.headers.get || {}),
+  'Cache-Control': 'no-store, no-cache, must-revalidate',
+  'Pragma': 'no-cache',
+  'Expires': '0',
+}
+
 // Redirect to pricing if server signals payment required
 api.interceptors.response.use(
   (res) => res,

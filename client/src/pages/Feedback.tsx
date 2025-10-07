@@ -36,6 +36,7 @@ import {
 } from '@chakra-ui/react'
 import { IoShareSocial, IoCopy, IoDownload } from 'react-icons/io5'
 import PrivateLayout from '../components/PrivateLayout'
+import Markdown from '../components/Markdown'
 import { useLocation } from 'react-router-dom'
 import { api, type FeedbackOut, getErrorMessage } from '../api/client'
 
@@ -265,7 +266,9 @@ export default function FeedbackPage() {
 
             <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={6} className="professional-card">
               <Heading size="md" mb={3}>Detailed Feedback</Heading>
-              <Text color={subdued} whiteSpace="pre-wrap">{feedback.detailedFeedback}</Text>
+              <Box color={subdued}>
+                <Markdown source={String(feedback.detailedFeedback || '')} />
+              </Box>
               <HStack mt={4} spacing={3}>
                 <Button size="sm" variant="outline" borderRadius="lg" onClick={() => navigator.clipboard?.writeText(String(feedback.detailedFeedback || ''))}>Copy</Button>
               </HStack>
@@ -274,7 +277,9 @@ export default function FeedbackPage() {
             {feedback.studySuggestions && (
               <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={6} className="professional-card">
                 <Heading size="md" mb={3}>Study Suggestions</Heading>
-                <Text color={subdued} whiteSpace="pre-wrap">{feedback.studySuggestions}</Text>
+                <Box color={subdued}>
+                  <Markdown source={String(feedback.studySuggestions || '')} />
+                </Box>
                 <HStack mt={4} spacing={3}>
                   <Button size="sm" variant="outline" borderRadius="lg" as="a" href="/content">
                     Explore Suggested Topics
@@ -313,7 +318,10 @@ export default function FeedbackPage() {
                               <Text noOfLines={compactView ? 2 : undefined}><Text as="span" fontWeight="semibold">Correct Answer:</Text> {ev.correct_answer}</Text>
                             )}
                             {ev.feedback && (
-                              <Text color={subdued} noOfLines={compactView ? 3 : undefined}><Text as="span" fontWeight="semibold">Notes:</Text> {ev.feedback}</Text>
+                              <Box color={subdued}>
+                                <Text as="span" fontWeight="semibold">Notes:</Text>
+                                <Markdown source={String(ev.feedback || '')} />
+                              </Box>
                             )}
                           </VStack>
                         </AccordionPanel>

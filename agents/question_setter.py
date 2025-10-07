@@ -131,6 +131,9 @@ class QuestionSetterAgent:
             # Create plausible distractors for multiple choice questions
             enhanced_questions = self._enhance_with_distractors(labeled_questions, key_concepts)
 
+            # Normalize MCQs to ensure exactly 4 plain options and aligned correct answers
+            enhanced_questions = self._normalize_all_questions(enhanced_questions, key_concepts)
+
             # Return structured response with questions and metadata
             return {
                 'questions': enhanced_questions,
@@ -255,16 +258,20 @@ class QuestionSetterAgent:
         Returns:
             list: List of MCQ dictionaries with question, options, correct_answer, etc.
         """
-        system_prompt = """You are an expert question generator. Create multiple choice questions that test understanding of the given content. 
-        Each question should have exactly 4 options (A, B, C, D) with only one correct answer.
-        
+        system_prompt = """You are an expert question generator. Create multiple choice questions that test understanding of the given content.
+        Strict requirements:
+        - Provide exactly 4 options as plain, self-contained answer strings (no letter prefixes like A., B., no numbering like 1., 2.).
+        - Do not output options that reference other options (e.g., "B", "Option B"). Each option must stand alone.
+        - The `correct_answer` must be exactly one of the strings from the `options` array, not a letter or index.
+        - Ensure plausible distractors and one unambiguous correct answer.
+
         Return the response in JSON format with this structure:
         {
             "questions": [
                 {
                     "question": "Question text here?",
-                    "options": ["Option A", "Option B", "Option C", "Option D"],
-                    "correct_answer": "Option B",
+                    "options": ["Answer text 1", "Answer text 2", "Answer text 3", "Answer text 4"],
+                    "correct_answer": "Answer text 2",
                     "explanation": "Why this answer is correct",
                     "type": "Multiple Choice"
                 }
@@ -294,7 +301,9 @@ Make questions challenging but fair, testing different levels of understanding."
                     text = text[3:-3].strip()
 
                 result = json.loads(text)
-                return result.get("questions", [])
+                qs = result.get("questions", [])
+                # Normalize immediately to guard against misformatted options/correct_answer
+                return self._normalize_all_questions(qs, key_concepts)
             return []
 
         except Exception as e:
@@ -701,7 +710,27 @@ Questions should require critical thinking, analysis, and synthesis of informati
             )
 
             if response.text:
-                distractors = [line.strip() for line in response.text.strip().split('\n') if line.strip()]
+                raw_lines = [line.strip() for line in response.text.strip().split('\n') if line.strip()]
+                # Strip leading labels like "A.", "1)", "B :" and filter out letter-only tokens
+                def strip_label(s: str) -> str:
+                    t = s.strip()
+                    t = re.sub(r'^[A-Da-d][).:-]?\s+', '', t)
+                    t = re.sub(r'^\d+[).:-]?\s+', '', t)
+                    return t.strip()
+                cleaned = [strip_label(x) for x in raw_lines]
+                # Filter out bad/too-short items and references
+                def bad_opt(x: str) -> bool:
+                    if not isinstance(x, str):
+                        return True
+                    xx = x.strip()
+                    if len(xx) < 6:
+                        return True
+                    if re.fullmatch(r'[A-Da-d]', xx):
+                        return True
+                    if re.fullmatch(r'Option\s+[A-Da-d]', xx, flags=re.IGNORECASE):
+                        return True
+                    return False
+                distractors = [x for x in cleaned if not bad_opt(x)]
                 distractors = distractors[:3]  # Take only 3
 
                 # Combine correct answer with distractors and randomize
@@ -711,10 +740,10 @@ Questions should require critical thinking, analysis, and synthesis of informati
 
                 return all_options[:4]  # Ensure exactly 4 options
 
-            return existing_options if existing_options else [correct_answer, "Option B", "Option C", "Option D"]
+            return existing_options if existing_options else [correct_answer, "Incorrect but plausible detail", "Common misconception", "Related but wrong concept"]
 
         except Exception:
-            return existing_options if existing_options else [correct_answer, "Option B", "Option C", "Option D"]
+            return existing_options if existing_options else [correct_answer, "Incorrect but plausible detail", "Common misconception", "Related but wrong concept"]
     
     def _calculate_actual_distribution(self, questions):
         """
@@ -909,3 +938,100 @@ Questions should require critical thinking, analysis, and synthesis of informati
                 return False
 
         return True
+
+    # --- Normalization helpers to improve MCQ quality and structure ---
+    def _normalize_all_questions(self, questions, key_concepts):
+        normalized = []
+        for q in questions or []:
+            if q.get('type') == 'Multiple Choice':
+                normalized.append(self._normalize_mcq(q, key_concepts))
+            else:
+                normalized.append(q)
+        return normalized
+
+    def _normalize_mcq(self, q, key_concepts):
+        # Ensure options is a list of strings
+        opts = q.get('options') or []
+        if not isinstance(opts, list):
+            opts = []
+        # Flatten any nested or labeled options and strip labels like "A.", "B)", "C :"
+        def strip_label(s: str) -> str:
+            if not isinstance(s, str):
+                return ''
+            t = s.strip()
+            # Remove leading label patterns
+            t = re.sub(r'^[A-Da-d][).:-]?\s+', '', t)
+            t = re.sub(r'^\d+[).:-]?\s+', '', t)
+            return t.strip()
+
+        clean_opts = [strip_label(o) for o in opts if isinstance(o, str) and o.strip()]
+        # Filter out letter-only or referenced options like "B" or "Option C"
+        def bad_opt(x: str) -> bool:
+            if not isinstance(x, str):
+                return True
+            xx = x.strip()
+            if len(xx) < 4:
+                return True
+            if re.fullmatch(r'[A-Da-d]', xx):
+                return True
+            if re.fullmatch(r'Option\s+[A-Da-d]', xx, flags=re.IGNORECASE):
+                return True
+            return False
+        clean_opts = [o for o in clean_opts if not bad_opt(o)]
+        # Deduplicate while preserving order
+        seen = set()
+        dedup_opts = []
+        for o in clean_opts:
+            if o not in seen:
+                seen.add(o)
+                dedup_opts.append(o)
+
+        # Ensure exactly 4 options: truncate or pad with plausible distractors
+        if len(dedup_opts) > 4:
+            dedup_opts = dedup_opts[:4]
+        while len(dedup_opts) < 4:
+            # Generate a simple distractor placeholder if lacking; avoid empty strings
+            filler = self._generate_plausible_distractors(q.get('question',''), key_concepts) or []
+            for f in filler:
+                ft = strip_label(f)
+                if ft and ft not in seen:
+                    dedup_opts.append(ft)
+                    seen.add(ft)
+                    if len(dedup_opts) == 4:
+                        break
+            if len(dedup_opts) < 4:
+                # Last resort filler
+                candidate = f"None of the above ({len(dedup_opts)+1})"
+                if candidate not in seen:
+                    dedup_opts.append(candidate)
+                    seen.add(candidate)
+
+        # Normalize correct_answer: if it's a letter, map to option; else match by text
+        ca = q.get('correct_answer')
+        ca_text = ''
+        if isinstance(ca, str):
+            ca_stripped = strip_label(ca)
+            # If answer is a single letter A-D, map index
+            m = re.fullmatch(r'[A-Da-d]', ca_stripped)
+            if m:
+                idx = ord(ca_stripped.upper()) - ord('A')
+                if 0 <= idx < len(dedup_opts):
+                    ca_text = dedup_opts[idx]
+            else:
+                # Try exact text match; fall back to first option
+                if ca_stripped in dedup_opts:
+                    ca_text = ca_stripped
+                else:
+                    # loose match ignoring case
+                    for o in dedup_opts:
+                        if o.lower() == ca_stripped.lower():
+                            ca_text = o
+                            break
+        if not ca_text and dedup_opts:
+            # Prefer a concept-aligned option if possible
+            ca_text = dedup_opts[0]
+
+        q['options'] = dedup_opts
+        q['correct_answer'] = ca_text
+        q['type'] = 'Multiple Choice'
+        return q

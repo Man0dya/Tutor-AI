@@ -1,193 +1,215 @@
 import React from "react";
-import { Box, Button, Flex, Heading, Text, List, ListItem, ListIcon, useColorModeValue, Icon } from "@chakra-ui/react";
-import { FaCheck, FaStar, FaAt } from "react-icons/fa";
+import { Box, Button, Flex, Heading, Text, List, ListItem, ListIcon, VStack, HStack, Badge } from "@chakra-ui/react";
+import { FaCheck } from "react-icons/fa";
 import { createCheckoutSession } from "../api/client";
 
 const plans = [
   {
     name: "Free",
-    price: "Free",
-    icon: FaAt,
+    price: "0",
+    period: "Forever free",
+    description: "Perfect for getting started with AI tutoring",
     features: [
-      "10 question generations",
-      "Basic features",
+      "10 content generations per month",
+      "Basic AI feedback",
+      "Community support",
+      "Basic progress tracking"
     ],
-    gradient: "linear(to-br, gray.100, gray.50)",
-    color: "gray.700",
-    border: "2px solid #e2e8f0",
-    button: "Choose Plan",
+    button: "Get Started",
     highlight: false,
+    popular: false
   },
   {
-    name: "Standard",
-    price: "$10/month",
-    icon: FaStar,
+    name: "Pro",
+    price: "15",
+    period: "per month",
+    description: "Everything you need for serious learning",
     features: [
-      "100 content generations",
-      "100 question generations",
-      "100 feedback evaluations",
+      "100 content generations per month",
+      "100 question generations per month", 
+      "100 feedback evaluations per month",
+      "Advanced analytics",
+      "Priority support",
+      "Custom difficulty levels"
     ],
-    gradient: "linear(to-br, purple.400, blue.400)",
-    color: "white",
-    border: "2px solid #805ad5",
-    button: "Choose Plan",
+    button: "Upgrade to Pro",
     highlight: true,
+    popular: true
   },
   {
-    name: "Premium",
-    price: "$50/month",
-    icon: FaCheck,
+    name: "Unlimited",
+    price: "50",
+    period: "per month",
+    description: "For power users and intensive learning",
     features: [
       "Unlimited content generations",
       "Unlimited question generations",
       "Unlimited feedback evaluations",
+      "Advanced analytics & insights",
+      "Priority support",
+      "Custom integrations",
+      "Team collaboration tools"
     ],
-    gradient: "linear(to-br, blue.400, teal.400)",
-    color: "white",
-    border: "2px solid #319795",
-    button: "Choose Plan",
+    button: "Upgrade to Unlimited",
     highlight: false,
+    popular: false
   },
 ];
 
 const PricingPlans: React.FC = () => {
-  const cardBg = useColorModeValue("white", "gray.800");
   return (
-    <Flex direction={{ base: "column", md: "row" }} gap={8} justify="center" align="center" py={8}>
-      {plans.map((plan) => (
-        <Box
-          key={plan.name}
-          bg={plan.highlight ? 'rgba(128,90,213,0.10)' : 'rgba(255,255,255,0.92)'}
-          bgGradient={plan.gradient}
-          color={plan.color}
-          borderRadius="2xl"
-          boxShadow={plan.highlight ? "0 24px 64px 0 rgba(128,90,213,0.22)" : "0 4px 16px rgba(0,0,0,0.08)"}
-          border={plan.border}
-          p={14}
-          w={{ base: "95vw", sm: "370px" }}
-          maxW="400px"
-          textAlign="center"
-          position="relative"
-          zIndex={plan.highlight ? 2 : 1}
-          backdropFilter="blur(12px)"
-          _before={plan.highlight ? {
-            content: '""',
-            position: 'absolute',
-            top: '-22px',
-            left: '50%',
-            transform: 'translateX(-50%)',
-            w: '90%',
-            h: '22px',
-            bgGradient: 'linear(to-r, purple.400, blue.400, teal.400)',
-            borderRadius: 'full',
-            filter: 'blur(10px)',
-            opacity: 0.5,
-            zIndex: -1,
-            animation: 'shine 2.5s linear infinite',
-            '@keyframes shine': {
-              '0%': { opacity: 0.5 },
-              '50%': { opacity: 1 },
-              '100%': { opacity: 0.5 },
-            },
-          } : {}}
-          _hover={{
-            transform: 'translateY(-16px) scale(1.07)',
-            boxShadow: plan.highlight
-              ? '0 40px 120px 0 rgba(128,90,213,0.32)'
-              : '0 16px 48px rgba(0,0,0,0.16)',
-          }}
-          transition="all 0.3s cubic-bezier(.4,0,.2,1)"
-        >
-          {plan.highlight && (
-            <Box
-              position="absolute"
-              top={6}
-              right={6}
-              bgGradient="linear(to-r, purple.500, blue.500)"
-              color="white"
-              px={5}
-              py={2}
-              borderRadius="full"
-              fontWeight="bold"
-              fontSize="md"
-              letterSpacing="wide"
-              boxShadow="0 2px 12px rgba(128,90,213,0.18)"
-              zIndex={3}
-            >
-              Most Popular
-            </Box>
-          )}
-          <Flex align="center" justify="center" mb={6}>
-            <Icon as={plan.icon} boxSize={10} color={plan.highlight ? 'yellow.300' : 'purple.400'} />
-          </Flex>
-          <Heading size="lg" mb={2} fontWeight="extrabold" letterSpacing="tight" textShadow={plan.highlight ? '0 2px 12px rgba(128,90,213,0.18)' : undefined}>
-            {plan.name}
-          </Heading>
-          <Text fontSize="4xl" fontWeight="extrabold" mb={4} letterSpacing="tight" textShadow={plan.highlight ? '0 2px 12px rgba(128,90,213,0.18)' : undefined}>
-            {plan.price}
-          </Text>
-          <List spacing={5} mb={12}>
-            {plan.features.map((feature) => (
-              <ListItem key={feature} display="flex" alignItems="center" justifyContent="center" fontSize="lg" fontWeight="medium">
-                <ListIcon as={FaCheck} color={plan.highlight ? "green.200" : "green.400"} boxSize={6} mr={2} />
-                {feature}
-              </ListItem>
-            ))}
-          </List>
-          <Button
-            size="lg"
-            w="full"
-            py={8}
-            fontSize="xl"
-            bgGradient={plan.highlight ? "linear(to-r, purple.500, blue.500)" : "linear(to-r, gray.300, gray.400)"}
-            color={plan.highlight ? "white" : "gray.700"}
-            fontWeight="bold"
+    <Box maxW="6xl" mx="auto">
+      <Flex 
+        direction={{ base: "column", lg: "row" }} 
+        gap={6} 
+        justify="center" 
+        align="stretch"
+      >
+        {plans.map((plan) => (
+          <Box
+            key={plan.name}
+            bg="white"
             borderRadius="xl"
-            letterSpacing="wide"
-            onClick={async () => {
-              if (plan.name.toLowerCase() === 'free') {
-                // Free plan: no checkout; maybe just notify
-                alert('You are on the Free plan with 10 question generations and basic features.')
-                return
-              }
-              let key: 'standard' | 'premium' = 'standard'
-              if (plan.name.toLowerCase() === 'standard') key = 'standard'
-              else if (plan.name.toLowerCase() === 'premium') key = 'premium'
-              // Allow passing a direct Stripe Price ID from client env as a fallback
-              const priceId = key === 'standard'
-                ? (import.meta.env.VITE_STRIPE_PRICE_STANDARD as string | undefined)
-                : (import.meta.env.VITE_STRIPE_PRICE_PREMIUM as string | undefined)
-              try {
-                const session = await createCheckoutSession(
-                  key as 'standard' | 'premium',
-                  window.location.origin + '/dashboard',
-                  window.location.origin + '/pricing',
-                  priceId
-                )
-                if (session.url) {
-                  window.location.assign(session.url)
-                } else {
-                  alert('Checkout session created. Please check your email if the redirect did not happen.')
-                }
-              } catch (e) {
-                console.error(e)
-                alert('Failed to start checkout. Please try again later.')
-              }
-            }}
+            border="1px"
+            borderColor={plan.highlight ? "purple.200" : "gray.200"}
+            boxShadow={plan.highlight ? "0 10px 40px rgba(139, 92, 246, 0.1)" : "0 4px 12px rgba(0, 0, 0, 0.05)"}
+            p={8}
+            flex="1"
+            maxW={{ base: "100%", lg: "400px" }}
+            position="relative"
             _hover={{
-              bgGradient: plan.highlight
-                ? "linear(to-r, purple.600, blue.600)"
-                : "linear(to-r, gray.400, gray.500)",
-              transform: "translateY(-2px) scale(1.04)",
-              boxShadow: plan.highlight ? "0 6px 24px rgba(128,90,213,0.18)" : undefined,
+              boxShadow: plan.highlight 
+                ? "0 20px 60px rgba(139, 92, 246, 0.15)" 
+                : "0 8px 24px rgba(0, 0, 0, 0.08)",
+              transform: "translateY(-4px)"
             }}
-            boxShadow={plan.highlight ? "0 2px 12px rgba(128,90,213,0.18)" : undefined}
+            transition="all 0.3s ease"
           >
-            {plan.button}
-          </Button>
-        </Box>
-      ))}
-    </Flex>
+            {/* Popular Badge */}
+            {plan.popular && (
+              <Badge
+                position="absolute"
+                top="-12px"
+                left="50%"
+                transform="translateX(-50%)"
+                bg="purple.600"
+                color="white"
+                px={4}
+                py={1}
+                borderRadius="full"
+                fontSize="sm"
+                fontWeight="600"
+                boxShadow="0 4px 12px rgba(139, 92, 246, 0.3)"
+              >
+                Most Popular
+              </Badge>
+            )}
+
+            <VStack spacing={6} align="stretch">
+              {/* Plan Header */}
+              <VStack spacing={2} align="start">
+                <Heading size="lg" color="gray.900" fontWeight="600">
+                  {plan.name}
+                </Heading>
+                <Text color="gray.600" fontSize="md" lineHeight="1.5">
+                  {plan.description}
+                </Text>
+              </VStack>
+
+              {/* Pricing */}
+              <HStack align="baseline" spacing={1}>
+                <Text fontSize="sm" color="gray.500" fontWeight="500">
+                  $
+                </Text>
+                <Text fontSize="5xl" fontWeight="700" color="gray.900" lineHeight="1">
+                  {plan.price}
+                </Text>
+                <Text color="gray.500" fontSize="md" fontWeight="500">
+                  {plan.period}
+                </Text>
+              </HStack>
+
+              {/* Features */}
+              <VStack spacing={4} align="stretch">
+                <Text fontSize="sm" fontWeight="600" color="gray.900" textTransform="uppercase" letterSpacing="wider">
+                  What's included
+                </Text>
+                <List spacing={3}>
+                  {plan.features.map((feature, index) => (
+                    <ListItem key={index} display="flex" alignItems="flex-start" gap={3}>
+                      <ListIcon 
+                        as={FaCheck} 
+                        color="green.500" 
+                        mt={1}
+                        boxSize={4}
+                        flexShrink={0}
+                      />
+                      <Text fontSize="sm" color="gray.700" lineHeight="1.6">
+                        {feature}
+                      </Text>
+                    </ListItem>
+                  ))}
+                </List>
+              </VStack>
+
+              {/* CTA Button */}
+              <Button
+                size="lg"
+                w="full"
+                bg={plan.highlight ? "purple.600" : "white"}
+                color={plan.highlight ? "white" : "purple.600"}
+                border="1px"
+                borderColor={plan.highlight ? "purple.600" : "purple.600"}
+                borderRadius="lg"
+                fontWeight="600"
+                fontSize="md"
+                py={6}
+                _hover={{
+                  bg: plan.highlight ? "purple.700" : "purple.50",
+                  borderColor: plan.highlight ? "purple.700" : "purple.700",
+                  transform: "translateY(-2px)"
+                }}
+                _active={{
+                  transform: "translateY(0)"
+                }}
+                transition="all 0.2s ease"
+                onClick={async () => {
+                  if (plan.name.toLowerCase() === 'free') {
+                    alert('You are on the Free plan with 10 question generations and basic features.')
+                    return
+                  }
+                  let key: 'standard' | 'premium' = 'standard'
+                  if (plan.name.toLowerCase() === 'pro') key = 'standard'
+                  else if (plan.name.toLowerCase() === 'unlimited') key = 'premium'
+                  
+                  const priceId = key === 'standard'
+                    ? (import.meta.env.VITE_STRIPE_PRICE_STANDARD as string | undefined)
+                    : (import.meta.env.VITE_STRIPE_PRICE_PREMIUM as string | undefined)
+                  try {
+                    const session = await createCheckoutSession(
+                      key as 'standard' | 'premium',
+                      window.location.origin + '/dashboard',
+                      window.location.origin + '/pricing',
+                      priceId
+                    )
+                    if (session.url) {
+                      window.location.assign(session.url)
+                    } else {
+                      alert('Checkout session created. Please check your email if the redirect did not happen.')
+                    }
+                  } catch (e) {
+                    console.error(e)
+                    alert('Failed to start checkout. Please try again later.')
+                  }
+                }}
+              >
+                {plan.button}
+              </Button>
+            </VStack>
+          </Box>
+        ))}
+      </Flex>
+    </Box>
   );
 };
 

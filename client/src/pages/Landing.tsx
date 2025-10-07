@@ -1,8 +1,29 @@
-import { Box, Button, Container, Flex, Heading, HStack, Stack, Text, Icon, SimpleGrid } from '@chakra-ui/react'
+import { 
+  Box, 
+  Button, 
+  Container, 
+  Flex, 
+  Heading, 
+  HStack, 
+  Stack, 
+  Text, 
+  Icon, 
+  SimpleGrid,
+  VStack,
+  Badge,
+  Divider
+} from '@chakra-ui/react'
 import { Link as RouterLink, Navigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
-import { MdAutoAwesome, MdQuiz, MdTrendingUp } from 'react-icons/md'
+import { 
+  MdAutoAwesome, 
+  MdQuiz, 
+  MdTrendingUp, 
+  MdRocketLaunch,
+  MdSchool,
+  MdSpeed
+} from 'react-icons/md'
 import PricingPlans from '../components/PricingPlans';
 
 export default function Landing() {
@@ -10,246 +31,346 @@ export default function Landing() {
   if (user) {
     return <Navigate to="/dashboard" replace />
   }
+  
   return (
-    <Box
-      minH="100vh"
-      position="relative"
-      overflow="hidden"
-      bg="#fafafa"
-    >
-  {/* Animated gradient blobs for extra visual interest */}
-      {/* Animated floating shapes for extra depth */}
-      <Box
-        position="absolute"
-        top="30%"
-        left="5%"
-        w="80px"
-        h="80px"
-        zIndex={0}
-        borderRadius="full"
-        bgGradient="linear(to-br, purple.300, blue.200)"
-        opacity={0.18}
-        filter="blur(8px)"
-        animation="float1 7s ease-in-out infinite alternate"
-        sx={{
-          '@keyframes float1': {
-            '0%': { transform: 'translateY(0) scale(1)' },
-            '100%': { transform: 'translateY(-30px) scale(1.15)' },
-          },
-        }}
-      />
-      <Box
-        position="absolute"
-        bottom="18%"
-        right="12%"
-        w="60px"
-        h="60px"
-        zIndex={0}
-        borderRadius="full"
-        bgGradient="linear(to-br, teal.200, blue.200)"
-        opacity={0.15}
-        filter="blur(6px)"
-        animation="float2 9s ease-in-out infinite alternate"
-        sx={{
-          '@keyframes float2': {
-            '0%': { transform: 'translateY(0) scale(1)' },
-            '100%': { transform: 'translateY(24px) scale(1.12)' },
-          },
-        }}
-      />
-      <Box
-        position="absolute"
-        top="-120px"
-        left="-120px"
-        w="340px"
-        h="340px"
-        zIndex={0}
-        filter="blur(60px)"
-        opacity={0.45}
-        bgGradient="radial(ellipse at 60% 40%, #a78bfa 0%, #8ec5fc 80%, transparent 100%)"
-        animation="blob1 18s ease-in-out infinite alternate"
-        sx={{
-          '@keyframes blob1': {
-            '0%': { transform: 'scale(1) translate(0,0)' },
-            '100%': { transform: 'scale(1.2) translate(60px, 40px)' },
-          },
-        }}
-      />
-      <Box
-        position="absolute"
-        bottom="-100px"
-        right="-100px"
-        w="300px"
-        h="300px"
-        zIndex={0}
-        filter="blur(70px)"
-        opacity={0.35}
-        bgGradient="radial(ellipse at 40% 60%, #5eead4 0%, #a78bfa 80%, transparent 100%)"
-        animation="blob2 22s ease-in-out infinite alternate"
-        sx={{
-          '@keyframes blob2': {
-            '0%': { transform: 'scale(1) translate(0,0)' },
-            '100%': { transform: 'scale(1.15) translate(-40px, -30px)' },
-          },
-        }}
-      />
+    <Box minH="100vh" bg="white">
       <Navbar />
-  <Container maxW="7xl" py={20} position="relative" zIndex={1}>
-  <Stack spacing={12} textAlign="center">
-          <Stack spacing={6}>
+      
+      {/* Hero Section */}
+      <Container maxW="8xl" py={{ base: 16, md: 24 }}>
+        <VStack spacing={12} textAlign="center">
+          {/* Main Hero Content */}
+          <Stack spacing={8} maxW="6xl">
             <Heading
-              size="3xl"
-              bgGradient="linear(to-r, purple.600, blue.500, teal.400)"
-              bgClip="text"
-              fontWeight="extrabold"
-              lineHeight="1.2"
+              fontSize={{ base: '5xl', md: '7xl', lg: '8xl' }}
+              fontWeight="800"
+              lineHeight="1.1"
+              color="gray.900"
               letterSpacing="tight"
-              textShadow="0 2px 16px rgba(128,90,213,0.08)"
-              style={{ textTransform: 'uppercase', fontFamily: 'Poppins, Inter, sans-serif' }}
             >
-              Your AI‑Powered Learning Companion
+              Learn Smarter with{' '}
+              <Text 
+                as="span" 
+                bgGradient="linear(to-r, purple.600, blue.500)"
+                bgClip="text"
+              >
+                AI-Powered
+              </Text>
+              {' '}Tutoring
             </Heading>
+            
             <Text
               fontSize={{ base: 'lg', md: 'xl' }}
               color="gray.600"
-              maxW="2xl"
+              maxW="3xl"
               mx="auto"
-              lineHeight="1.6"
-              fontWeight="medium"
-              letterSpacing="wide"
-              textShadow="0 1px 8px rgba(0,0,0,0.04)"
+              lineHeight="1.7"
+              fontWeight="400"
             >
-              Transform your learning experience with <b>AI-generated study materials</b>, <b>intelligent question sets</b>, and <b>personalized feedback</b> that adapts to your pace.
+              Transform your learning experience with personalized AI-generated study materials, 
+              intelligent assessments, and detailed feedback that adapts to your unique learning style.
             </Text>
           </Stack>
           
-          <HStack spacing={4} justify="center">
+          {/* CTA Buttons */}
+          <HStack spacing={4} flexWrap="wrap" justify="center">
             <Button
               as={RouterLink}
               to="/signup"
               size="lg"
-              px={10}
-              py={7}
-              fontSize="xl"
-              bgGradient="linear(to-r, purple.500, blue.500)"
+              px={8}
+              py={6}
+              fontSize="lg"
+              bg="purple.600"
               color="white"
-              borderRadius="16px"
-              boxShadow="0 4px 24px rgba(128,90,213,0.18)"
-              fontWeight="bold"
-              letterSpacing="wide"
-              className="btn-professional"
+              borderRadius="xl"
+              fontWeight="600"
               _hover={{
-                bgGradient: "linear(to-r, purple.600, blue.600)",
-                transform: "translateY(-4px) scale(1.04)",
-                boxShadow: '0 8px 32px rgba(128,90,213,0.22)'
+                bg: "purple.700",
+                transform: "translateY(-2px)",
+                boxShadow: "lg"
               }}
+              transition="all 0.2s"
+              leftIcon={<MdRocketLaunch />}
             >
-              Get Started Free
+              Start Learning Free
             </Button>
             <Button
               as={RouterLink}
               to="/login"
               size="lg"
-              px={10}
-              py={7}
-              fontSize="xl"
+              px={8}
+              py={6}
+              fontSize="lg"
               variant="outline"
-              borderRadius="16px"
-              borderWidth="2px"
-              borderColor="purple.500"
-              color="purple.500"
-              fontWeight="bold"
-              letterSpacing="wide"
-              className="btn-professional"
+              borderColor="gray.300"
+              color="gray.700"
+              borderRadius="xl"
+              fontWeight="600"
               _hover={{
-                bg: "purple.50",
-                transform: "translateY(-4px) scale(1.04)",
-                boxShadow: '0 8px 32px rgba(128,90,213,0.10)'
+                bg: "gray.50",
+                borderColor: "gray.400",
+                transform: "translateY(-2px)"
               }}
+              transition="all 0.2s"
             >
               Sign In
             </Button>
           </HStack>
-        </Stack>
+        </VStack>
+      </Container>
 
-  {/* Decorative divider */}
-  <Box w="100%" h="8px" bgGradient="linear(to-r, purple.400, blue.400, teal.400)" borderRadius="full" my={16} opacity={0.8} boxShadow="0 2px 12px rgba(128,90,213,0.10)" />
-
-  <SimpleGrid columns={{ base: 1, md: 3 }} spacing={12} mt={10}>
-          {[
-            { 
-              title: 'Smart Content Generator', 
-              desc: 'AI creates personalized study materials tailored to your learning objectives and difficulty preferences.',
-              icon: MdAutoAwesome,
-              gradient: 'linear(to-br, purple.400, purple.600)'
-            },
-            { 
-              title: 'Intelligent Questions', 
-              desc: 'Generate diverse question types with adaptive difficulty and comprehensive explanations.',
-              icon: MdQuiz,
-              gradient: 'linear(to-br, blue.400, blue.600)'
-            },
-            { 
-              title: 'Performance Analytics', 
-              desc: 'Track your progress with detailed feedback and personalized improvement suggestions.',
-              icon: MdTrendingUp,
-              gradient: 'linear(to-br, teal.400, teal.600)'
-            },
-          ].map((feature, index) => (
-            <Box
-              key={feature.title}
-              bg="rgba(255,255,255,0.85)"
-              p={12}
-              borderRadius="2xl"
-              boxShadow="0 12px 48px rgba(128,90,213,0.13)"
-              border="2px solid #e2e8f0"
-              textAlign="center"
-              position="relative"
-              className="professional-card"
-              backdropFilter="blur(8px)"
-              _hover={{
-                transform: 'translateY(-12px) scale(1.05)',
-                boxShadow: '0 24px 64px rgba(128,90,213,0.22)'
-              }}
-              transition="all 0.3s cubic-bezier(.4,0,.2,1)"
+      {/* Features Section */}
+      <Container maxW="6xl" py={{ base: 16, md: 24 }}>
+        <VStack spacing={16}>
+          {/* Section Header */}
+          <Stack spacing={4} textAlign="center" maxW="3xl">
+            <Heading
+              fontSize={{ base: '3xl', md: '4xl' }}
+              fontWeight="700"
+              color="gray.900"
             >
-              <Flex
-                align="center"
-                justify="center"
-                w={24}
-                h={24}
-                borderRadius="2xl"
-                bgGradient={feature.gradient}
-                mx="auto"
-                mb={8}
-                boxShadow="0 4px 24px rgba(128,90,213,0.16)"
-              >
-                <Icon as={feature.icon} boxSize={14} color="white" />
-              </Flex>
-              <Heading size="lg" mb={4} color="gray.800" fontWeight="extrabold">{feature.title}</Heading>
-              <Text color="gray.600" fontSize="lg" lineHeight="1.8" fontWeight="medium">{feature.desc}</Text>
-            </Box>
-          ))}
-        </SimpleGrid>
+              Everything you need to excel
+            </Heading>
+            <Text fontSize="xl" color="gray.600" lineHeight="1.6">
+              Our AI-powered platform provides comprehensive tools to enhance your learning journey
+            </Text>
+          </Stack>
 
-        
+            {/* Features Grid */}
+            <SimpleGrid columns={{ base: 1, md: 3 }} spacing={8} w="full">
+              {[
+                {
+                  icon: MdAutoAwesome,
+                  title: 'Smart Content Generation',
+                  description: 'AI creates personalized study materials tailored to your learning objectives and current skill level.',
+                  color: 'purple.500'
+                },
+                {
+                  icon: MdQuiz,
+                  title: 'Intelligent Assessments',
+                  description: 'Generate diverse question types with adaptive difficulty and comprehensive explanations.',
+                  color: 'blue.500'
+                },
+                {
+                  icon: MdTrendingUp,
+                  title: 'Progress Analytics',
+                  description: 'Track your learning progress with detailed insights and personalized improvement recommendations.',
+                  color: 'green.500'
+                }
+              ].map((feature, index) => (
+                <Box
+                  key={index}
+                  bg="white"
+                  p={8}
+                  borderRadius="2xl"
+                  boxShadow="sm"
+                  border="1px"
+                  borderColor="gray.200"
+                  textAlign="center"
+                  _hover={{
+                    boxShadow: "md",
+                    transform: "translateY(-4px)"
+                  }}
+                  transition="all 0.2s"
+                >
+                  <Flex
+                    align="center"
+                    justify="center"
+                    w={16}
+                    h={16}
+                    bg={`${feature.color.split('.')[0]}.50`}
+                    borderRadius="xl"
+                    mx="auto"
+                    mb={6}
+                  >
+                    <Icon as={feature.icon} boxSize={8} color={feature.color} />
+                  </Flex>
+                  <Heading size="md" mb={4} color="gray.900" fontWeight="600">
+                    {feature.title}
+                  </Heading>
+                  <Text color="gray.600" lineHeight="1.6">
+                    {feature.description}
+                  </Text>
+                </Box>
+              ))}
+            </SimpleGrid>
+        </VStack>
+      </Container>
 
-        
+      {/* How it Works Section */}
+      <Container maxW="6xl" py={{ base: 16, md: 24 }}>
+        <VStack spacing={16}>
+          <Stack spacing={4} textAlign="center" maxW="3xl">
+            <Heading
+              fontSize={{ base: '3xl', md: '4xl' }}
+              fontWeight="700"
+              color="gray.900"
+            >
+              How Tutor AI Works
+            </Heading>
+            <Text fontSize="xl" color="gray.600" lineHeight="1.6">
+              Get started in three simple steps and transform your learning experience
+            </Text>
+          </Stack>
 
-        {/* Pricing Plans Section */}
-        <Box mt={20} position="relative" zIndex={2} animation="fadeInUp 1.2s cubic-bezier(.4,0,.2,1)">
-          <Heading size="xl" mb={6} textAlign="center" color="gray.800" fontWeight="extrabold" letterSpacing="tight">
-            Choose Your Plan
-          </Heading>
+          <SimpleGrid columns={{ base: 1, md: 3 }} spacing={12} w="full">
+            {[
+              {
+                step: '01',
+                icon: MdSchool,
+                title: 'Choose Your Subject',
+                description: 'Select the topic you want to learn and set your learning goals and preferences.'
+              },
+              {
+                step: '02',
+                icon: MdAutoAwesome,
+                title: 'AI Generates Content',
+                description: 'Our AI creates personalized study materials, questions, and assessments just for you.'
+              },
+              {
+                step: '03',
+                icon: MdSpeed,
+                title: 'Learn & Improve',
+                description: 'Study with AI-powered feedback and track your progress as you master new concepts.'
+              }
+            ].map((step, index) => (
+              <VStack key={index} spacing={6} textAlign="center">
+                <Flex
+                  align="center"
+                  justify="center"
+                  w={20}
+                  h={20}
+                  bg="purple.600"
+                  borderRadius="full"
+                  position="relative"
+                >
+                  <Text
+                    position="absolute"
+                    top="-8px"
+                    right="-8px"
+                    bg="white"
+                    color="purple.600"
+                    fontSize="sm"
+                    fontWeight="bold"
+                    w={8}
+                    h={8}
+                    borderRadius="full"
+                    display="flex"
+                    alignItems="center"
+                    justifyContent="center"
+                    border="2px"
+                    borderColor="purple.600"
+                  >
+                    {step.step}
+                  </Text>
+                  <Icon as={step.icon} boxSize={10} color="white" />
+                </Flex>
+                <VStack spacing={3}>
+                  <Heading size="md" color="gray.900" fontWeight="600">
+                    {step.title}
+                  </Heading>
+                  <Text color="gray.600" lineHeight="1.6" maxW="sm">
+                    {step.description}
+                  </Text>
+                </VStack>
+              </VStack>
+            ))}
+          </SimpleGrid>
+        </VStack>
+      </Container>
+
+      {/* Pricing Section */}
+      <Container maxW="6xl" py={{ base: 16, md: 24 }}>
+        <VStack spacing={16}>
+          <Stack spacing={4} textAlign="center" maxW="3xl">
+            <Heading
+              fontSize={{ base: '3xl', md: '4xl' }}
+              fontWeight="700"
+              color="gray.900"
+            >
+              Choose Your Learning Plan
+            </Heading>
+            <Text fontSize="xl" color="gray.600" lineHeight="1.6">
+              Start free and upgrade as you grow. All plans include our core AI features.
+            </Text>
+          </Stack>
           <PricingPlans />
-          <style>{`
-            @keyframes fadeInUp {
-              0% { opacity: 0; transform: translateY(40px); }
-              100% { opacity: 1; transform: translateY(0); }
-            }
-          `}</style>
+        </VStack>
+      </Container>
+
+      {/* CTA Section */}
+      <Container maxW="4xl" py={{ base: 16, md: 24 }}>
+        <Box
+          bg="purple.600"
+          borderRadius="3xl"
+          p={{ base: 12, md: 16 }}
+          textAlign="center"
+          color="white"
+        >
+          <VStack spacing={8}>
+            <Stack spacing={4}>
+              <Heading
+                fontSize={{ base: '3xl', md: '4xl' }}
+                fontWeight="700"
+              >
+                Ready to revolutionize your learning?
+              </Heading>
+              <Text fontSize="xl" opacity={0.9} maxW="2xl">
+                Join thousands of students who are already learning smarter with AI. 
+                Start your free trial today.
+              </Text>
+            </Stack>
+            <Button
+              as={RouterLink}
+              to="/signup"
+              size="lg"
+              px={10}
+              py={6}
+              fontSize="lg"
+              bg="white"
+              color="purple.600"
+              borderRadius="xl"
+              fontWeight="600"
+              _hover={{
+                transform: "translateY(-2px)",
+                boxShadow: "xl"
+              }}
+              transition="all 0.2s"
+              leftIcon={<MdRocketLaunch />}
+            >
+              Get Started Free
+            </Button>
+          </VStack>
         </Box>
       </Container>
+
+      {/* Footer */}
+      <Box borderTop="1px" borderColor="gray.200" py={8}>
+        <Container maxW="6xl">
+          <Flex
+            direction={{ base: 'column', md: 'row' }}
+            justify="space-between"
+            align="center"
+            gap={4}
+          >
+            <Text color="gray.600" fontSize="sm">
+              © 2025 Tutor AI. All rights reserved.
+            </Text>
+            <HStack spacing={6}>
+              <Text as="a" href="#" color="gray.600" fontSize="sm" _hover={{ color: 'purple.600' }}>
+                Privacy Policy
+              </Text>
+              <Text as="a" href="#" color="gray.600" fontSize="sm" _hover={{ color: 'purple.600' }}>
+                Terms of Service
+              </Text>
+              <Text as="a" href="#" color="gray.600" fontSize="sm" _hover={{ color: 'purple.600' }}>
+                Contact
+              </Text>
+            </HStack>
+          </Flex>
+        </Container>
+      </Box>
     </Box>
   )
 }

@@ -1,11 +1,10 @@
 import { useState } from 'react'
-import { Box, Button, Checkbox, Container, Divider, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, Progress, SimpleGrid, Stack, Text, useDisclosure, useToast, VStack } from '@chakra-ui/react'
+import { Box, Button, Checkbox, Container, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, Progress, Stack, Text, useDisclosure, useToast, VStack } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
 import { useAuth } from '../context/AuthContext'
 import { getErrorMessage } from '../api/client'
 import { MdPerson, MdMail, MdLock, MdVisibility, MdVisibilityOff, MdCheckCircle } from 'react-icons/md'
-import { FaGoogle, FaGithub } from 'react-icons/fa'
 
 export default function Signup() {
   const toast = useToast()
@@ -46,107 +45,249 @@ export default function Signup() {
   }
 
   return (
-    <Box bgGradient={{ base: 'linear(to-b, white, purple.50)', md: 'linear(to-r, white, purple.50)' }} minH="100vh">
+    <Box minH="100vh" bg="white">
       <Navbar />
-      <Container maxW="6xl" py={{ base: 8, md: 16 }}>
-        <Stack direction={{ base: 'column', md: 'row' }} spacing={{ base: 8, md: 16 }} align="center">
-          <VStack align="flex-start" spacing={4} flex="1" display={{ base: 'none', md: 'flex' }}>
-            <HStack>
-              <Icon as={MdPerson} color="purple.500" boxSize={7} />
-              <Heading size="lg" color="gray.800">Create your account</Heading>
-            </HStack>
-            <Text color="gray.600">Join to generate tailored content, practice effectively, and track progress.</Text>
-            <Box h="1px" w="80%" bg="purple.200" borderRadius="full" />
-            <SimpleGrid columns={1} spacing={2}>
-              <HStack color="gray.600"><Icon as={MdCheckCircle} color="purple.500" /><Text>Personalized study content</Text></HStack>
-              <HStack color="gray.600"><Icon as={MdCheckCircle} color="purple.500" /><Text>Smart practice questions</Text></HStack>
-              <HStack color="gray.600"><Icon as={MdCheckCircle} color="purple.500" /><Text>Track progress and insights</Text></HStack>
-            </SimpleGrid>
-            <Text color="gray.500" fontSize="sm">Takes less than a minute. No credit card required.</Text>
+      <Container maxW="7xl" pt={{ base: 8, md: 12 }} pb={0}>
+        <Stack direction={{ base: 'column', lg: 'row' }} spacing={{ base: 8, lg: 12 }} align="center" justify="center" minH="70vh">
+          {/* Left Side Content */}
+          <VStack align="flex-start" spacing={4} flex="1" maxW="lg" pt={{ base: 0, lg: 2 }}>
+            {/* Text Section */}
+            <VStack align="flex-start" spacing={3}>
+              <Heading size="2xl" color="gray.900" fontWeight="700" lineHeight="1.2">
+                Create your account
+              </Heading>
+              <Text color="gray.600" fontSize="lg" lineHeight="1.6">
+                Join thousands of students learning smarter with AI-powered tutoring and personalized content.
+              </Text>
+            </VStack>
+            <Box h="1px" w="full" bg="gray.200" />
+            {/* Features Section */}
+            <VStack align="flex-start" spacing={3}>
+              <Text color="gray.700" fontSize="sm" fontWeight="600">
+                What you'll get:
+              </Text>
+              <VStack align="flex-start" spacing={2}>
+                <HStack>
+                  <Icon as={MdCheckCircle} color="purple.500" boxSize={4} />
+                  <Text color="gray.600" fontSize="sm">Personalized study content</Text>
+                </HStack>
+                <HStack>
+                  <Icon as={MdCheckCircle} color="purple.500" boxSize={4} />
+                  <Text color="gray.600" fontSize="sm">AI-powered practice questions</Text>
+                </HStack>
+                <HStack>
+                  <Icon as={MdCheckCircle} color="purple.500" boxSize={4} />
+                  <Text color="gray.600" fontSize="sm">Progress tracking & insights</Text>
+                </HStack>
+              </VStack>
+            </VStack>
+            <Text color="gray.500" fontSize="sm" fontWeight="500">
+              Free to start. No credit card required.
+            </Text>
           </VStack>
 
+          {/* Right Side Form */}
           <Box
             as="form"
             onSubmit={onSubmit}
             flex="1"
+            maxW="md"
             bg="white"
-            p={{ base: 6, md: 8 }}
-            borderWidth="1px"
+            p={6}
+            borderRadius="xl"
+            border="1px"
             borderColor="gray.200"
-            borderRadius="16px"
-            boxShadow="0 6px 20px rgba(0,0,0,0.06)"
+            boxShadow="sm"
+            mt={{ base: 0, lg: 8 }}
           >
             <Stack spacing={6}>
-              <VStack align="flex-start" spacing={1} display={{ base: 'flex', md: 'none' }}>
-                <HStack>
-                  <Icon as={MdPerson} color="purple.500" boxSize={6} />
-                  <Heading size="md" color="gray.800">Create your account</Heading>
-                </HStack>
-                <Text color="gray.600" fontSize="sm">It’s quick and easy</Text>
+              <VStack align="flex-start" spacing={2}>
+                <Heading size="lg" color="gray.900" fontWeight="600">
+                  Get started
+                </Heading>
+                <Text color="gray.600" fontSize="sm">
+                  Create your account to begin your learning journey
+                </Text>
               </VStack>
 
               <FormControl isRequired>
-                <FormLabel>Name</FormLabel>
+                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                  Full Name
+                </FormLabel>
                 <InputGroup>
-                  <Input value={name} onChange={(e) => setName(e.target.value)} placeholder="Jane Doe" pr={10} />
-                  <InputRightElement pointerEvents="none">
-                    <Icon as={MdPerson} color="gray.400" />
-                  </InputRightElement>
-                </InputGroup>
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>Email</FormLabel>
-                <InputGroup>
-                  <Input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="you@example.com" pr={10} />
-                  <InputRightElement pointerEvents="none">
-                    <Icon as={MdMail} color="gray.400" />
-                  </InputRightElement>
-                </InputGroup>
-              </FormControl>
-
-              <FormControl isRequired>
-                <FormLabel>Password</FormLabel>
-                <InputGroup>
-                  <Input type={showPassword ? 'text' : 'password'} value={password} onChange={(e) => setPassword(e.target.value)} placeholder="••••••••" pr={10} />
+                  <Input
+                    value={name}
+                    onChange={(e) => setName(e.target.value)}
+                    placeholder="Enter your full name"
+                    size="lg"
+                    borderRadius="lg"
+                    borderColor="gray.300"
+                    _focus={{
+                      borderColor: "purple.500",
+                      boxShadow: "0 0 0 1px purple.500"
+                    }}
+                    _hover={{
+                      borderColor: "gray.400"
+                    }}
+                  />
                   <InputRightElement>
-                    <IconButton aria-label={showPassword ? 'Hide password' : 'Show password'} variant="ghost" size="sm" icon={<Icon as={showPassword ? MdVisibilityOff : MdVisibility} />} onClick={onToggle} />
+                    <Icon as={MdPerson} color="gray.400" boxSize={5} />
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                  Email
+                </FormLabel>
+                <InputGroup>
+                  <Input
+                    type="email"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    placeholder="Enter your email"
+                    size="lg"
+                    borderRadius="lg"
+                    borderColor="gray.300"
+                    _focus={{
+                      borderColor: "purple.500",
+                      boxShadow: "0 0 0 1px purple.500"
+                    }}
+                    _hover={{
+                      borderColor: "gray.400"
+                    }}
+                  />
+                  <InputRightElement>
+                    <Icon as={MdMail} color="gray.400" boxSize={5} />
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+
+              <FormControl isRequired>
+                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                  Password
+                </FormLabel>
+                <InputGroup>
+                  <Input
+                    type={showPassword ? 'text' : 'password'}
+                    value={password}
+                    onChange={(e) => setPassword(e.target.value)}
+                    placeholder="Create a strong password"
+                    size="lg"
+                    borderRadius="lg"
+                    borderColor="gray.300"
+                    _focus={{
+                      borderColor: "purple.500",
+                      boxShadow: "0 0 0 1px purple.500"
+                    }}
+                    _hover={{
+                      borderColor: "gray.400"
+                    }}
+                  />
+                  <InputRightElement>
+                    <IconButton
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                      variant="ghost"
+                      size="sm"
+                      icon={<Icon as={showPassword ? MdVisibilityOff : MdVisibility} />}
+                      onClick={onToggle}
+                      _hover={{ bg: "transparent" }}
+                    />
+                  </InputRightElement>
+                </InputGroup>
+              </FormControl>
+
               {password && (
                 <Box>
                   {(() => {
                     const ps = getPasswordStrength(password)
                     return (
-                      <>
-                        <Progress value={ps.score} colorScheme={ps.color as any} size="sm" borderRadius="8px" />
-                        <Text fontSize="xs" color="gray.500" mt={1}>Password strength: {ps.label}</Text>
-                      </>
+                      <VStack spacing={2} align="stretch">
+                        <HStack justify="space-between">
+                          <Text fontSize="xs" color="gray.500" fontWeight="500">
+                            Password strength
+                          </Text>
+                          <Text fontSize="xs" color={`${ps.color}.600`} fontWeight="600">
+                            {ps.label}
+                          </Text>
+                        </HStack>
+                        <Progress
+                          value={ps.score}
+                          colorScheme={ps.color as any}
+                          size="sm"
+                          borderRadius="md"
+                          bg="gray.100"
+                        />
+                      </VStack>
                     )
                   })()}
                 </Box>
               )}
 
-              <HStack justify="space-between">
-                <Checkbox defaultChecked>I agree to the Terms</Checkbox>
-                <Link color="purple.600" as={RouterLink} to="#">View policy</Link>
-              </HStack>
+              <Checkbox
+                colorScheme="purple"
+                size="md"
+                defaultChecked
+                sx={{
+                  '& .chakra-checkbox__control': {
+                    borderColor: 'gray.300',
+                    _checked: {
+                      bg: 'purple.600',
+                      borderColor: 'purple.600'
+                    }
+                  }
+                }}
+              >
+                <Text fontSize="sm" color="gray.600">
+                  I agree to the{' '}
+                  <Link
+                    color="purple.600"
+                    fontWeight="500"
+                    _hover={{ color: "purple.700", textDecoration: "underline" }}
+                  >
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
+                  <Link
+                    color="purple.600"
+                    fontWeight="500"
+                    _hover={{ color: "purple.700", textDecoration: "underline" }}
+                  >
+                    Privacy Policy
+                  </Link>
+                </Text>
+              </Checkbox>
 
-              <Button type="submit" colorScheme="purple" isLoading={loading} size="lg" borderRadius="12px">Create account</Button>
+              <Button
+                type="submit"
+                colorScheme="purple"
+                isLoading={loading}
+                size="lg"
+                w="full"
+                borderRadius="lg"
+                fontWeight="600"
+                py={6}
+                _hover={{
+                  transform: "translateY(-1px)",
+                  boxShadow: "md"
+                }}
+                transition="all 0.2s"
+              >
+                Create account
+              </Button>
 
-              <HStack align="center" spacing={3}>
-                <Divider />
-                <Text fontSize="sm" color="gray.500">or</Text>
-                <Divider />
-              </HStack>
-
-              <SimpleGrid columns={{ base: 1, sm: 2 }} spacing={3}>
-                <Button variant="outline" leftIcon={<FaGoogle />} borderRadius="10px">Continue with Google</Button>
-                <Button variant="outline" leftIcon={<FaGithub />} borderRadius="10px">Continue with GitHub</Button>
-              </SimpleGrid>
-
-              <Text fontSize="sm" color="gray.600">Already have an account? <Link as={RouterLink} to="/login" color="purple.600" fontWeight="600">Log in</Link></Text>
+              <Text fontSize="sm" color="gray.600" textAlign="center">
+                Already have an account?{' '}
+                <Link
+                  as={RouterLink}
+                  to="/login"
+                  color="purple.600"
+                  fontWeight="600"
+                  _hover={{ color: "purple.700", textDecoration: "underline" }}
+                >
+                  Sign in
+                </Link>
+              </Text>
             </Stack>
           </Box>
         </Stack>

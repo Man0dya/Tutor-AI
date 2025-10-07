@@ -27,6 +27,21 @@ export default function ContentPage() {
   const [usageCount, setUsageCount] = useState<number>(0)
   const FREE_LIMIT = 10
 
+  // Basic client-side guard to avoid sending low-information topics that the backend will reject
+  const isMeaningfulTopic = (s: string): boolean => {
+    const t = (s || '').trim()
+    if (!t) return false
+    // Require at least 3 alphabetic characters overall
+    const alphaOnly = t.replace(/[^a-zA-Z]/g, '')
+    if (alphaOnly.length < 3) return false
+    const tokens = t.toLowerCase().split(/[\s,.;:!?/\\()-]+/).filter(Boolean)
+    // If any token has length >= 4, consider it meaningful
+    if (tokens.some(tok => tok.length >= 4)) return true
+    // Otherwise require at least 2 tokens of length >= 2
+    if (tokens.filter(tok => tok.length >= 2).length >= 2) return true
+    return false
+  }
+
   const headings = useMemo(() => {
     if (!content) return [] as Array<{ id: string; text: string; level: number }>
     const lines = content.split(/\r?\n/)
@@ -269,6 +284,20 @@ export default function ContentPage() {
       })
       return
     }
+    // Clear any previously shown content to avoid displaying stale content during/after a failed attempt
+    setContent('')
+    setContentId('')
+    // Client-side validation to block trivial inputs (mirrors backend checks loosely)
+    if (!isMeaningfulTopic(topic)) {
+      toast({
+        title: 'Topic Too Short or Unclear',
+        description: 'Please provide a more descriptive topic (e.g., at least a few letters or words).',
+        status: 'warning',
+        duration: 3500,
+        isClosable: true
+      })
+      return
+    }
     setLoading(true)
     try {
       const learning_objectives = objectives
@@ -290,6 +319,9 @@ export default function ContentPage() {
         isClosable: true
       })
     } catch (err: any) {
+      // Ensure no stale content remains visible after an error
+      setContent('')
+      setContentId('')
       toast({ 
         title: 'Generation Failed', 
         description: getErrorMessage(err) || 'Please try again', 

@@ -6,7 +6,7 @@ Includes caching mechanism to avoid redundant API calls and content moderation
 to prevent inappropriate requests.
 """
 
-from fastapi import APIRouter, HTTPException, Depends
+from fastapi import APIRouter, HTTPException, Depends, Response
 from typing import Dict, Any
 from uuid import uuid4
 from datetime import datetime
@@ -17,15 +17,17 @@ from ..auth import get_current_user
 from ..database import col
 from ..plan import ensure_content_quota, record_content_generation
 from utils.nlp_processor import NLPProcessor
+from utils.security import SecurityManager
 
 router = APIRouter(prefix="/content", tags=["content"])
 
 # Initialize agent and NLP processor once per process
 _content_agent = ContentGeneratorAgent()  # Handles AI content generation
 _nlp_processor = NLPProcessor()  # Handles text processing, embeddings, and moderation
+_security = SecurityManager()
 
 @router.post("/generate", response_model=ContentOut)
-async def generate_content(payload: ContentRequest, user=Depends(get_current_user)) -> ContentOut:
+async def generate_content(payload: ContentRequest, response: Response, user=Depends(get_current_user)) -> ContentOut:
     """
     Generate educational content based on user request.
     
@@ -46,42 +48,64 @@ async def generate_content(payload: ContentRequest, user=Depends(get_current_use
         HTTPException: For quota exceeded, unsafe content, or generation errors
     """
     try:
+        # Explicitly disable caching at HTTP level (browser/proxies)
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
         # Step 1: Enforce plan quota for free users
         await ensure_content_quota(user.get("sub"))
 
-        # Step 2: Create query string for similarity check and moderation
-        query = f"{payload.topic} {payload.difficulty} {payload.subject} {payload.contentType} {' '.join(payload.learningObjectives or [])}".strip()
+        # Step 2: Create query strings
+        # Full query for moderation/logging, but use a leaner "similarity_basis" for cache matching
+        objectives_str = ' '.join(payload.learningObjectives or [])
+        query = f"{payload.topic} {payload.difficulty} {payload.subject} {payload.contentType} {objectives_str}".strip()
+        similarity_basis = f"{payload.topic} {objectives_str}".strip()
+
+        # Step 2.1: Basic validation that topic/query is meaningful
+        topic_validation = _security.validate_input(payload.topic or '', input_type='topic')
+        if not topic_validation.get('is_valid', False):
+            raise HTTPException(status_code=400, detail=f"Invalid topic: {', '.join(topic_validation.get('errors', ['Invalid input']))}")
+
+        if not _nlp_processor.is_meaningful_query(payload.topic):
+            raise HTTPException(status_code=400, detail="Topic is too short or not meaningful. Please provide a clearer topic.")
 
         # Step 3: Moderate content for safety before processing
         moderation_result = _nlp_processor.moderate_content(query)
         if not moderation_result["safe"]:
             raise HTTPException(
-                status_code=400, 
+                status_code=400,
                 detail=f"Content request rejected: {moderation_result['reason']}. Please ensure your query aligns with educational and safe topics."
             )
 
-        # Step 4: Generate embedding for semantic similarity search
-        query_embedding = _nlp_processor.get_embedding(query)
+        # Step 4: Generate embedding for semantic similarity search using only the meaningful parts
+        query_embedding = _nlp_processor.get_embedding(similarity_basis)
 
         # Step 5: Check for similar cached content globally (across all users)
         cached_collection = col("generated_content")
+        # Search similar content from the database (global cache collection)
         cached_docs = await cached_collection.find().to_list(length=None)
-        
+
         user_id = user.get("sub")
         best_match = None
         best_similarity = 0.0
-        threshold = 0.8  # Similarity threshold for cache hit
-        
+        # Set higher threshold for shorter queries to avoid spurious matches
+        token_count = len(_nlp_processor.tokenize_meaningful(payload.topic))
+        threshold = 0.88 if token_count >= 3 else 0.97
+
         # Search through cached content for best semantic match
         for doc in cached_docs:
-            stored_embedding = doc.get("embedding", [])
-            if stored_embedding and query_embedding:
-                # Use semantic similarity (cosine) if embeddings available
-                similarity = _nlp_processor.compute_semantic_similarity(query_embedding, stored_embedding)
-            else:
-                # Fallback to text similarity if no embeddings
-                similarity = _nlp_processor.compute_similarity(query, doc.get("query", ""))
-            
+            # Prefer robust TF-IDF text similarity over legacy embedding alignment
+            text_sim = _nlp_processor.compute_semantic_similarity_texts(
+                similarity_basis,
+                doc.get("similarity_basis", doc.get("topic", ""))
+            )
+            # Blend with token Jaccard to penalize mismatched vocabularies further
+            jaccard = _nlp_processor.token_jaccard_similarity(
+                payload.topic,
+                doc.get("topic", doc.get("similarity_basis", ""))
+            )
+            similarity = 0.7 * text_sim + 0.3 * jaccard
+
             # Track the best match above threshold
             if similarity > threshold and similarity > best_similarity:
                 best_similarity = similarity
@@ -150,12 +174,15 @@ async def generate_content(payload: ContentRequest, user=Depends(get_current_use
             "embedding": query_embedding,  # Store embedding for similarity search
             "content": content_text,
             "topic": payload.topic,
+            "similarity_basis": similarity_basis,
             "difficulty": payload.difficulty,
             "objectives": payload.learningObjectives,
             "similarity_threshold": threshold,
             "created_at": datetime.utcnow().isoformat(),
         }
-        await cached_collection.insert_one(cache_doc)
+        # Only cache if topic is meaningful enough (avoid caching noise)
+        if _nlp_processor.is_meaningful_query(payload.topic):
+            await cached_collection.insert_one(cache_doc)
 
         # Step 10: Save to user-specific content collection
         doc_id = str(uuid4())
@@ -180,7 +207,7 @@ async def generate_content(payload: ContentRequest, user=Depends(get_current_use
 
 
 @router.get("/{id}", response_model=ContentOut)
-async def get_content_by_id(id: str, user=Depends(get_current_user)) -> ContentOut:
+async def get_content_by_id(id: str, response: Response, user=Depends(get_current_user)) -> ContentOut:
     """
     Retrieve specific content by ID for the authenticated user.
     
@@ -195,6 +222,10 @@ async def get_content_by_id(id: str, user=Depends(get_current_user)) -> ContentO
         HTTPException: If content not found or access denied
     """
     try:
+        # Explicitly disable caching at HTTP level (browser/proxies)
+        response.headers["Cache-Control"] = "no-store, no-cache, must-revalidate"
+        response.headers["Pragma"] = "no-cache"
+        response.headers["Expires"] = "0"
         # Find content by ID and ensure user owns it
         doc = await col("content").find_one({"_id": id, "userId": user.get("sub")})
         if not doc:

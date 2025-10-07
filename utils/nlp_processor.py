@@ -90,6 +90,54 @@ class NLPProcessor:
         
         # Initialize TF-IDF vectorizer for embeddings (used in similarity search)
         self.vectorizer = TfidfVectorizer(max_features=1000, stop_words='english')
+
+    def tokenize_meaningful(self, text: str) -> list[str]:
+        """Tokenize text into meaningful alpha tokens (stopwords removed, lemmatized)."""
+        try:
+            tokens = word_tokenize(text.lower())
+            tokens = [t for t in tokens if t.isalpha()]
+            tokens = [self.lemmatizer.lemmatize(t) for t in tokens if t not in self.stop_words]
+            return tokens
+        except Exception:
+            # Simple fallback
+            return [t for t in re.findall(r"[A-Za-z]+", text.lower()) if t not in self.stop_words]
+
+    def is_meaningful_query(self, text: str) -> bool:
+        """
+        Heuristic to determine if a query/topic is meaningful.
+
+        Rules:
+        - At least 2 meaningful tokens; OR
+        - At least 1 token length >= 4; OR
+        - Acronym of length >= 2 (all caps, e.g., AI, NLP)
+        - Minimum total alpha characters >= 3
+        """
+        if not isinstance(text, str):
+            return False
+
+        alpha_chars = len(re.findall(r"[A-Za-z]", text))
+        if alpha_chars < 3:
+            return False
+
+        tokens = self.tokenize_meaningful(text)
+        if len(tokens) >= 2:
+            return True
+        if any(len(t) >= 4 for t in tokens):
+            return True
+        # Allow short acronyms like "AI", "ML"
+        if re.fullmatch(r"[A-Z]{2,}", text.strip()):
+            return True
+        return False
+
+    def token_jaccard_similarity(self, a: str, b: str) -> float:
+        """Compute Jaccard similarity between token sets of two strings."""
+        a_tokens = set(self.tokenize_meaningful(a))
+        b_tokens = set(self.tokenize_meaningful(b))
+        if not a_tokens or not b_tokens:
+            return 0.0
+        inter = len(a_tokens & b_tokens)
+        union = len(a_tokens | b_tokens)
+        return float(inter / union) if union else 0.0
     
     def extract_entities(self, text):
         """
@@ -479,7 +527,7 @@ class NLPProcessor:
             list: Embedding vector as list of floats
         """
         try:
-            # For simplicity, use word frequencies as embedding
+            # For simplicity, use word frequencies as embedding (backward compatible)
             words = self.lemmatizer.lemmatize(text.lower()).split()
             words = [w for w in words if w not in self.stop_words and w.isalpha()]
             embedding = [words.count(w) for w in set(words)]  # Simple count vector
@@ -511,6 +559,20 @@ class NLPProcessor:
             return float(similarity)
         except Exception as e:
             print(f"Error computing similarity: {e}")
+            return 0.0
+
+    def compute_semantic_similarity_texts(self, text1: str, text2: str) -> float:
+        """Compute TF-IDF cosine similarity between two texts using a shared vocabulary.
+
+        This avoids alignment issues from naive count vectors and produces a stable
+        semantic similarity suitable for cache matching.
+        """
+        try:
+            vec = TfidfVectorizer(stop_words='english', ngram_range=(1, 2), max_features=3000)
+            X = vec.fit_transform([(text1 or '').lower(), (text2 or '').lower()])
+            sim = cosine_similarity(X[0], X[1])[0][0]
+            return float(sim)
+        except Exception:
             return 0.0
     
     def moderate_content(self, query):

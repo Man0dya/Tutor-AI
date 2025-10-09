@@ -10,6 +10,7 @@ from fastapi import APIRouter, HTTPException, Depends, Response
 from typing import Dict, Any
 from uuid import uuid4
 from datetime import datetime
+from bson import ObjectId
 
 from ..schemas import ContentRequest, ContentOut, GeneratedContent
 from agents.content_generator import ContentGeneratorAgent
@@ -19,6 +20,7 @@ from ..plan import ensure_content_quota, record_content_generation
 from utils.nlp_processor import NLPProcessor
 from utils.security import SecurityManager
 from ..config import PRIVACY_MODE, REDACT_CONTENT
+from ..vector import search_similar, add_to_index, has_index
 
 router = APIRouter(prefix="/content", tags=["content"])
 
@@ -86,13 +88,27 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                 detail="Your request appears to include personal or sensitive information (PII). Please remove private details before generating content."
             )
 
-        # Step 4: Generate embedding for semantic similarity search using only the meaningful parts
-        query_embedding = _nlp_processor.get_embedding(similarity_basis)
+    # Step 4: Prepare for similarity search using semantic index if available
+    # We'll still compute text-based similarity as a fallback/second-pass filter
 
         # Step 5: Check for similar cached content globally (across all users)
         cached_collection = col("generated_content")
-        # Search similar content from the database (global cache collection)
-        cached_docs = await cached_collection.find().to_list(length=None)
+        cached_docs = []
+        similar_ids = []
+        similar_scores = []
+        # If vector index exists, query top-K candidates to avoid scanning entire collection
+        if has_index():
+            similar_ids, similar_scores = search_similar(similarity_basis, k=10)
+            if similar_ids:
+                try:
+                    obj_ids = [ObjectId(s) for s in similar_ids]
+                except Exception:
+                    obj_ids = []
+                if obj_ids:
+                    cached_docs = await cached_collection.find({"_id": {"$in": obj_ids}}).to_list(length=None)
+        if not cached_docs:
+            # Fallback: scan all (less efficient but safe)
+            cached_docs = await cached_collection.find().to_list(length=None)
 
         user_id = user.get("sub")
         best_match = None
@@ -100,20 +116,42 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
         # Set higher threshold for shorter queries to avoid spurious matches
         token_count = len(_nlp_processor.tokenize_meaningful(payload.topic))
         threshold = 0.88 if token_count >= 3 else 0.97
+        vector_active = bool(similar_ids)
+        # If no vector signal is available, slightly relax threshold to avoid false negatives
+        if not vector_active:
+            threshold = max(0.80, threshold - 0.05)
 
-        # Search through cached content for best semantic match
+        # Search through candidates for best semantic match
+        norm_basis = ' '.join((similarity_basis or '').lower().split())
         for doc in cached_docs:
             # Prefer robust TF-IDF text similarity over legacy embedding alignment
-            text_sim = _nlp_processor.compute_semantic_similarity_texts(
-                similarity_basis,
-                doc.get("similarity_basis", doc.get("topic", ""))
-            )
+            doc_basis = doc.get("similarity_basis", doc.get("topic", ""))
+            norm_doc_basis = ' '.join((doc_basis or '').lower().split())
+            if norm_basis and norm_doc_basis and norm_basis == norm_doc_basis:
+                similarity = 1.0
+            else:
+                text_sim = _nlp_processor.compute_semantic_similarity_texts(
+                    similarity_basis,
+                    doc_basis
+                )
             # Blend with token Jaccard to penalize mismatched vocabularies further
-            jaccard = _nlp_processor.token_jaccard_similarity(
-                payload.topic,
-                doc.get("topic", doc.get("similarity_basis", ""))
-            )
-            similarity = 0.7 * text_sim + 0.3 * jaccard
+                jaccard = _nlp_processor.token_jaccard_similarity(
+                    payload.topic,
+                    doc.get("topic", doc_basis)
+                )
+                # Optionally blend in vector score if available
+                vec_boost = 0.0
+                if similar_ids:
+                    try:
+                        idx = similar_ids.index(doc.get("_id"))
+                        vec_boost = max(0.0, min(1.0, similar_scores[idx]))
+                    except ValueError:
+                        vec_boost = 0.0
+                # Dynamic weights: sum to 1.0 with/without vector signal
+                if vec_boost > 0.0:
+                    similarity = 0.55 * text_sim + 0.25 * jaccard + 0.20 * vec_boost
+                else:
+                    similarity = 0.75 * text_sim + 0.25 * jaccard
 
             # Track the best match above threshold
             if similarity > threshold and similarity > best_similarity:
@@ -182,9 +220,11 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
             content_text = _security.redact_pii(content_text)
 
         # Step 9: Save to global cache for future requests
+        # Step 9: Save to global cache for future requests
         cache_doc = {
             "query": query,
-            "embedding": query_embedding,  # Store embedding for similarity search
+            # embedding field kept for backward compatibility; will be vector-backed via index service
+            "embedding": None,
             "content": content_text,
             "topic": payload.topic,
             "similarity_basis": similarity_basis,
@@ -195,7 +235,12 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
         }
         # Only cache if topic is meaningful enough (avoid caching noise)
         if _nlp_processor.is_meaningful_query(payload.topic):
-            await cached_collection.insert_one(cache_doc)
+            res = await cached_collection.insert_one(cache_doc)
+            # Add to vector index in background (best-effort)
+            try:
+                add_to_index(str(res.inserted_id), similarity_basis)
+            except Exception:
+                pass
 
         # Step 10: Save to user-specific content collection
         doc_id = str(uuid4())

@@ -3,7 +3,13 @@ Embedding utilities using sentence-transformers.
 
 Provides a singleton encoder and helper to compute normalized embeddings
 for semantic search (cosine similarity compatible).
+
+This module handles environments where sentence-transformers isn't available by
+raising a clear runtime error with installation guidance. It also silences
+static analyzer warnings when the package is present in runtime but not resolved
+by the editor's interpreter.
 """
+# pyright: reportMissingImports=false
 from __future__ import annotations
 
 import threading
@@ -20,8 +26,18 @@ def _load_model():
     with _lock:
         if _model is None:
             # Lightweight, fast model (384-d)
-            from sentence_transformers import SentenceTransformer
-            _model = SentenceTransformer("sentence-transformers/all-MiniLM-L6-v2")
+            try:
+                from sentence_transformers import SentenceTransformer  # type: ignore
+            except Exception as e:  # ImportError or environment issues
+                raise RuntimeError(
+                    "sentence-transformers is not installed or not available in the active interpreter. "
+                    "Please install it (e.g., pip install sentence-transformers) and ensure your editor "
+                    "is using the same Python environment."
+                ) from e
+            # Force CPU to avoid CUDA dependency surprises
+            _model = SentenceTransformer(
+                "sentence-transformers/all-MiniLM-L6-v2", device="cpu"
+            )
     return _model
 
 

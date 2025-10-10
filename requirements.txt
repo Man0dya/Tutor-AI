@@ -19,5 +19,3 @@ sentence-transformers  # For semantic text embeddings
 scipy         # Scientific computing for similarity calculations
 hnswlib       # Vector index fallback (Windows-friendly). FAISS optional.
 # faiss-cpu   # Optional: if available on your platform, use FAISS for vector search
-pytest        # Testing framework
-pytest-asyncio  # Async test support if needed

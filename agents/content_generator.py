@@ -21,6 +21,7 @@ from utils.nlp_processor import NLPProcessor
 from utils.information_retrieval import InformationRetrieval
 
 class ContentGeneratorAgent:
+
     """
     Content Generator Agent for creating educational content using LLMs.
     
@@ -45,6 +46,7 @@ class ContentGeneratorAgent:
         self.agent_id = "content_generator"
     
     def generate_content(self, topic, difficulty="Intermediate", subject="General", content_type="Lesson", learning_objectives=None):
+        
         """
         Generate educational content with improved retrieval and NLP processing.
         

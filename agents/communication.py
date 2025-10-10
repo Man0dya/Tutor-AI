@@ -28,6 +28,7 @@ from datetime import datetime
 from typing import Dict, Any, List, Optional
 
 class AgentCommunicationProtocol:
+    
     """
     Communication protocol for multi-agent system.
 

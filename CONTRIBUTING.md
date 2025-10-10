@@ -9,7 +9,7 @@ Thanks for your interest in contributing! This guide explains how to set up the 
 
 ## Prerequisites
 
-- Node.js 18+ and npm
+- Node.js 18+ and npm (recommended)
 - Python 3.11+ (recommended)
 - MongoDB connection URI (Atlas or local)
 - Optional: Stripe test keys for billing flows

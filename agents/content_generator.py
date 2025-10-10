@@ -70,6 +70,7 @@ class ContentGeneratorAgent:
                 - study_materials: Additional resources
                 - sources: References used
         """
+        
         try:
             # Phase 1: Retrieve reliable sources and context for accuracy
             sources = self._retrieve_reliable_sources(topic, subject)

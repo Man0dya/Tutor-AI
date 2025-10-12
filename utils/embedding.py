@@ -8,7 +8,9 @@ This module handles environments where sentence-transformers isn't available by
 raising a clear runtime error with installation guidance. It also silences
 static analyzer warnings when the package is present in runtime but not resolved
 by the editor's interpreter.
+
 """
+
 # pyright: reportMissingImports=false
 from __future__ import annotations
 

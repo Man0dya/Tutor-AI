@@ -11,9 +11,11 @@ from google import genai
 from google.genai import types
 
 class InformationRetrieval:
+
     """
     Information Retrieval system for the tutoring platform
     Provides search capabilities and knowledge base access using IR techniques
+    
     """
     
     def __init__(self):

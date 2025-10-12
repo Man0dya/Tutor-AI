@@ -54,6 +54,7 @@ from typing import Dict, List, Optional, Any
 from dataclasses import dataclass
 
 class SecurityManager:
+
     """
     Security utilities for the tutoring system
     Handles input sanitization, validation, and basic security measures
@@ -62,10 +63,13 @@ class SecurityManager:
     implementing multiple security layers to protect against common web vulnerabilities.
     It includes input sanitization, rate limiting, session management, and content safety
     analysis specifically tailored for educational content and user interactions.
+
     """
 
     def __init__(self):
+
         """Initialize the SecurityManager with default security configurations."""
+
         self.rate_limit_store = {}
 
         # Define patterns for blocking potentially malicious input
@@ -113,7 +117,9 @@ class SecurityManager:
     # PII detection and redaction
     # ---------------------------
     def _luhn_check(self, number: str) -> bool:
+
         """Validate a number using the Luhn algorithm (for credit cards)."""
+
         try:
             digits = [int(d) for d in number if d.isdigit()]
         except ValueError:
@@ -131,11 +137,13 @@ class SecurityManager:
         return (checksum + digits[-1]) % 10 == 0
 
     def detect_pii(self, text: str) -> Dict[str, List[str]]:
+
         """
         Detect potential PII elements in text.
 
         Returns a dict mapping PII type -> list of matched strings.
         Types: email, phone, ssn, credit_card, iban
+
         """
         if not isinstance(text, str) or not text:
             return {}
@@ -157,6 +165,7 @@ class SecurityManager:
         return {k: v for k, v in found.items() if v}
 
     def redact_pii(self, text: str) -> str:
+
         """
         Redact detected PII from text, replacing with type-specific masks.
         - email -> [REDACTED:EMAIL]
@@ -164,6 +173,7 @@ class SecurityManager:
         - ssn -> ***-**-****
         - credit card -> **** **** **** 1234 (keep last 4)
         - iban -> [REDACTED:IBAN]
+
         """
         if not isinstance(text, str) or not text:
             return text
@@ -189,7 +199,9 @@ class SecurityManager:
         return text
 
     def redact_pii_in_obj(self, obj: Any) -> Any:
+        
         """Recursively redact PII in strings within dicts/lists/tuples."""
+        
         if isinstance(obj, str):
             return self.redact_pii(obj)
         if isinstance(obj, list):

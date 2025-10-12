@@ -47,6 +47,7 @@ async def init_db():
             await _db.generated_content.create_index([("created_at", -1)])
             await _db.generated_content.create_index([("topic", 1)])
             await _db.generated_content.create_index([("similarity_basis", 1)])
+            await _db.generated_content.create_index([("content_hash", 1)])
             # Question sets retrieval
             await _db.question_sets.create_index([("userId", 1), ("createdAt", -1)])
             await _db.question_sets.create_index([("contentId", 1), ("createdAt", -1)])

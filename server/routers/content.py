@@ -20,7 +20,14 @@ from ..plan import ensure_content_quota, record_content_generation
 from utils.nlp_processor import NLPProcessor
 from utils.security import SecurityManager
 from ..config import PRIVACY_MODE, REDACT_CONTENT
-from ..vector import search_similar, add_to_index, has_index
+from ..vector import (
+    search_similar,
+    add_to_index,
+    has_index,
+    search_similar_content,
+    add_content_to_index,
+)
+from utils.text_utils import content_hash
 
 router = APIRouter(prefix="/content", tags=["content"])
 
@@ -219,7 +226,62 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
         if REDACT_CONTENT:
             content_text = _security.redact_pii(content_text)
 
-        # Step 9: Save to global cache for future requests
+        # Step 8.1: Content-level deduplication before caching
+        c_hash = content_hash(content_text)
+        existing = await cached_collection.find_one({"content_hash": c_hash})
+        if existing:
+            # Reuse exact duplicate content and skip caching
+            content_text = existing.get("content", content_text)
+            metadata["cached"] = True
+            metadata["canonical_id"] = str(existing.get("_id"))
+            metadata["dedup_method"] = "hash"
+            doc_id = str(uuid4())
+            await col("content").insert_one({
+                "_id": doc_id,
+                "userId": user_id,
+                "topic": payload.topic,
+                "content": content_text,
+                "metadata": metadata,
+                "createdAt": datetime.utcnow().isoformat(),
+            })
+            await record_content_generation(user_id)
+            return ContentOut(id=doc_id, topic=payload.topic, content=content_text, metadata=metadata)
+
+        # Try semantic content deduplication using content index (best-effort)
+        try:
+            cand_ids, cand_scores = search_similar_content(content_text, k=5)
+        except Exception:
+            cand_ids, cand_scores = [], []
+        if cand_ids:
+            try:
+                obj_ids = [ObjectId(s) for s in cand_ids]
+            except Exception:
+                obj_ids = []
+            if obj_ids:
+                candidates = await cached_collection.find({"_id": {"$in": obj_ids}}, {"content": 1}).to_list(length=None)
+                # Verify with TF-IDF cosine on content
+                best_c, best_c_sim = None, 0.0
+                for c_doc in candidates:
+                    txt_sim = _nlp_processor.compute_semantic_similarity_texts(content_text, c_doc.get("content", ""))
+                    if txt_sim > best_c_sim:
+                        best_c_sim, best_c = txt_sim, c_doc
+                if best_c and best_c_sim >= 0.93:
+                    content_text = best_c.get("content", content_text)
+                    metadata["cached"] = True
+                    metadata["canonical_id"] = str(best_c.get("_id"))
+                    metadata["dedup_method"] = "content"
+                    doc_id = str(uuid4())
+                    await col("content").insert_one({
+                        "_id": doc_id,
+                        "userId": user_id,
+                        "topic": payload.topic,
+                        "content": content_text,
+                        "metadata": metadata,
+                        "createdAt": datetime.utcnow().isoformat(),
+                    })
+                    await record_content_generation(user_id)
+                    return ContentOut(id=doc_id, topic=payload.topic, content=content_text, metadata=metadata)
+
         # Step 9: Save to global cache for future requests
         cache_doc = {
             "query": query,
@@ -232,6 +294,7 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
             "objectives": payload.learningObjectives,
             "similarity_threshold": threshold,
             "created_at": datetime.utcnow().isoformat(),
+            "content_hash": c_hash,
         }
         # Only cache if topic is meaningful enough (avoid caching noise)
         if _nlp_processor.is_meaningful_query(payload.topic):
@@ -239,6 +302,10 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
             # Add to vector index in background (best-effort)
             try:
                 add_to_index(str(res.inserted_id), similarity_basis)
+            except Exception:
+                pass
+            try:
+                add_content_to_index(str(res.inserted_id), content_text)
             except Exception:
                 pass
 

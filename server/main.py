@@ -25,7 +25,7 @@ from .routers.questions import router as questions_router
 from .routers.answers import router as answers_router
 from .routers.progress import router as progress_router
 from .routers.billing import router as billing_router
-from .vector import build_vector_index, index_status, save_index, load_index
+from .vector import build_vector_index, build_content_index, index_status, save_index, load_index
 
 # Create FastAPI application instance with metadata
 app = FastAPI(
@@ -51,6 +51,10 @@ async def startup_event():
     # Best-effort vector index build; non-blocking failures are acceptable
     try:
         await build_vector_index()
+    except Exception:
+        pass
+    try:
+        await build_content_index()
     except Exception:
         pass
 

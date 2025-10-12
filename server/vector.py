@@ -17,6 +17,11 @@ _DIM: int = 384  # all-MiniLM-L6-v2
 _INDEX_PATH = None  # set to actual file paths if persistence is configured
 _IDS_PATH = None
 
+# Content-based index (for dedup after generation)
+_CONTENT_INDEX: Optional[VectorIndex] = None
+_CONTENT_INDEX_PATH = None
+_CONTENT_IDS_PATH = None
+
 
 def has_index() -> bool:
     return _VECTOR_INDEX is not None
@@ -71,6 +76,50 @@ def search_similar(text: str, k: int = 5) -> Tuple[List[str], List[float]]:
     """
     if _VECTOR_INDEX is None:
         return [], []
+
+
+async def build_content_index(batch: int = 64) -> None:
+    """Build the content vector index from generated_content documents using content field."""
+    global _CONTENT_INDEX
+    try:
+        idx = VectorIndex(dim=_DIM)
+    except Exception:
+        _CONTENT_INDEX = None
+        return
+    gc = col("generated_content")
+    cursor = gc.find({}, {"_id": 1, "content": 1})
+    docs = await cursor.to_list(length=None)
+    if not docs:
+        _CONTENT_INDEX = idx
+        return
+    texts = [d.get("content") or "" for d in docs]
+    ids = [str(d.get("_id")) for d in docs]
+    for i in range(0, len(texts), batch):
+        chunk_t = texts[i : i + batch]
+        chunk_i = ids[i : i + batch]
+        vecs = embed_texts(chunk_t)
+        idx.add(vecs, chunk_i)
+    _CONTENT_INDEX = idx
+
+
+def add_content_to_index(doc_id: str, content: str) -> None:
+    if _CONTENT_INDEX is None:
+        return
+    try:
+        vec = embed_text(content)
+        _CONTENT_INDEX.add(vec.reshape(1, -1), [doc_id])
+    except Exception:
+        return
+
+
+def search_similar_content(content: str, k: int = 5) -> Tuple[List[str], List[float]]:
+    if _CONTENT_INDEX is None:
+        return [], []
+    try:
+        vec = embed_text(content)
+        return _CONTENT_INDEX.search(vec, k=k)
+    except Exception:
+        return [], []
     try:
         vec = embed_text(text)
         return _VECTOR_INDEX.search(vec, k=k)
@@ -80,14 +129,21 @@ def search_similar(text: str, k: int = 5) -> Tuple[List[str], List[float]]:
 
 def index_status() -> dict:
     """Return current index status for diagnostics."""
-    if _VECTOR_INDEX is None:
-        return {"available": False}
-    return {
-        "available": True,
-        "backend": _VECTOR_INDEX.backend(),
-        "size": _VECTOR_INDEX.size(),
-        "dim": _DIM,
+    status = {
+        "query": {
+            "available": _VECTOR_INDEX is not None,
+            "backend": _VECTOR_INDEX.backend() if _VECTOR_INDEX else None,
+            "size": _VECTOR_INDEX.size() if _VECTOR_INDEX else 0,
+            "dim": _DIM,
+        },
+        "content": {
+            "available": _CONTENT_INDEX is not None,
+            "backend": _CONTENT_INDEX.backend() if _CONTENT_INDEX else None,
+            "size": _CONTENT_INDEX.size() if _CONTENT_INDEX else 0,
+            "dim": _DIM,
+        },
     }
+    return status
 
 
 def save_index(index_path: str, ids_path: str) -> bool:

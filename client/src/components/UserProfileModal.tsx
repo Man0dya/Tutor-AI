@@ -146,7 +146,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
       <ModalContent mx={4} borderRadius="xl" boxShadow="xl">
         <ModalHeader>
-          <Text fontSize="xl" fontWeight="bold" color="gray.800">
+          <Text fontSize="xl" fontWeight="bold" color="text">
             Profile Settings
           </Text>
         </ModalHeader>
@@ -157,12 +157,12 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
             <VStack spacing={6} align="stretch">
               {/* Personal Information Section */}
               <VStack spacing={4} align="stretch">
-                <Text fontSize="md" fontWeight="semibold" color="gray.700">
+                <Text fontSize="md" fontWeight="semibold" color="muted">
                   Personal Information
                 </Text>
                 
                 <FormControl isRequired>
-                  <FormLabel color="gray.600">Full Name</FormLabel>
+                  <FormLabel color="muted">Full Name</FormLabel>
                   <Input
                     name="name"
                     value={formData.name}
@@ -174,7 +174,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
                 </FormControl>
 
                 <FormControl isRequired>
-                  <FormLabel color="gray.600">Email Address</FormLabel>
+                  <FormLabel color="muted">Email Address</FormLabel>
                   <Input
                     name="email"
                     type="email"
@@ -191,15 +191,15 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
 
               {/* Password Change Section */}
               <VStack spacing={4} align="stretch">
-                <Text fontSize="md" fontWeight="semibold" color="gray.700">
+                <Text fontSize="md" fontWeight="semibold" color="muted">
                   Change Password (Optional)
                 </Text>
-                <Text fontSize="sm" color="gray.500">
+                <Text fontSize="sm" color="muted">
                   Leave blank to keep your current password
                 </Text>
 
                 <FormControl>
-                  <FormLabel color="gray.600">Current Password</FormLabel>
+                  <FormLabel color="muted">Current Password</FormLabel>
                   <InputGroup>
                     <Input
                       name="currentPassword"
@@ -223,7 +223,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel color="gray.600">New Password</FormLabel>
+                  <FormLabel color="muted">New Password</FormLabel>
                   <InputGroup>
                     <Input
                       name="newPassword"
@@ -247,7 +247,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
                 </FormControl>
 
                 <FormControl>
-                  <FormLabel color="gray.600">Confirm New Password</FormLabel>
+                  <FormLabel color="muted">Confirm New Password</FormLabel>
                   <InputGroup>
                     <Input
                       name="confirmPassword"
@@ -275,21 +275,21 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
 
               {/* Billing Section */}
               <VStack spacing={4} align="stretch">
-                <Text fontSize="md" fontWeight="semibold" color="gray.700">
+                <Text fontSize="md" fontWeight="semibold" color="muted">
                   Billing
                 </Text>
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="muted">
                   Your current plan is <b>{(plan || 'free').toUpperCase()}</b>.
                 </Text>
                 {plan !== 'free' && (
                   <VStack spacing={2} align="stretch">
-                    <Text fontSize="sm" color="gray.600">
+                    <Text fontSize="sm" color="muted">
                       Status: {subscription?.status ? subscription.status.replace(/_/g, ' ') : '—'}
                     </Text>
-                    <Text fontSize="sm" color="gray.600">
+                    <Text fontSize="sm" color="muted">
                       Renews on: {subscription?.current_period_end ? new Date(subscription.current_period_end * 1000).toLocaleDateString() : '—'}
                     </Text>
-                    <Text fontSize="sm" color="gray.600">
+                    <Text fontSize="sm" color="muted">
                       Next invoice: {subscription?.next_invoice_amount_due != null ? `${(subscription.next_invoice_amount_due/100).toFixed(2)} ${(subscription.next_invoice_currency || 'usd').toUpperCase()}` : '—'}
                     </Text>
                     {subscription?.cancel_at_period_end && (

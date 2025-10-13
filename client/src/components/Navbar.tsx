@@ -1,13 +1,16 @@
-import { Box, Button, Flex, HStack, Heading, Spacer, Avatar, Text } from '@chakra-ui/react'
+import { Box, Button, Flex, HStack, Heading, Spacer, Avatar, Text, IconButton, useColorMode, Tooltip, Image } from '@chakra-ui/react'
+import { MdDarkMode, MdLightMode } from 'react-icons/md'
 import { useEffect } from 'react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import { useAuth } from '../context/AuthContext'
 import { Badge } from '@chakra-ui/react'
 import { createBillingPortal } from '../api/client'
+import logo from '../../assets/favicon.svg'
 
 export default function Navbar() {
   const { user, plan, upgrade, logout, refreshBilling } = useAuth()
   const navigate = useNavigate()
+  const { colorMode, toggleColorMode } = useColorMode()
 
   // Ensure plan is always fresh when the navbar mounts or user changes
   useEffect(() => {
@@ -18,28 +21,39 @@ export default function Navbar() {
   return (
     <Box 
       as="header" 
-      bg="white" 
+      bg="surface" 
       borderBottomWidth="1px" 
-      borderColor="gray.200"
+      borderColor="border"
       py={4} 
       px={6}
-      boxShadow="0 1px 3px rgba(0, 0, 0, 0.05)"
+      boxShadow={{ base: 'sm', _dark: 'none' }}
     >
-      <Flex align="center" gap={4}>
+      <Flex align="center" gap={3}>
+        <RouterLink to={user ? '/dashboard' : '/'}>
+          <Image src={logo} alt="Tutor AI logo" boxSize={{ base: '28px', md: '32px' }} draggable={false} />
+        </RouterLink>
         <Heading 
           size="lg" 
-          bgGradient="linear(to-r, purple.500, blue.500)"
-          bgClip="text"
+          color="text"
           fontWeight="bold"
         >
           <RouterLink to={user ? '/dashboard' : '/'}>Tutor AI</RouterLink>
         </Heading>
         <Spacer />
+        <Tooltip label={colorMode === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}>
+          <IconButton
+            aria-label="Toggle color mode"
+            icon={colorMode === 'dark' ? <MdLightMode /> : <MdDarkMode />}
+            onClick={toggleColorMode}
+            variant="ghost"
+            color={colorMode === 'dark' ? 'yellow.300' : 'gray.600'}
+          />
+        </Tooltip>
         {user ? (
           <HStack spacing={4}>
             <Flex align="center" gap={3}>
               <Avatar size="sm" name={user.email} bg="purple.500" />
-              <Text fontSize="sm" fontWeight="500" color="gray.700">{user.email}</Text>
+              <Text fontSize="sm" fontWeight="500" color="muted">{user.email}</Text>
               <Badge colorScheme={plan === 'premium' ? 'purple' : plan === 'standard' ? 'blue' : 'gray'} variant="subtle" borderRadius="6px">
                 {plan.toUpperCase()}
               </Badge>

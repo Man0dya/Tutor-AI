@@ -29,7 +29,7 @@ export default function Login() {
   }
 
   return (
-    <Box minH="100vh" bg="white">
+    <Box minH="100vh" bg="bg">
       <Navbar />
       <Container maxW="7xl" pt={{ base: 8, md: 12 }} pb={0}>
         <Stack direction={{ base: 'column', lg: 'row' }} spacing={{ base: 8, lg: 12 }} align="center" justify="center" minH="70vh">
@@ -37,15 +37,15 @@ export default function Login() {
           <VStack align="flex-start" spacing={4} flex="1" maxW="lg" pt={{ base: 0, lg: 2 }}>
             {/* Text Section */}
             <VStack align="flex-start" spacing={3}>
-              <Heading size="2xl" color="gray.900" fontWeight="700" lineHeight="1.2">
+              <Heading size="2xl" color="text" fontWeight="700" lineHeight="1.2">
                 Welcome back
               </Heading>
-              <Text color="gray.600" fontSize="lg" lineHeight="1.6">
+              <Text color="muted" fontSize="lg" lineHeight="1.6">
                 Sign in to continue learning with personalized content, practice questions, and progress tracking.
               </Text>
             </VStack>
-            <Box h="1px" w="full" bg="gray.200" />
-            <Text color="gray.500" fontSize="sm" fontWeight="500">
+            <Box h="1px" w="full" bg="border" />
+            <Text color="muted" fontSize="sm" fontWeight="500">
               Secure authentication. Your data stays private.
             </Text>
           </VStack>
@@ -56,26 +56,26 @@ export default function Login() {
             onSubmit={onSubmit}
             flex="1"
             maxW="md"
-            bg="white"
+            bg="surface"
             p={6}
             borderRadius="xl"
             border="1px"
-            borderColor="gray.200"
+            borderColor="border"
             boxShadow="sm"
             mt={{ base: 0, lg: 8 }}
           >
             <Stack spacing={6}>
               <VStack align="flex-start" spacing={2}>
-                <Heading size="lg" color="gray.900" fontWeight="600">
+                <Heading size="lg" color="text" fontWeight="600">
                   Sign in to your account
                 </Heading>
-                <Text color="gray.600" fontSize="sm">
+                <Text color="muted" fontSize="sm">
                   Enter your credentials to access your dashboard
                 </Text>
               </VStack>
 
               <FormControl isRequired>
-                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                <FormLabel color="muted" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                   Email
                 </FormLabel>
                 <InputGroup>
@@ -86,23 +86,18 @@ export default function Login() {
                     placeholder="Enter your email"
                     size="lg"
                     borderRadius="lg"
-                    borderColor="gray.300"
-                    _focus={{
-                      borderColor: "purple.500",
-                      boxShadow: "0 0 0 1px purple.500"
-                    }}
-                    _hover={{
-                      borderColor: "gray.400"
-                    }}
+                    borderColor="border"
+                    focusBorderColor="accent"
+                    _hover={{ borderColor: 'border' }}
                   />
                   <InputRightElement>
-                    <Icon as={MdMail} color="gray.400" boxSize={5} />
+                    <Icon as={MdMail} color="muted" boxSize={5} />
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                <FormLabel color="muted" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                   Password
                 </FormLabel>
                 <InputGroup>
@@ -113,14 +108,9 @@ export default function Login() {
                     placeholder="Enter your password"
                     size="lg"
                     borderRadius="lg"
-                    borderColor="gray.300"
-                    _focus={{
-                      borderColor: "purple.500",
-                      boxShadow: "0 0 0 1px purple.500"
-                    }}
-                    _hover={{
-                      borderColor: "gray.400"
-                    }}
+                    borderColor="border"
+                    focusBorderColor="accent"
+                    _hover={{ borderColor: 'border' }}
                   />
                   <InputRightElement>
                     <IconButton
@@ -129,7 +119,7 @@ export default function Login() {
                       size="sm"
                       icon={<Icon as={showPassword ? MdVisibilityOff : MdVisibility} />}
                       onClick={onToggle}
-                      _hover={{ bg: "transparent" }}
+                      _hover={{ bg: 'transparent' }}
                     />
                   </InputRightElement>
                 </InputGroup>
@@ -142,21 +132,21 @@ export default function Login() {
                   defaultChecked
                   sx={{
                     '& .chakra-checkbox__control': {
-                      borderColor: 'gray.300',
+                      borderColor: 'border',
                       _checked: {
-                        bg: 'purple.600',
-                        borderColor: 'purple.600'
+                        bg: 'accent',
+                        borderColor: 'accent'
                       }
                     }
                   }}
                 >
-                  <Text fontSize="sm" color="gray.600">Remember me</Text>
+                  <Text fontSize="sm" color="muted">Remember me</Text>
                 </Checkbox>
                 <Link
-                  color="purple.600"
+                  color="accent"
                   fontSize="sm"
                   fontWeight="500"
-                  _hover={{ color: "purple.700", textDecoration: "underline" }}
+                  _hover={{ textDecoration: 'underline' }}
                 >
                   Forgot password?
                 </Link>
@@ -180,14 +170,14 @@ export default function Login() {
                 Sign in
               </Button>
 
-              <Text fontSize="sm" color="gray.600" textAlign="center">
+              <Text fontSize="sm" color="muted" textAlign="center">
                 Don't have an account?{' '}
                 <Link
                   as={RouterLink}
                   to="/signup"
-                  color="purple.600"
+                  color="accent"
                   fontWeight="600"
-                  _hover={{ color: "purple.700", textDecoration: "underline" }}
+                  _hover={{ textDecoration: 'underline' }}
                 >
                   Sign up
                 </Link>

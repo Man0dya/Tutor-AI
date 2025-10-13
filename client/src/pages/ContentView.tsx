@@ -125,7 +125,7 @@ export default function ContentViewPage() {
                 minW="auto"
                 px={1}
               >
-                <Icon as={isExpanded ? MdExpandMore : MdChevronRight} color="gray.500" />
+                <Icon as={isExpanded ? MdExpandMore : MdChevronRight} color="muted" />
               </Button>
             ) : (
               <Box w="24px" />
@@ -140,12 +140,12 @@ export default function ContentViewPage() {
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
             }}
             pl={Math.min((n.level - 1) * 4, 12)}
-            color={isActive ? 'white' : 'gray.800'}
+            color={isActive ? 'white' : 'text'}
             borderLeftWidth="3px"
-            borderLeftColor={isActive ? 'purple.500' : 'gray.200'}
+            borderLeftColor={isActive ? 'purple.500' : 'border'}
             borderRadius="md"
-            leftIcon={<Icon as={isActive ? MdRadioButtonChecked : MdFiberManualRecord} color={isActive ? 'white' : 'gray.400'} boxSize={2.5} />}
-            _hover={{ bg: isActive ? 'purple.600' : 'purple.100', borderLeftColor: 'purple.400' }}
+            leftIcon={<Icon as={isActive ? MdRadioButtonChecked : MdFiberManualRecord} color={isActive ? 'white' : 'muted'} boxSize={2.5} />}
+            _hover={{ bg: isActive ? 'purple.600' : 'purple.100', _dark: { bg: isActive ? 'purple.500' : 'gray.700' }, borderLeftColor: 'purple.400' }}
             >
               <Text noOfLines={1}>{label}</Text>
             </Button>
@@ -264,7 +264,7 @@ export default function ContentViewPage() {
                 </Wrap>
               </Stack>
               <Progress value={progress} size="xs" colorScheme="purple" borderTopRadius="md" borderBottomRadius="0" />
-              <Box ref={contentRef} borderWidth="1px" rounded="lg" p={10} bg="white" maxH="80vh" overflowY="auto" maxW="5xl">
+              <Box ref={contentRef} borderWidth="1px" rounded="lg" p={10} bg="surface" borderColor="border" maxH="80vh" overflowY="auto" maxW="5xl">
                 <Markdown source={data.content} />
               </Box>
               <Stack direction={{ base: 'column', md: 'row' }} mt={6}>
@@ -272,10 +272,10 @@ export default function ContentViewPage() {
               </Stack>
             </Box>
             <VStack as="aside" minW={{ base: '0', md: '220px' }} ml="auto" display={{ base: 'none', md: 'flex' }} position="sticky" top="92px" align="stretch">
-              <Box borderWidth="1px" rounded="lg" p={0} bg="gray.50" borderColor="gray.200" boxShadow="md" overflow="hidden">
-                <Box px={4} py={3} bg="white" borderBottomWidth="1px" position="sticky" top={0} zIndex={1}>
+              <Box borderWidth="1px" rounded="lg" p={0} bg="surface" borderColor="border" boxShadow="md" overflow="hidden">
+                <Box px={4} py={3} bg="surface" borderBottomWidth="1px" borderColor="border" position="sticky" top={0} zIndex={1}>
                   <HStack justify="space-between" align="center" mb={2}>
-                    <Text fontWeight="700" color="gray.800">On this page</Text>
+                    <Text fontWeight="700" color="text">On this page</Text>
                     <HStack>
                       <Button size="xs" variant="ghost" onClick={() => {
                         setExpandedIds(new Set(headings.map(h => h.id)))
@@ -288,19 +288,19 @@ export default function ContentViewPage() {
                   </HStack>
                   <InputGroup size="sm">
                     <InputLeftElement pointerEvents="none">
-                      <Icon as={MdSearch} color="gray.400" />
+                      <Icon as={MdSearch} color="muted" />
                     </InputLeftElement>
                     <Input
                       value={tocQuery}
                       onChange={(e) => setTocQuery(e.target.value)}
                       placeholder="Filter sections"
-                      bg="gray.50"
-                      _focus={{ bg: 'white', borderColor: 'purple.300', boxShadow: '0 0 0 1px var(--chakra-colors-purple-300)' }}
+                      bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                      _focus={{ bg: 'surface', borderColor: 'accent', boxShadow: '0 0 0 1px var(--chakra-colors-purple-300)' }}
                     />
                   </InputGroup>
                 </Box>
                 <VStack align="stretch" spacing={0.5} maxH="70vh" overflowY="auto" px={2} py={2}>
-                  {headings.length === 0 && <Text color="gray.500">No sections</Text>}
+                  {headings.length === 0 && <Text color="muted">No sections</Text>}
                   {renderToc(filteredTree)}
                   {headings.length > 0 && (
                     <Button

@@ -5,7 +5,6 @@
 
 body {
   font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', 'Roboto', sans-serif;
-  background-color: #ffffff;
   margin: 0;
   padding: 0;
   line-height: 1.6;
@@ -16,25 +15,24 @@ body {
   width: 8px;
 }
 
-::-webkit-scrollbar-track {
-  background: #f7fafc;
+/* Light mode scrollbar */
+@media (prefers-color-scheme: light) {
+  ::-webkit-scrollbar-track { background: #f7fafc; }
+  ::-webkit-scrollbar-thumb { background: #cbd5e0; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #a0aec0; }
 }
 
-::-webkit-scrollbar-thumb {
-  background: #cbd5e0;
-  border-radius: 4px;
-}
-
-::-webkit-scrollbar-thumb:hover {
-  background: #a0aec0;
+/* Dark mode scrollbar */
+@media (prefers-color-scheme: dark) {
+  ::-webkit-scrollbar-track { background: #1f2937; }
+  ::-webkit-scrollbar-thumb { background: #4b5563; border-radius: 4px; }
+  ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 }
 
 /* Professional card shadows */
 .professional-card {
-  background: white;
   border-radius: 16px;
   box-shadow: 0 1px 3px rgba(0, 0, 0, 0.1);
-  border: 1px solid #e2e8f0;
   transition: all 0.2s ease;
 }
 

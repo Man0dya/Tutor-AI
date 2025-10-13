@@ -33,7 +33,7 @@ export default function Landing() {
   }
   
   return (
-    <Box minH="100vh" bg="white">
+    <Box minH="100vh" bg="bg">
       <Navbar />
       
       {/* Hero Section */}
@@ -45,7 +45,7 @@ export default function Landing() {
               fontSize={{ base: '5xl', md: '7xl', lg: '8xl' }}
               fontWeight="800"
               lineHeight="1.1"
-              color="gray.900"
+              color="text"
               letterSpacing="tight"
             >
               Learn Smarter with{' '}
@@ -61,7 +61,7 @@ export default function Landing() {
             
             <Text
               fontSize={{ base: 'lg', md: 'xl' }}
-              color="gray.600"
+              color="muted"
               maxW="3xl"
               mx="auto"
               lineHeight="1.7"
@@ -81,12 +81,11 @@ export default function Landing() {
               px={8}
               py={6}
               fontSize="lg"
-              bg="purple.600"
-              color="white"
-              borderRadius="xl"
+              colorScheme="purple"
+              variant="solid"
+              borderRadius="8px"
               fontWeight="600"
               _hover={{
-                bg: "purple.700",
                 transform: "translateY(-2px)",
                 boxShadow: "lg"
               }}
@@ -103,13 +102,13 @@ export default function Landing() {
               py={6}
               fontSize="lg"
               variant="outline"
-              borderColor="gray.300"
-              color="gray.700"
+              borderColor="border"
+              color="text"
               borderRadius="xl"
               fontWeight="600"
               _hover={{
-                bg: "gray.50",
-                borderColor: "gray.400",
+                bg: { base: 'gray.50', _dark: 'whiteAlpha.200' },
+                borderColor: "border",
                 transform: "translateY(-2px)"
               }}
               transition="all 0.2s"
@@ -128,11 +127,11 @@ export default function Landing() {
             <Heading
               fontSize={{ base: '3xl', md: '4xl' }}
               fontWeight="700"
-              color="gray.900"
+              color="text"
             >
               Everything you need to excel
             </Heading>
-            <Text fontSize="xl" color="gray.600" lineHeight="1.6">
+            <Text fontSize="xl" color="muted" lineHeight="1.6">
               Our AI-powered platform provides comprehensive tools to enhance your learning journey
             </Text>
           </Stack>
@@ -161,15 +160,15 @@ export default function Landing() {
               ].map((feature, index) => (
                 <Box
                   key={index}
-                  bg="white"
+                  bg="surface"
                   p={8}
                   borderRadius="2xl"
-                  boxShadow="sm"
+                  boxShadow={{ base: 'sm', _dark: 'none' }}
                   border="1px"
-                  borderColor="gray.200"
+                  borderColor="border"
                   textAlign="center"
                   _hover={{
-                    boxShadow: "md",
+                    boxShadow: { base: 'md', _dark: 'none' },
                     transform: "translateY(-4px)"
                   }}
                   transition="all 0.2s"
@@ -180,16 +179,17 @@ export default function Landing() {
                     w={16}
                     h={16}
                     bg={`${feature.color.split('.')[0]}.50`}
+                    _dark={{ bg: 'whiteAlpha.200' }}
                     borderRadius="xl"
                     mx="auto"
                     mb={6}
                   >
                     <Icon as={feature.icon} boxSize={8} color={feature.color} />
                   </Flex>
-                  <Heading size="md" mb={4} color="gray.900" fontWeight="600">
+                  <Heading size="md" mb={4} color="text" fontWeight="600">
                     {feature.title}
                   </Heading>
-                  <Text color="gray.600" lineHeight="1.6">
+                  <Text color="muted" lineHeight="1.6">
                     {feature.description}
                   </Text>
                 </Box>
@@ -205,11 +205,11 @@ export default function Landing() {
             <Heading
               fontSize={{ base: '3xl', md: '4xl' }}
               fontWeight="700"
-              color="gray.900"
+              color="text"
             >
               How Tutor AI Works
             </Heading>
-            <Text fontSize="xl" color="gray.600" lineHeight="1.6">
+            <Text fontSize="xl" color="muted" lineHeight="1.6">
               Get started in three simple steps and transform your learning experience
             </Text>
           </Stack>
@@ -242,6 +242,7 @@ export default function Landing() {
                   w={20}
                   h={20}
                   bg="purple.600"
+                  _dark={{ bg: 'purple.400' }}
                   borderRadius="full"
                   position="relative"
                 >
@@ -249,8 +250,8 @@ export default function Landing() {
                     position="absolute"
                     top="-8px"
                     right="-8px"
-                    bg="white"
-                    color="purple.600"
+                    bg="surface"
+                    color={{ base: 'purple.600', _dark: 'purple.300' }}
                     fontSize="sm"
                     fontWeight="bold"
                     w={8}
@@ -260,17 +261,17 @@ export default function Landing() {
                     alignItems="center"
                     justifyContent="center"
                     border="2px"
-                    borderColor="purple.600"
+                    borderColor={{ base: 'purple.600', _dark: 'purple.300' }}
                   >
                     {step.step}
                   </Text>
-                  <Icon as={step.icon} boxSize={10} color="white" />
+                  <Icon as={step.icon} boxSize={10} color="white" aria-hidden={false} />
                 </Flex>
                 <VStack spacing={3}>
-                  <Heading size="md" color="gray.900" fontWeight="600">
+                  <Heading size="md" color="text" fontWeight="600">
                     {step.title}
                   </Heading>
-                  <Text color="gray.600" lineHeight="1.6" maxW="sm">
+                  <Text color="muted" lineHeight="1.6" maxW="sm">
                     {step.description}
                   </Text>
                 </VStack>
@@ -287,11 +288,11 @@ export default function Landing() {
             <Heading
               fontSize={{ base: '3xl', md: '4xl' }}
               fontWeight="700"
-              color="gray.900"
+              color="text"
             >
               Choose Your Learning Plan
             </Heading>
-            <Text fontSize="xl" color="gray.600" lineHeight="1.6">
+            <Text fontSize="xl" color="muted" lineHeight="1.6">
               Start free and upgrade as you grow. All plans include our core AI features.
             </Text>
           </Stack>
@@ -302,21 +303,24 @@ export default function Landing() {
       {/* CTA Section */}
       <Container maxW="4xl" py={{ base: 16, md: 24 }}>
         <Box
-          bg="purple.600"
+          bg={{ base: 'purple.600', _dark: 'purple.400' }}
           borderRadius="3xl"
           p={{ base: 12, md: 16 }}
           textAlign="center"
-          color="white"
+          shadow="lg"
+          border="1px solid"
+          borderColor="border"
         >
           <VStack spacing={8}>
             <Stack spacing={4}>
               <Heading
                 fontSize={{ base: '3xl', md: '4xl' }}
                 fontWeight="700"
+                color="white"
               >
                 Ready to revolutionize your learning?
               </Heading>
-              <Text fontSize="xl" opacity={0.9} maxW="2xl">
+              <Text fontSize="xl" opacity={0.9} maxW="2xl" color="white">
                 Join thousands of students who are already learning smarter with AI. 
                 Start your free trial today.
               </Text>
@@ -325,12 +329,9 @@ export default function Landing() {
               as={RouterLink}
               to="/signup"
               size="lg"
-              px={10}
-              py={6}
-              fontSize="lg"
-              bg="white"
-              color="purple.600"
-              borderRadius="xl"
+              colorScheme="purple"
+              variant="solid"
+              borderRadius="8px"
               fontWeight="600"
               _hover={{
                 transform: "translateY(-2px)",
@@ -338,6 +339,7 @@ export default function Landing() {
               }}
               transition="all 0.2s"
               leftIcon={<MdRocketLaunch />}
+              className="btn-professional"
             >
               Get Started Free
             </Button>
@@ -346,7 +348,7 @@ export default function Landing() {
       </Container>
 
       {/* Footer */}
-      <Box borderTop="1px" borderColor="gray.200" py={8}>
+      <Box borderTop="1px" borderColor="border" py={8}>
         <Container maxW="6xl">
           <Flex
             direction={{ base: 'column', md: 'row' }}
@@ -354,17 +356,17 @@ export default function Landing() {
             align="center"
             gap={4}
           >
-            <Text color="gray.600" fontSize="sm">
+            <Text color="muted" fontSize="sm">
               © 2025 Tutor AI. All rights reserved.
             </Text>
             <HStack spacing={6}>
-              <Text as="a" href="#" color="gray.600" fontSize="sm" _hover={{ color: 'purple.600' }}>
+              <Text as="a" href="#" color="muted" fontSize="sm" _hover={{ color: 'accent' }}>
                 Privacy Policy
               </Text>
-              <Text as="a" href="#" color="gray.600" fontSize="sm" _hover={{ color: 'purple.600' }}>
+              <Text as="a" href="#" color="muted" fontSize="sm" _hover={{ color: 'accent' }}>
                 Terms of Service
               </Text>
-              <Text as="a" href="#" color="gray.600" fontSize="sm" _hover={{ color: 'purple.600' }}>
+              <Text as="a" href="#" color="muted" fontSize="sm" _hover={{ color: 'accent' }}>
                 Contact
               </Text>
             </HStack>

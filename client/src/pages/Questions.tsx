@@ -74,7 +74,7 @@ export default function QuestionsPage() {
           <Icon as={MdQuiz} boxSize={7} color="purple.500" />
           <Heading size="lg">Practice Questions</Heading>
         </HStack>
-        <Text color="gray.600" mb={4}>Generate questions from your content and answer them below.</Text>
+  <Text color="muted" mb={4}>Generate questions from your content and answer them below.</Text>
 
         {generating && (
           <Alert status="info" variant="subtle" mb={4} borderRadius="12px">
@@ -83,11 +83,11 @@ export default function QuestionsPage() {
         )}
 
         <Box
-          bg="white"
+          bg="surface"
           borderWidth="1px"
-          borderColor="gray.200"
+          borderColor="border"
           borderRadius="12px"
-          boxShadow="0 2px 8px rgba(0,0,0,0.06)"
+          boxShadow={{ base: 'md', _dark: 'none' }}
           p={6}
           mb={6}
         >
@@ -127,18 +127,18 @@ export default function QuestionsPage() {
         </Box>
 
         {questions.length === 0 && (
-          <Box borderWidth="1px" borderColor="gray.200" borderRadius="12px" p={8} bg="gray.50" textAlign="center" color="gray.600">
+          <Box borderWidth="1px" borderColor="border" borderRadius="12px" p={8} bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }} textAlign="center" color="muted">
             No questions yet. Enter a valid content id and click Generate.
           </Box>
         )}
 
         {questions.length > 0 && (
           <Box
-            bg="white"
+            bg="surface"
             borderWidth="1px"
-            borderColor="gray.200"
+            borderColor="border"
             borderRadius="12px"
-            boxShadow="0 2px 8px rgba(0,0,0,0.06)"
+            boxShadow={{ base: 'md', _dark: 'none' }}
             p={4}
             mb={4}
           >
@@ -148,7 +148,7 @@ export default function QuestionsPage() {
                 <Badge colorScheme="green">Answered: {answeredCount}</Badge>
                 <Badge colorScheme="gray">Remaining: {Math.max(0, questions.length - answeredCount)}</Badge>
               </HStack>
-              <Text color="gray.600" fontSize="sm">Answer all questions, then submit.</Text>
+              <Text color="muted" fontSize="sm">Answer all questions, then submit.</Text>
             </HStack>
             <HStack spacing={2} overflowX="auto" mt={3} py={1}>
               {questions.map((_q, i) => {
@@ -171,7 +171,7 @@ export default function QuestionsPage() {
           {questions.map((q: Question, idx: number) => {
             const isAnswered = !!answers[idx]
             return (
-            <Box key={idx} ref={(el) => (questionRefs.current[idx] = el)} p={6} bg="white" borderWidth="1px" borderColor={isAnswered ? 'green.200' : 'gray.200'} borderRadius="12px" boxShadow="0 2px 6px rgba(0,0,0,0.04)">
+            <Box key={idx} ref={(el) => (questionRefs.current[idx] = el)} p={6} bg="surface" borderWidth="1px" borderColor={isAnswered ? 'green.400' : 'border'} borderRadius="12px" boxShadow={{ base: 'sm', _dark: 'none' }}>
               <HStack justify="space-between" align="center" mb={2}>
                 <HStack spacing={3}>
                   <Badge colorScheme={isAnswered ? 'green' : 'gray'}>Q{idx + 1}</Badge>

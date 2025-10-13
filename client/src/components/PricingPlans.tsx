@@ -68,19 +68,17 @@ const PricingPlans: React.FC = () => {
         {plans.map((plan) => (
           <Box
             key={plan.name}
-            bg="white"
+            bg="surface"
             borderRadius="xl"
             border="1px"
-            borderColor={plan.highlight ? "purple.200" : "gray.200"}
-            boxShadow={plan.highlight ? "0 10px 40px rgba(139, 92, 246, 0.1)" : "0 4px 12px rgba(0, 0, 0, 0.05)"}
+            borderColor={plan.highlight ? "purple.300" : "border"}
+            boxShadow={plan.highlight ? "lg" : "md"}
             p={8}
             flex="1"
             maxW={{ base: "100%", lg: "400px" }}
             position="relative"
             _hover={{
-              boxShadow: plan.highlight 
-                ? "0 20px 60px rgba(139, 92, 246, 0.15)" 
-                : "0 8px 24px rgba(0, 0, 0, 0.08)",
+              boxShadow: plan.highlight ? 'xl' : 'lg',
               transform: "translateY(-4px)"
             }}
             transition="all 0.3s ease"
@@ -99,7 +97,7 @@ const PricingPlans: React.FC = () => {
                 borderRadius="full"
                 fontSize="sm"
                 fontWeight="600"
-                boxShadow="0 4px 12px rgba(139, 92, 246, 0.3)"
+                boxShadow="lg"
               >
                 Most Popular
               </Badge>
@@ -108,30 +106,30 @@ const PricingPlans: React.FC = () => {
             <VStack spacing={6} align="stretch">
               {/* Plan Header */}
               <VStack spacing={2} align="start">
-                <Heading size="lg" color="gray.900" fontWeight="600">
+                <Heading size="lg" color="text" fontWeight="600">
                   {plan.name}
                 </Heading>
-                <Text color="gray.600" fontSize="md" lineHeight="1.5">
+                <Text color="muted" fontSize="md" lineHeight="1.5">
                   {plan.description}
                 </Text>
               </VStack>
 
               {/* Pricing */}
               <HStack align="baseline" spacing={1}>
-                <Text fontSize="sm" color="gray.500" fontWeight="500">
+                <Text fontSize="sm" color="muted" fontWeight="500">
                   $
                 </Text>
-                <Text fontSize="5xl" fontWeight="700" color="gray.900" lineHeight="1">
+                <Text fontSize="5xl" fontWeight="700" color="text" lineHeight="1">
                   {plan.price}
                 </Text>
-                <Text color="gray.500" fontSize="md" fontWeight="500">
+                <Text color="muted" fontSize="md" fontWeight="500">
                   {plan.period}
                 </Text>
               </HStack>
 
               {/* Features */}
               <VStack spacing={4} align="stretch">
-                <Text fontSize="sm" fontWeight="600" color="gray.900" textTransform="uppercase" letterSpacing="wider">
+                <Text fontSize="sm" fontWeight="600" color="text" textTransform="uppercase" letterSpacing="wider">
                   What's included
                 </Text>
                 <List spacing={3}>
@@ -144,7 +142,7 @@ const PricingPlans: React.FC = () => {
                         boxSize={4}
                         flexShrink={0}
                       />
-                      <Text fontSize="sm" color="gray.700" lineHeight="1.6">
+                      <Text fontSize="sm" color="muted" lineHeight="1.6">
                         {feature}
                       </Text>
                     </ListItem>
@@ -156,17 +154,18 @@ const PricingPlans: React.FC = () => {
               <Button
                 size="lg"
                 w="full"
-                bg={plan.highlight ? "purple.600" : "white"}
+                bg={plan.highlight ? "purple.600" : "surface"}
                 color={plan.highlight ? "white" : "purple.600"}
                 border="1px"
-                borderColor={plan.highlight ? "purple.600" : "purple.600"}
+                borderColor={"purple.600"}
                 borderRadius="lg"
                 fontWeight="600"
                 fontSize="md"
                 py={6}
                 _hover={{
                   bg: plan.highlight ? "purple.700" : "purple.50",
-                  borderColor: plan.highlight ? "purple.700" : "purple.700",
+                  _dark: { bg: plan.highlight ? 'purple.500' : 'gray.700' },
+                  borderColor: "purple.700",
                   transform: "translateY(-2px)"
                 }}
                 _active={{

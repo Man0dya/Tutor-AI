@@ -4,7 +4,7 @@ import PricingPlans from '../components/PricingPlans'
 
 export default function PricingPage() {
   return (
-    <Box bg="gray.50" minH="100vh">
+    <Box bg="bg" minH="100vh">
       <Navbar />
       <Container maxW="6xl" py={10}>
         <PricingPlans />

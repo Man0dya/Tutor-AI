@@ -37,8 +37,12 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
         py={6}
         fontWeight="500"
         fontSize="sm"
-        _hover={{
-          bg: isActive ? 'purple.500' : 'purple.50',
+        _hover={isActive ? {
+          bg: 'purple.500',
+          transform: 'translateX(2px)',
+          transition: 'all 0.2s ease'
+        } : {
+          bg: { base: 'purple.50', _dark: 'whiteAlpha.200' },
           transform: 'translateX(2px)',
           transition: 'all 0.2s ease'
         }}
@@ -50,18 +54,18 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
   }
 
   return (
-    <Box bg="#fafafa" minH="100vh">
+    <Box bg="bg" minH="100vh">
       <Navbar />
       <Flex>
         <Box 
           as="nav" 
           width="260px" 
           height="calc(100vh - 73px)" 
-          bg="white"
+          bg="surface"
           borderRightWidth="1px" 
-          borderColor="gray.200"
+          borderColor="border"
           p={4}
-          boxShadow="2px 0 4px rgba(0, 0, 0, 0.02)"
+          boxShadow={{ base: 'sm', _dark: 'none' }}
           display="flex"
           flexDirection="column"
           overflow="hidden"
@@ -71,7 +75,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
               size="sm" 
               px={3} 
               mb={4} 
-              color="gray.600"
+              color="muted"
               letterSpacing="wide"
               textTransform="uppercase"
               fontSize="xs"
@@ -86,7 +90,7 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
               )}
             </VStack>
           </Box>
-          <Box position="sticky" bottom={0} bg="white" pt={2} borderTop="1px solid" borderColor="gray.200">
+          <Box position="sticky" bottom={0} bg="surface" pt={2} borderTop="1px solid" borderColor="border">
             <Button 
               onClick={settings.onOpen}
               variant="ghost"
@@ -96,20 +100,21 @@ export default function PrivateLayout({ children }: { children: React.ReactNode 
               py={6}
               fontWeight="500"
               fontSize="sm"
-              _hover={{ bg: 'purple.50', transform: 'translateX(2px)' }}
+              _hover={{ bg: { base: 'purple.50', _dark: 'whiteAlpha.200' }, transform: 'translateX(2px)' }}
               transition="all 0.2s ease"
             >
               Settings
             </Button>
           </Box>
         </Box>
-        <Box flex="1" p={6} bg="#fafafa">
+        <Box flex="1" p={6} bg="bg">
           <Box 
-            bg="white" 
+            bg="surface" 
             borderRadius="16px" 
             p={6}
-            boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
-            border="1px solid #e2e8f0"
+            boxShadow={{ base: 'md', _dark: 'none' }}
+            borderWidth="1px"
+            borderColor="border"
             minH="calc(100vh - 134px)"
           >
             {children}

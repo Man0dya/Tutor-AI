@@ -87,8 +87,8 @@ export default function Dashboard() {
       <PrivateLayout>
         <Stack spacing={8}>
           <Box>
-            <Heading size="xl" color="gray.800" mb={2}>Loading...</Heading>
-            <Text color="gray.600" fontSize="lg">Fetching your progress data</Text>
+            <Heading size="xl" color="text" mb={2}>Loading...</Heading>
+            <Text color="muted" fontSize="lg">Fetching your progress data</Text>
           </Box>
         </Stack>
       </PrivateLayout>
@@ -99,10 +99,10 @@ export default function Dashboard() {
     <PrivateLayout>
       <Stack spacing={8}>
         <Box>
-          <Heading size="xl" color="gray.800" mb={2}>
+          <Heading size="xl" color="text" mb={2}>
             Welcome back{user?.name ? `, ${user.name}` : ''}!
           </Heading>
-          <Text color="gray.600" fontSize="lg">Ready to continue your learning journey?</Text>
+          <Text color="muted" fontSize="lg">Ready to continue your learning journey?</Text>
         </Box>
 
         {/* Quick Stats */}
@@ -110,15 +110,15 @@ export default function Dashboard() {
           {recentStats.map((stat, index) => (
             <Box
               key={index}
-              bg="white"
+              bg="surface"
               p={6}
               borderRadius="12px"
               borderWidth="1px"
-              borderColor="gray.200"
-              boxShadow="0 2px 4px rgba(0, 0, 0, 0.04)"
+              borderColor="border"
+              boxShadow="sm"
             >
-              <Text fontSize="sm" color="gray.500" fontWeight="500" mb={1}>{stat.label}</Text>
-              <Heading size="lg" color="gray.800" mb={2}>{stat.value}</Heading>
+              <Text fontSize="sm" color="muted" fontWeight="500" mb={1}>{stat.label}</Text>
+              <Heading size="lg" color="text" mb={2}>{stat.value}</Heading>
               <Text fontSize="sm" color="green.500" fontWeight="500">{stat.change}</Text>
             </Box>
           ))}
@@ -126,26 +126,26 @@ export default function Dashboard() {
 
         {/* Quick Actions */}
         <Box>
-          <Heading size="lg" mb={6} color="gray.800">Quick Actions</Heading>
+          <Heading size="lg" mb={6} color="text">Quick Actions</Heading>
           <SimpleGrid columns={{ base: 1, md: 3 }} spacing={6}>
             {quickActions.map((action, index) => (
               <Box
                 key={index}
                 as={RouterLink}
                 to={action.path}
-                bg="white"
+                bg="surface"
                 p={6}
                 borderRadius="16px"
                 borderWidth="1px"
-                borderColor="gray.200"
-                boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
+                borderColor="border"
+                boxShadow="md"
                 position="relative"
                 overflow="hidden"
                 cursor="pointer"
                 transition="all 0.3s ease"
                 _hover={{
                   transform: 'translateY(-4px)',
-                  boxShadow: '0 8px 24px rgba(0, 0, 0, 0.12)',
+                  boxShadow: 'lg',
                   textDecoration: 'none'
                 }}
                 textDecoration="none"
@@ -162,17 +162,17 @@ export default function Dashboard() {
                     >
                       <Icon as={action.icon} boxSize={6} color="white" />
                     </Flex>
-                    <Icon as={MdArrowForward} boxSize={5} color="gray.400" />
+                    <Icon as={MdArrowForward} boxSize={5} color="muted" />
                   </HStack>
                   
                   <Stack spacing={2}>
                     <HStack>
-                      <Heading size="md" color="gray.800">{action.title}</Heading>
+                      <Heading size="md" color="text">{action.title}</Heading>
                       {action.available && (
                         <Badge colorScheme="green" borderRadius="full" px={2}>Ready</Badge>
                       )}
                     </HStack>
-                    <Text color="gray.600" fontSize="sm" lineHeight="1.5">{action.desc}</Text>
+                    <Text color="muted" fontSize="sm" lineHeight="1.5">{action.desc}</Text>
                   </Stack>
                 </Stack>
               </Box>
@@ -182,13 +182,13 @@ export default function Dashboard() {
 
         {/* Recent Activity */}
         <Box>
-          <Heading size="lg" mb={4} color="gray.800">Recent Activity</Heading>
+          <Heading size="lg" mb={4} color="text">Recent Activity</Heading>
           <Box
-            bg="white"
+            bg="surface"
             borderRadius="12px"
             borderWidth="1px"
-            borderColor="gray.200"
-            boxShadow="0 2px 4px rgba(0, 0, 0, 0.04)"
+            borderColor="border"
+            boxShadow="sm"
             overflow="hidden"
           >
             {(() => {
@@ -254,7 +254,7 @@ export default function Dashboard() {
                         as={RouterLink}
                         to={activity.link}
                         p={4}
-                        _hover={{ bg: 'gray.50' }}
+                        _hover={{ bg: 'gray.50', _dark: { bg: 'gray.700' } }}
                         transition="background 0.2s ease"
                         textDecoration="none"
                         _focus={{ outline: 'none' }}
@@ -266,30 +266,31 @@ export default function Dashboard() {
                           h={10}
                           borderRadius="10px"
                           bg={`${activity.color}.100`}
+                          _dark={{ bg: `${activity.color}.900` }}
                         >
                           <Icon as={activity.icon} boxSize={5} color={`${activity.color}.500`} />
                         </Flex>
                         <Box flex="1">
-                          <Text fontWeight="500" color="gray.800" fontSize="sm" mb={1}>
+                          <Text fontWeight="500" color="text" fontSize="sm" mb={1}>
                             {activity.title}
                           </Text>
-                          <Text fontSize="xs" color="gray.500">
+                          <Text fontSize="xs" color="muted">
                             {new Date(activity.time).toLocaleString()}
                           </Text>
                         </Box>
-                        <Icon as={MdArrowForward} boxSize={4} color="gray.400" />
+                        <Icon as={MdArrowForward} boxSize={4} color="muted" />
                       </HStack>
                       {index < activities.slice(0, 5).length - 1 && (
-                        <Box height="1px" bg="gray.100" mx={4} />
+                        <Box height="1px" bg="border" mx={4} />
                       )}
                     </Box>
                   ))}
                 </Stack>
               ) : (
                 <Box p={8} textAlign="center">
-                  <Icon as={MdCreate} boxSize={12} color="gray.300" mb={4} />
-                  <Text color="gray.500" mb={2}>No recent activity yet</Text>
-                  <Text color="gray.400" fontSize="sm">
+                  <Icon as={MdCreate} boxSize={12} color="muted" opacity={0.6} mb={4} />
+                  <Text color="muted" mb={2}>No recent activity yet</Text>
+                  <Text color="muted" fontSize="sm" opacity={0.8}>
                     Start by creating some study content or taking a quiz
                   </Text>
                 </Box>

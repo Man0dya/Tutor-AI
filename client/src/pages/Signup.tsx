@@ -45,7 +45,7 @@ export default function Signup() {
   }
 
   return (
-    <Box minH="100vh" bg="white">
+    <Box minH="100vh" bg="bg">
       <Navbar />
       <Container maxW="7xl" pt={{ base: 8, md: 12 }} pb={0}>
         <Stack direction={{ base: 'column', lg: 'row' }} spacing={{ base: 8, lg: 12 }} align="center" justify="center" minH="70vh">
@@ -53,35 +53,35 @@ export default function Signup() {
           <VStack align="flex-start" spacing={4} flex="1" maxW="lg" pt={{ base: 0, lg: 2 }}>
             {/* Text Section */}
             <VStack align="flex-start" spacing={3}>
-              <Heading size="2xl" color="gray.900" fontWeight="700" lineHeight="1.2">
+              <Heading size="2xl" color="text" fontWeight="700" lineHeight="1.2">
                 Create your account
               </Heading>
-              <Text color="gray.600" fontSize="lg" lineHeight="1.6">
+              <Text color="muted" fontSize="lg" lineHeight="1.6">
                 Join thousands of students learning smarter with AI-powered tutoring and personalized content.
               </Text>
             </VStack>
-            <Box h="1px" w="full" bg="gray.200" />
+            <Box h="1px" w="full" bg="border" />
             {/* Features Section */}
             <VStack align="flex-start" spacing={3}>
-              <Text color="gray.700" fontSize="sm" fontWeight="600">
+              <Text color="muted" fontSize="sm" fontWeight="600">
                 What you'll get:
               </Text>
               <VStack align="flex-start" spacing={2}>
                 <HStack>
-                  <Icon as={MdCheckCircle} color="purple.500" boxSize={4} />
-                  <Text color="gray.600" fontSize="sm">Personalized study content</Text>
+                  <Icon as={MdCheckCircle} color="accent" boxSize={4} />
+                  <Text color="muted" fontSize="sm">Personalized study content</Text>
                 </HStack>
                 <HStack>
-                  <Icon as={MdCheckCircle} color="purple.500" boxSize={4} />
-                  <Text color="gray.600" fontSize="sm">AI-powered practice questions</Text>
+                  <Icon as={MdCheckCircle} color="accent" boxSize={4} />
+                  <Text color="muted" fontSize="sm">AI-powered practice questions</Text>
                 </HStack>
                 <HStack>
-                  <Icon as={MdCheckCircle} color="purple.500" boxSize={4} />
-                  <Text color="gray.600" fontSize="sm">Progress tracking & insights</Text>
+                  <Icon as={MdCheckCircle} color="accent" boxSize={4} />
+                  <Text color="muted" fontSize="sm">Progress tracking & insights</Text>
                 </HStack>
               </VStack>
             </VStack>
-            <Text color="gray.500" fontSize="sm" fontWeight="500">
+            <Text color="muted" fontSize="sm" fontWeight="500">
               Free to start. No credit card required.
             </Text>
           </VStack>
@@ -92,26 +92,26 @@ export default function Signup() {
             onSubmit={onSubmit}
             flex="1"
             maxW="md"
-            bg="white"
+            bg="surface"
             p={6}
             borderRadius="xl"
             border="1px"
-            borderColor="gray.200"
+            borderColor="border"
             boxShadow="sm"
             mt={{ base: 0, lg: 8 }}
           >
             <Stack spacing={6}>
               <VStack align="flex-start" spacing={2}>
-                <Heading size="lg" color="gray.900" fontWeight="600">
+                <Heading size="lg" color="text" fontWeight="600">
                   Get started
                 </Heading>
-                <Text color="gray.600" fontSize="sm">
+                <Text color="muted" fontSize="sm">
                   Create your account to begin your learning journey
                 </Text>
               </VStack>
 
               <FormControl isRequired>
-                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                <FormLabel color="muted" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                   Full Name
                 </FormLabel>
                 <InputGroup>
@@ -121,23 +121,18 @@ export default function Signup() {
                     placeholder="Enter your full name"
                     size="lg"
                     borderRadius="lg"
-                    borderColor="gray.300"
-                    _focus={{
-                      borderColor: "purple.500",
-                      boxShadow: "0 0 0 1px purple.500"
-                    }}
-                    _hover={{
-                      borderColor: "gray.400"
-                    }}
+                    borderColor="border"
+                    focusBorderColor="accent"
+                    _hover={{ borderColor: 'border' }}
                   />
                   <InputRightElement>
-                    <Icon as={MdPerson} color="gray.400" boxSize={5} />
+                    <Icon as={MdPerson} color="muted" boxSize={5} />
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                <FormLabel color="muted" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                   Email
                 </FormLabel>
                 <InputGroup>
@@ -148,23 +143,18 @@ export default function Signup() {
                     placeholder="Enter your email"
                     size="lg"
                     borderRadius="lg"
-                    borderColor="gray.300"
-                    _focus={{
-                      borderColor: "purple.500",
-                      boxShadow: "0 0 0 1px purple.500"
-                    }}
-                    _hover={{
-                      borderColor: "gray.400"
-                    }}
+                    borderColor="border"
+                    focusBorderColor="accent"
+                    _hover={{ borderColor: 'border' }}
                   />
                   <InputRightElement>
-                    <Icon as={MdMail} color="gray.400" boxSize={5} />
+                    <Icon as={MdMail} color="muted" boxSize={5} />
                   </InputRightElement>
                 </InputGroup>
               </FormControl>
 
               <FormControl isRequired>
-                <FormLabel color="gray.700" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
+                <FormLabel color="muted" fontWeight="600" fontSize="sm" textTransform="uppercase" letterSpacing="wide">
                   Password
                 </FormLabel>
                 <InputGroup>
@@ -175,14 +165,9 @@ export default function Signup() {
                     placeholder="Create a strong password"
                     size="lg"
                     borderRadius="lg"
-                    borderColor="gray.300"
-                    _focus={{
-                      borderColor: "purple.500",
-                      boxShadow: "0 0 0 1px purple.500"
-                    }}
-                    _hover={{
-                      borderColor: "gray.400"
-                    }}
+                    borderColor="border"
+                    focusBorderColor="accent"
+                    _hover={{ borderColor: 'border' }}
                   />
                   <InputRightElement>
                     <IconButton
@@ -191,7 +176,7 @@ export default function Signup() {
                       size="sm"
                       icon={<Icon as={showPassword ? MdVisibilityOff : MdVisibility} />}
                       onClick={onToggle}
-                      _hover={{ bg: "transparent" }}
+                      _hover={{ bg: 'transparent' }}
                     />
                   </InputRightElement>
                 </InputGroup>
@@ -204,10 +189,10 @@ export default function Signup() {
                     return (
                       <VStack spacing={2} align="stretch">
                         <HStack justify="space-between">
-                          <Text fontSize="xs" color="gray.500" fontWeight="500">
+                          <Text fontSize="xs" color="muted" fontWeight="500">
                             Password strength
                           </Text>
-                          <Text fontSize="xs" color={`${ps.color}.600`} fontWeight="600">
+                          <Text fontSize="xs" color={`${ps.color}.400`} _dark={{ color: `${ps.color}.300` }} fontWeight="600">
                             {ps.label}
                           </Text>
                         </HStack>
@@ -217,6 +202,7 @@ export default function Signup() {
                           size="sm"
                           borderRadius="md"
                           bg="gray.100"
+                          _dark={{ bg: 'gray.700' }}
                         />
                       </VStack>
                     )
@@ -230,28 +216,28 @@ export default function Signup() {
                 defaultChecked
                 sx={{
                   '& .chakra-checkbox__control': {
-                    borderColor: 'gray.300',
+                    borderColor: 'border',
                     _checked: {
-                      bg: 'purple.600',
-                      borderColor: 'purple.600'
+                      bg: 'accent',
+                      borderColor: 'accent'
                     }
                   }
                 }}
               >
-                <Text fontSize="sm" color="gray.600">
+                <Text fontSize="sm" color="muted">
                   I agree to the{' '}
                   <Link
-                    color="purple.600"
+                    color="accent"
                     fontWeight="500"
-                    _hover={{ color: "purple.700", textDecoration: "underline" }}
+                    _hover={{ textDecoration: 'underline' }}
                   >
                     Terms of Service
                   </Link>
                   {' '}and{' '}
                   <Link
-                    color="purple.600"
+                    color="accent"
                     fontWeight="500"
-                    _hover={{ color: "purple.700", textDecoration: "underline" }}
+                    _hover={{ textDecoration: 'underline' }}
                   >
                     Privacy Policy
                   </Link>
@@ -276,14 +262,14 @@ export default function Signup() {
                 Create account
               </Button>
 
-              <Text fontSize="sm" color="gray.600" textAlign="center">
+              <Text fontSize="sm" color="muted" textAlign="center">
                 Already have an account?{' '}
                 <Link
                   as={RouterLink}
                   to="/login"
-                  color="purple.600"
+                  color="accent"
                   fontWeight="600"
-                  _hover={{ color: "purple.700", textDecoration: "underline" }}
+                  _hover={{ textDecoration: 'underline' }}
                 >
                   Sign in
                 </Link>

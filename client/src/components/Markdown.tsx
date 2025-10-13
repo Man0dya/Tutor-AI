@@ -136,9 +136,9 @@ function MarkdownComponent({ source }: MarkdownProps) {
       className="markdown-body"
       dangerouslySetInnerHTML={{ __html: html }}
       sx={{
-        '& h1': { color: 'gray.900', marginBottom: 4, marginTop: 6, fontWeight: 700, fontSize: '2xl' },
-        '& h2': { color: 'gray.900', marginBottom: 3, marginTop: 5, fontWeight: 700, fontSize: 'xl' },
-        '& h3, & h4, & h5, & h6': { color: 'gray.800', marginBottom: 2.5, marginTop: 4, fontWeight: 600 },
+        '& h1': { color: 'text', marginBottom: 4, marginTop: 6, fontWeight: 700, fontSize: '2xl' },
+        '& h2': { color: 'text', marginBottom: 3, marginTop: 5, fontWeight: 700, fontSize: 'xl' },
+        '& h3, & h4, & h5, & h6': { color: 'text', opacity: 0.9, marginBottom: 2.5, marginTop: 4, fontWeight: 600 },
         '& h1[id]::before, & h2[id]::before, & h3[id]::before, & h4[id]::before, & h5[id]::before, & h6[id]::before': {
           content: '""',
           display: 'block',
@@ -146,21 +146,21 @@ function MarkdownComponent({ source }: MarkdownProps) {
           marginTop: '-80px',
           visibility: 'hidden'
         },
-        '& p': { color: 'gray.700', lineHeight: '1.9', marginBottom: 3, fontSize: 'md' },
-        '& ul, & ol': { color: 'gray.700', paddingLeft: 6, marginBottom: 3 },
+        '& p': { color: 'muted', lineHeight: '1.9', marginBottom: 3, fontSize: 'md' },
+        '& ul, & ol': { color: 'muted', paddingLeft: 6, marginBottom: 3 },
         '& li': { marginBottom: 1.5 },
-        '& pre': { background: 'gray.900', color: 'gray.100', padding: 3, borderRadius: '8px', overflowX: 'auto', marginY: 3 },
-        '& code': { background: 'gray.100', borderRadius: '4px', paddingX: 1 },
+        '& pre': { background: 'codeBg', color: 'gray.100', padding: 3, borderRadius: '8px', overflowX: 'auto', marginY: 3 },
+        '& code': { background: 'codeInlineBg', borderRadius: '4px', paddingX: 1 },
         '& a': { color: 'blue.500', textDecoration: 'underline' },
         '& blockquote': {
           borderLeft: '4px solid',
           borderColor: 'purple.300',
-          background: 'purple.50',
+          background: { base: 'purple.50', _dark: 'whiteAlpha.200' },
           paddingX: 4,
           paddingY: 3,
           marginY: 4,
           borderRadius: '8px',
-          color: 'gray.800'
+          color: 'text'
         },
         '& img': { maxWidth: '100%', borderRadius: '8px', marginY: 3 }
       }}

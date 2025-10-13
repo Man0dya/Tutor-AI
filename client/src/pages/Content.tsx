@@ -162,7 +162,7 @@ export default function ContentPage() {
                 minW="auto"
                 px={1}
               >
-                <Icon as={isExpanded ? MdExpandMore : MdChevronRight} color="gray.500" />
+                <Icon as={isExpanded ? MdExpandMore : MdChevronRight} color="muted" />
               </Button>
             ) : (
               <Box w="24px" />
@@ -177,12 +177,12 @@ export default function ContentPage() {
               if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' })
             }}
             pl={Math.min((n.level - 1) * 4, 12)}
-            color={isActive ? 'white' : 'gray.800'}
+            color={isActive ? 'white' : 'text'}
             borderLeftWidth="3px"
-            borderLeftColor={isActive ? 'purple.500' : 'gray.200'}
+            borderLeftColor={isActive ? 'purple.500' : 'border'}
             borderRadius="md"
-            leftIcon={<Icon as={isActive ? MdRadioButtonChecked : MdFiberManualRecord} color={isActive ? 'white' : 'gray.400'} boxSize={2.5} />}
-            _hover={{ bg: isActive ? 'purple.600' : 'purple.100', borderLeftColor: 'purple.400' }}
+            leftIcon={<Icon as={isActive ? MdRadioButtonChecked : MdFiberManualRecord} color={isActive ? 'white' : 'muted'} boxSize={2.5} />}
+            _hover={{ bg: isActive ? 'purple.600' : 'purple.100', _dark: { bg: isActive ? 'purple.500' : 'gray.700' }, borderLeftColor: 'purple.400' }}
             >
               <Text noOfLines={1}>{label}</Text>
             </Button>
@@ -341,25 +341,25 @@ export default function ContentPage() {
       <Stack spacing={8}>
         <Box>
           <HStack mb={2}>
-            <Icon as={MdAutoAwesome} boxSize={8} color="purple.500" />
-            <Heading size="xl" color="gray.800">Content Generator</Heading>
+            <Icon as={MdAutoAwesome} boxSize={8} color="accent" />
+            <Heading size="xl" color="text">Content Generator</Heading>
           </HStack>
-          <Text color="gray.600" fontSize="lg">
+          <Text color="muted" fontSize="lg">
             Create personalized study materials tailored to your learning needs
           </Text>
         </Box>
 
         <Box
-          bg="white"
+          bg="surface"
           p={8}
           borderRadius="16px"
           borderWidth="1px"
-          borderColor="gray.200"
-          boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
+          borderColor="border"
+          boxShadow={{ base: 'md', _dark: 'none' }}
         >
           <Stack spacing={6}>
             <HStack>
-              <Heading size="md" color="gray.800">Generation Settings</Heading>
+              <Heading size="md" color="text">Generation Settings</Heading>
               <Spacer />
               {plan === 'free' && (
                 <HStack spacing={3}>
@@ -386,14 +386,14 @@ export default function ContentPage() {
                 placeholder="e.g., Photosynthesis, Machine Learning, World War II..."
                 size="lg"
                 borderRadius="10px"
-                borderColor="gray.300"
+                borderColor="border"
                 _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                bg="gray.50"
+                bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
               />
             </FormControl>
 
             <FormControl>
-              <FormLabel fontWeight="600" color="gray.700" mb={3}>
+              <FormLabel fontWeight="600" color="muted" mb={3}>
                 Learning Objectives (Optional)
               </FormLabel>
               <Textarea 
@@ -402,22 +402,22 @@ export default function ContentPage() {
                 placeholder="Enter specific learning goals, one per line&#10;e.g., Understand the basic process&#10;Learn key terminology&#10;Identify real-world applications"
                 rows={4}
                 borderRadius="10px"
-                borderColor="gray.300"
+                borderColor="border"
                 _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                bg="gray.50"
+                bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
               />
             </FormControl>
 
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
               <FormControl>
-                <FormLabel fontWeight="600" color="gray.700" mb={3}>Difficulty Level</FormLabel>
+                <FormLabel fontWeight="600" color="muted" mb={3}>Difficulty Level</FormLabel>
                 <Select 
                   value={difficulty} 
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setDifficulty(e.target.value)}
                   borderRadius="10px"
-                  borderColor="gray.300"
+                  borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                  bg="gray.50"
+                  bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
                 >
                   <option>Beginner</option>
                   <option>Intermediate</option>
@@ -426,14 +426,14 @@ export default function ContentPage() {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="600" color="gray.700" mb={3}>Subject Area</FormLabel>
+                <FormLabel fontWeight="600" color="muted" mb={3}>Subject Area</FormLabel>
                 <Select 
                   value={subject} 
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setSubject(e.target.value)}
                   borderRadius="10px"
-                  borderColor="gray.300"
+                  borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                  bg="gray.50"
+                  bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
                 >
                   <option>Science</option>
                   <option>Mathematics</option>
@@ -448,14 +448,14 @@ export default function ContentPage() {
               </FormControl>
 
               <FormControl>
-                <FormLabel fontWeight="600" color="gray.700" mb={3}>Content Type</FormLabel>
+                <FormLabel fontWeight="600" color="muted" mb={3}>Content Type</FormLabel>
                 <Select 
                   value={contentType} 
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setContentType(e.target.value)}
                   borderRadius="10px"
-                  borderColor="gray.300"
+                  borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                  bg="gray.50"
+                  bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
                 >
                   <option>Study Notes</option>
                   <option>Tutorial</option>
@@ -471,7 +471,7 @@ export default function ContentPage() {
               isLoading={loading}
               loadingText="Generating content..."
               size="lg"
-              bgGradient="linear(to-r, purple.500, blue.500)"
+              bgGradient={{ base: 'linear(to-r, purple.500, blue.500)', _dark: 'linear(to-r, purple.400, blue.400)' }}
               color="white"
               borderRadius="12px"
               leftIcon={<Icon as={MdAutoAwesome} />}
@@ -494,18 +494,18 @@ export default function ContentPage() {
           <Flex gap={6} align="flex-start">
             <Box flex="1 1 0%">
               <Box
-                bg="white"
+                bg="surface"
                 borderRadius="16px"
                 borderWidth="1px"
-                borderColor="gray.200"
-                boxShadow="0 2px 8px rgba(0, 0, 0, 0.06)"
+                borderColor="border"
+                boxShadow={{ base: 'md', _dark: 'none' }}
                 overflow="hidden"
               >
-                <Box bg="purple.50" px={8} py={4}>
+                <Box bg={{ base: 'purple.50', _dark: 'whiteAlpha.200' }} px={8} py={4}>
                   <HStack justify="space-between" align="center">
                     <Box>
-                      <Heading size="lg" color="purple.700">Generated Study Material</Heading>
-                      <Text color="purple.600">Ready for your review</Text>
+                      <Heading size="lg" color={{ base: 'purple.700', _dark: 'purple.300' }}>Generated Study Material</Heading>
+                      <Text color={{ base: 'purple.600', _dark: 'purple.200' }}>Ready for your review</Text>
                     </Box>
                     <HStack>
                       <Wrap>
@@ -532,12 +532,12 @@ export default function ContentPage() {
                   <HStack spacing={4}>
                     <Button 
                       onClick={() => navigate(`/questions?content_id=${contentId}`)} 
-                      bgGradient="linear(to-r, blue.500, teal.500)"
+                      bgGradient={{ base: 'linear(to-r, blue.500, teal.500)', _dark: 'linear(to-r, blue.300, teal.300)' }}
                       color="white"
                       borderRadius="10px"
                       rightIcon={<Icon as={MdArrowForward} />}
                       _hover={{
-                        bgGradient: "linear(to-r, blue.600, teal.600)",
+                        bgGradient: { base: 'linear(to-r, blue.600, teal.600)', _dark: 'linear(to-r, blue.400, teal.400)' },
                         transform: "translateY(-1px)",
                       }}
                     >
@@ -547,8 +547,8 @@ export default function ContentPage() {
                       onClick={() => navigate(`/content/view?id=${encodeURIComponent(contentId)}`)}
                       variant="outline"
                       borderRadius="10px"
-                      borderColor="gray.300"
-                      _hover={{ bg: 'gray.50' }}
+                      borderColor="border"
+                      _hover={{ bg: { base: 'gray.50', _dark: 'whiteAlpha.100' } }}
                     >
                       View Full Page
                     </Button>
@@ -556,8 +556,8 @@ export default function ContentPage() {
                       onClick={() => navigate('/dashboard')} 
                       variant="outline"
                       borderRadius="10px"
-                      borderColor="gray.300"
-                      _hover={{ bg: 'gray.50' }}
+                      borderColor="border"
+                      _hover={{ bg: { base: 'gray.50', _dark: 'whiteAlpha.100' } }}
                     >
                       Back to Dashboard
                     </Button>
@@ -566,10 +566,10 @@ export default function ContentPage() {
               </Box>
             </Box>
             <VStack as="aside" minW={{ base: '0', md: '220px' }} ml="auto" display={{ base: 'none', md: 'flex' }} position="sticky" top="92px" align="stretch">
-              <Box borderWidth="1px" rounded="lg" p={0} bg="gray.50" borderColor="gray.200" boxShadow="md" overflow="hidden">
-                <Box px={4} py={3} bg="white" borderBottomWidth="1px" position="sticky" top={0} zIndex={1}>
+              <Box borderWidth="1px" rounded="lg" p={0} bg="surface" borderColor="border" boxShadow={{ base: 'md', _dark: 'none' }} overflow="hidden">
+                <Box px={4} py={3} bg="surface" borderBottomWidth="1px" borderColor="border" position="sticky" top={0} zIndex={1}>
                   <HStack justify="space-between" align="center" mb={2}>
-                    <Text fontWeight="700" color="gray.800">On this page</Text>
+                    <Text fontWeight="700" color="text">On this page</Text>
                     <HStack>
                       <Button size="xs" variant="ghost" onClick={() => {
                         // Expand all nodes
@@ -584,19 +584,19 @@ export default function ContentPage() {
                   </HStack>
                   <InputGroup size="sm">
                     <InputLeftElement pointerEvents="none">
-                      <Icon as={MdSearch} color="gray.400" />
+                      <Icon as={MdSearch} color="muted" />
                     </InputLeftElement>
                     <Input
                       value={tocQuery}
                       onChange={(e) => setTocQuery(e.target.value)}
                       placeholder="Filter sections"
-                      bg="gray.50"
-                      _focus={{ bg: 'white', borderColor: 'purple.300', boxShadow: '0 0 0 1px var(--chakra-colors-purple-300)' }}
+                      bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                      _focus={{ bg: 'surface', borderColor: 'purple.300', boxShadow: '0 0 0 1px var(--chakra-colors-purple-300)' }}
                     />
                   </InputGroup>
                 </Box>
                 <VStack align="stretch" spacing={0.5} maxH="70vh" overflowY="auto" px={2} py={2}>
-                  {headings.length === 0 && <Text color="gray.500">No sections</Text>}
+                  {headings.length === 0 && <Text color="muted">No sections</Text>}
                   {renderToc(filteredTree)}
                   {headings.length > 0 && (
                     <Button

@@ -21,12 +21,16 @@ export default function Navbar() {
   return (
     <Box 
       as="header" 
-      bg="surface" 
+      position="sticky"
+      top={0}
+      zIndex={1000}
+      bg="transparent"
+      backdropFilter="blur(4px)"
       borderBottomWidth="1px" 
-      borderColor="border"
+      borderColor={{ base: 'rgba(226, 232, 240, 0.3)', _dark: 'rgba(74, 85, 104, 0.3)' }}
       py={4} 
       px={6}
-      boxShadow={{ base: 'sm', _dark: 'none' }}
+      boxShadow="none"
     >
       <Flex align="center" gap={3}>
         <RouterLink to={user ? '/dashboard' : '/'}>
@@ -104,20 +108,22 @@ export default function Navbar() {
             <Button 
               as={RouterLink} 
               to="/login" 
-              size="sm" 
+              size="md" 
               variant="outline"
               borderRadius="8px"
               className="btn-professional"
+              px={6}
             >
               Login
             </Button>
             <Button 
               as={RouterLink} 
               to="/signup" 
-              size="sm" 
+              size="md" 
               colorScheme="purple"
               borderRadius="8px"
               className="btn-professional"
+              px={6}
             >
               Sign Up
             </Button>

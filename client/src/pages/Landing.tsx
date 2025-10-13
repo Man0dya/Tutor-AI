@@ -15,6 +15,7 @@ import {
 } from '@chakra-ui/react'
 import { Link as RouterLink, Navigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import AnimatedBackground from '../components/AnimatedBackground'
 import { useAuth } from '../context/AuthContext'
 import { 
   MdAutoAwesome, 
@@ -33,8 +34,10 @@ export default function Landing() {
   }
   
   return (
-    <Box minH="100vh" bg="bg">
-      <Navbar />
+    <Box minH="100vh" bg="bg" position="relative">
+      <AnimatedBackground />
+      <Box position="relative" zIndex={1}>
+        <Navbar />
       
       {/* Hero Section */}
       <Container maxW="8xl" py={{ base: 16, md: 24 }}>
@@ -372,6 +375,7 @@ export default function Landing() {
             </HStack>
           </Flex>
         </Container>
+      </Box>
       </Box>
     </Box>
   )

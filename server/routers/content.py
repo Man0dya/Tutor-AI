@@ -19,7 +19,7 @@ from ..database import col
 from ..plan import ensure_content_quota, record_content_generation
 from utils.nlp_processor import NLPProcessor
 from utils.security import SecurityManager
-from ..config import PRIVACY_MODE, REDACT_CONTENT
+from ..config import PRIVACY_MODE, REDACT_CONTENT, ENABLE_ANALYTICS
 from ..vector import (
     search_similar,
     add_to_index,
@@ -28,6 +28,7 @@ from ..vector import (
     add_content_to_index,
 )
 from utils.text_utils import content_hash
+from ..analytics import log_event
 
 router = APIRouter(prefix="/content", tags=["content"])
 
@@ -168,6 +169,9 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
         # Step 6: If cache hit, return cached content
         if best_match:
             content_text = best_match["content"]
+            # Ensure redaction on return even for historical cached items
+            if REDACT_CONTENT:
+                content_text = _security.redact_pii(content_text)
             metadata = {
                 "subject": payload.subject,
                 "difficulty": payload.difficulty,
@@ -176,6 +180,22 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                 "cached": True,  # Indicate this came from cache
                 "similarity": best_similarity  # How similar the cached content was
             }
+            if ENABLE_ANALYTICS:
+                try:
+                    await log_event(
+                        user_id=user_id,
+                        name="content_generate_reuse",
+                        properties={
+                            "topic": payload.topic,
+                            "subject": payload.subject,
+                            "difficulty": payload.difficulty,
+                            "contentType": payload.contentType,
+                            "similarity": best_similarity,
+                        },
+                        path="/content/generate",
+                    )
+                except Exception:
+                    pass
             doc_id = str(uuid4())
             # Still persist to content collection for user-specific tracking
             doc = {
@@ -192,6 +212,22 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
             return ContentOut(id=doc_id, topic=payload.topic, content=content_text, metadata=metadata)
 
         # Step 7: Cache miss - generate new content via AI
+        if ENABLE_ANALYTICS:
+            try:
+                await log_event(
+                    user_id=user_id,
+                    name="content_generate_request",
+                    properties={
+                        "topic": payload.topic,
+                        "subject": payload.subject,
+                        "difficulty": payload.difficulty,
+                        "contentType": payload.contentType,
+                    },
+                    path="/content/generate",
+                )
+            except Exception:
+                pass
+
         result = _content_agent.generate_content(
             topic=payload.topic,
             difficulty=payload.difficulty,
@@ -232,9 +268,24 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
         if existing:
             # Reuse exact duplicate content and skip caching
             content_text = existing.get("content", content_text)
+            if REDACT_CONTENT:
+                content_text = _security.redact_pii(content_text)
             metadata["cached"] = True
             metadata["canonical_id"] = str(existing.get("_id"))
             metadata["dedup_method"] = "hash"
+            if ENABLE_ANALYTICS:
+                try:
+                    await log_event(
+                        user_id=user_id,
+                        name="content_generate_reuse",
+                        properties={
+                            "topic": payload.topic,
+                            "method": "hash",
+                        },
+                        path="/content/generate",
+                    )
+                except Exception:
+                    pass
             doc_id = str(uuid4())
             await col("content").insert_one({
                 "_id": doc_id,
@@ -267,9 +318,25 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                         best_c_sim, best_c = txt_sim, c_doc
                 if best_c and best_c_sim >= 0.93:
                     content_text = best_c.get("content", content_text)
+                    if REDACT_CONTENT:
+                        content_text = _security.redact_pii(content_text)
                     metadata["cached"] = True
                     metadata["canonical_id"] = str(best_c.get("_id"))
                     metadata["dedup_method"] = "content"
+                    if ENABLE_ANALYTICS:
+                        try:
+                            await log_event(
+                                user_id=user_id,
+                                name="content_generate_reuse",
+                                properties={
+                                    "topic": payload.topic,
+                                    "method": "content",
+                                    "content_similarity": best_c_sim,
+                                },
+                                path="/content/generate",
+                            )
+                        except Exception:
+                            pass
                     doc_id = str(uuid4())
                     await col("content").insert_one({
                         "_id": doc_id,
@@ -308,6 +375,22 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                 add_content_to_index(str(res.inserted_id), content_text)
             except Exception:
                 pass
+            if ENABLE_ANALYTICS:
+                try:
+                    await log_event(
+                        user_id=user_id,
+                        name="content_generate_success",
+                        properties={
+                            "topic": payload.topic,
+                            "subject": payload.subject,
+                            "difficulty": payload.difficulty,
+                            "contentType": payload.contentType,
+                            "cached": False,
+                        },
+                        path="/content/generate",
+                    )
+                except Exception:
+                    pass
 
         # Step 10: Save to user-specific content collection
         doc_id = str(uuid4())
@@ -355,10 +438,14 @@ async def get_content_by_id(id: str, response: Response, user=Depends(get_curren
         doc = await col("content").find_one({"_id": id, "userId": user.get("sub")})
         if not doc:
             raise HTTPException(status_code=404, detail="Content not found")
+        # Redact on return if enabled to ensure legacy items don't leak PII
+        returned_content = doc.get("content", "")
+        if REDACT_CONTENT:
+            returned_content = _security.redact_pii(returned_content)
         return ContentOut(
             id=doc.get("_id"),
             topic=doc.get("topic", ""),
-            content=doc.get("content", ""),
+            content=returned_content,
             metadata=doc.get("metadata", {}) or {},
         )
     except HTTPException:

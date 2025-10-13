@@ -47,12 +47,15 @@ from agents.question_setter import QuestionSetterAgent
 from ..auth import get_current_user
 from ..database import col
 from ..plan import require_paid_feature
+from utils.security import SecurityManager
+from ..config import PRIVACY_MODE, REDACT_QUESTIONS
 
 # Create router with questions prefix and tags for API documentation
 router = APIRouter(prefix="/questions", tags=["questions"])
 
 # Initialize question generation agent (singleton pattern for efficiency)
 _question_agent = QuestionSetterAgent()
+_security = SecurityManager()
 
 @router.post("/generate", response_model=QuestionSetOut)
 async def generate_questions(payload: QuestionGenRequest, user=Depends(get_current_user)) -> QuestionSetOut:
@@ -106,6 +109,12 @@ async def generate_questions(payload: QuestionGenRequest, user=Depends(get_curre
             "topic": content_doc.get("topic"),
         }
 
+        # In STRICT privacy mode, block when the source content contains PII
+        if PRIVACY_MODE == 'STRICT':
+            # Check the raw content text for possible PII
+            if _security.detect_pii(content_doc.get("content", "")):
+                raise HTTPException(status_code=400, detail="Source content contains personal information. Please remove private details before generating questions.")
+
         # Generate questions using the AI question setter agent
         result = _question_agent.generate_questions(
             content=content_input,
@@ -122,6 +131,14 @@ async def generate_questions(payload: QuestionGenRequest, user=Depends(get_curre
         else:
             questions = result
             metadata = {}
+
+        # Optionally redact any PII in the questions and metadata before storing/returning
+        if REDACT_QUESTIONS:
+            try:
+                questions = _security.redact_pii_in_obj(questions)
+                metadata = _security.redact_pii_in_obj(metadata)
+            except Exception:
+                pass
 
         # Create question set document for database storage
         doc = {

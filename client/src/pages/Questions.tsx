@@ -4,7 +4,7 @@ import PrivateLayout from '../components/PrivateLayout'
 import { generateQuestions, Question, submitAnswers, getErrorMessage } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { MdQuiz, MdBolt } from 'react-icons/md'
-import { hasPII, detectPII } from '../utils/pii'
+// PII checks are enforced on the backend; no client-side PII detection
 
 function useQuery() {
   const { search } = useLocation()
@@ -54,14 +54,7 @@ export default function QuestionsPage() {
 
   const onSubmit = async () => {
     if (!questions.length) return
-    // Non-blocking PII warning for short answers
-    try {
-      const freeText = Object.values(answers).filter(v => typeof v === 'string').join('\n')
-      if (hasPII(freeText)) {
-        const types = detectPII(freeText).join(', ')
-        toast({ title: 'Privacy reminder', description: `Your answers may include ${types}. Please avoid sharing private details.`, status: 'warning' })
-      }
-    } catch {}
+    // Backend enforces PII rules; proceed to submit
     setLoading(true)
     try {
   const res = await submitAnswers({ questionSetId: questionSetId, answers })

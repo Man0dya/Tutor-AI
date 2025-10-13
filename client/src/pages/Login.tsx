@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { Box, Button, Checkbox, Container, FormControl, FormLabel, Heading, HStack, Icon, IconButton, Input, InputGroup, InputRightElement, Link, Stack, Text, useDisclosure, useToast, VStack } from '@chakra-ui/react'
 import { Link as RouterLink, useNavigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
+import AnimatedBackground from '../components/AnimatedBackground'
 import { useAuth } from '../context/AuthContext'
 import { MdMail, MdVisibility, MdVisibilityOff } from 'react-icons/md'
 
@@ -29,9 +30,11 @@ export default function Login() {
   }
 
   return (
-    <Box minH="100vh" bg="bg">
-      <Navbar />
-      <Container maxW="7xl" pt={{ base: 8, md: 12 }} pb={0}>
+    <Box minH="100vh" bg="bg" position="relative">
+      <AnimatedBackground />
+      <Box position="relative" zIndex={1}>
+        <Navbar />
+        <Container maxW="7xl" pt={{ base: 8, md: 12 }} pb={0}>
         <Stack direction={{ base: 'column', lg: 'row' }} spacing={{ base: 8, lg: 12 }} align="center" justify="center" minH="70vh">
           {/* Left Side Content */}
           <VStack align="flex-start" spacing={4} flex="1" maxW="lg" pt={{ base: 0, lg: 2 }}>
@@ -186,6 +189,7 @@ export default function Login() {
           </Box>
         </Stack>
       </Container>
+      </Box>
     </Box>
   )
 }

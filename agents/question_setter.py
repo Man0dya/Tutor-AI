@@ -778,8 +778,16 @@ Questions should require critical thinking, analysis, and synthesis of informati
         Returns:
             list: List of 4 options including the correct answer and 3 distractors.
         """
+        # Initialize safe defaults outside try to avoid UnboundLocalError in except
+        existing_options = []
+        correct_answer = ''
+
         try:
-            existing_options = question.get('options', [])
+            # Question should be a dict; if not, bail out to fallback
+            if not isinstance(question, dict):
+                raise ValueError("question must be a dict with keys 'question', 'options', 'correct_answer'")
+
+            existing_options = question.get('options', []) if isinstance(question.get('options'), list) else []
             correct_answer = question.get('correct_answer', '')
 
             # Use AI to generate better distractors
@@ -826,17 +834,36 @@ Questions should require critical thinking, analysis, and synthesis of informati
                 distractors = [x for x in cleaned if not bad_opt(x)]
                 distractors = distractors[:3]  # Take only 3
 
-                # Combine correct answer with distractors and randomize
-                all_options = [correct_answer] + distractors
+                # Combine sanitized correct answer (if valid) with distractors and randomize
+                def is_letter_answer(s: str) -> bool:
+                    return isinstance(s, str) and re.fullmatch(r'[A-Da-d]', s.strip()) is not None
+                base = []
+                if isinstance(correct_answer, str):
+                    ca_str = correct_answer.strip()
+                    if ca_str and not is_letter_answer(ca_str) and len(ca_str) >= 4:
+                        base.append(ca_str)
+                all_options = base + distractors
                 import random
                 random.shuffle(all_options)  # Randomize order
 
                 return all_options[:4]  # Ensure exactly 4 options
 
-            return existing_options if existing_options else [correct_answer, "Incorrect but plausible detail", "Common misconception", "Related but wrong concept"]
+            # Fallback minimal set (avoid injecting letter-only correct answers)
+            return existing_options if existing_options else [
+                "Plausible but incorrect detail",
+                "Common misconception",
+                "Related but wrong concept",
+                "Confusing alternative"
+            ]
 
         except Exception:
-            return existing_options if existing_options else [correct_answer, "Incorrect but plausible detail", "Common misconception", "Related but wrong concept"]
+            # Robust fallback if anything goes wrong (avoid letter-only answers)
+            return existing_options if existing_options else [
+                "Plausible but incorrect detail",
+                "Common misconception",
+                "Related but wrong concept",
+                "Confusing alternative"
+            ]
     
     def _calculate_actual_distribution(self, questions):
         """
@@ -1084,7 +1111,8 @@ Questions should require critical thinking, analysis, and synthesis of informati
             dedup_opts = dedup_opts[:4]
         while len(dedup_opts) < 4:
             # Generate a simple distractor placeholder if lacking; avoid empty strings
-            filler = self._generate_plausible_distractors(q.get('question',''), key_concepts) or []
+            # Pass the full question dict (not just the text) so the generator can use correct_answer/options
+            filler = self._generate_plausible_distractors(q, key_concepts) or []
             for f in filler:
                 ft = strip_label(f)
                 if ft and ft not in seen:

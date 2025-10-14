@@ -377,7 +377,7 @@ export default function ContentPage() {
               )}
             </HStack>
             <FormControl isRequired>
-              <FormLabel fontWeight="600" color="gray.700" mb={3}>
+              <FormLabel fontWeight="600" color="text" mb={3}>
                 What would you like to learn about?
               </FormLabel>
               <Input 
@@ -388,7 +388,7 @@ export default function ContentPage() {
                 borderRadius="10px"
                 borderColor="border"
                 _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                bg="bg"
               />
             </FormControl>
 
@@ -404,7 +404,7 @@ export default function ContentPage() {
                 borderRadius="10px"
                 borderColor="border"
                 _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                bg="bg"
               />
             </FormControl>
 
@@ -417,7 +417,7 @@ export default function ContentPage() {
                   borderRadius="10px"
                   borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                  bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                  bg="bg"
                 >
                   <option>Beginner</option>
                   <option>Intermediate</option>
@@ -433,7 +433,7 @@ export default function ContentPage() {
                   borderRadius="10px"
                   borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                  bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                  bg="bg"
                 >
                   <option>Science</option>
                   <option>Mathematics</option>
@@ -455,7 +455,7 @@ export default function ContentPage() {
                   borderRadius="10px"
                   borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
-                  bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                  bg="bg"
                 >
                   <option>Study Notes</option>
                   <option>Tutorial</option>
@@ -590,7 +590,7 @@ export default function ContentPage() {
                       value={tocQuery}
                       onChange={(e) => setTocQuery(e.target.value)}
                       placeholder="Filter sections"
-                      bg={{ base: 'gray.50', _dark: 'whiteAlpha.100' }}
+                      bg="bg"
                       _focus={{ bg: 'surface', borderColor: 'purple.300', boxShadow: '0 0 0 1px var(--chakra-colors-purple-300)' }}
                     />
                   </InputGroup>

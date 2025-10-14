@@ -32,9 +32,9 @@ import {
   FormLabel,
   Switch,
   useToast,
-  useColorModeValue,
+  Icon,
 } from '@chakra-ui/react'
-import { IoShareSocial, IoCopy, IoDownload } from 'react-icons/io5'
+import { IoShareSocial, IoCopy, IoDownload, IoCheckmarkCircle, IoSchool } from 'react-icons/io5'
 import PrivateLayout from '../components/PrivateLayout'
 import Markdown from '../components/Markdown'
 import { useLocation } from 'react-router-dom'
@@ -72,9 +72,6 @@ export default function FeedbackPage() {
     return { total, correct, accuracy }
   }, [feedback])
 
-  const cardBg = useColorModeValue('white', 'gray.800')
-  const cardBorder = useColorModeValue('gray.200', 'gray.700')
-  const subdued = useColorModeValue('gray.600', 'gray.300')
   const printRef = useRef<HTMLDivElement | null>(null)
 
   const handleCopy = async (text: string) => {
@@ -179,148 +176,372 @@ export default function FeedbackPage() {
   return (
     <PrivateLayout>
       <Container maxW="5xl" py={6}>
+        {/* Modern Header with gradient and score */}
         <Box
-          bgGradient="linear(to-r, purple.500, blue.500)"
-          color="white"
-          borderRadius="xl"
+          bg="surface"
+          borderWidth="1px"
+          borderColor="border"
+          borderRadius="16px"
+          boxShadow={{ base: 'lg', _dark: 'none' }}
           p={6}
           mb={6}
           position="relative"
           overflow="hidden"
         >
-          <HStack align="start" spacing={6}>
-            <VStack align="start" spacing={2} flex={1}>
-              <Heading size="lg">Your Feedback</Heading>
-              <Text opacity={0.9}>Personalized insights and next steps to improve faster.</Text>
-              <HStack spacing={2} pt={2}>
-                <Button as="a" href="/dashboard" size="sm" borderRadius="lg">Back</Button>
-                <Button as="a" href="/content" size="sm" variant="outline" borderRadius="lg" color="white" borderColor="whiteAlpha.700">Review Content</Button>
+          <HStack align="start" spacing={6} justify="space-between">
+            <VStack align="start" spacing={3} flex={1}>
+              <HStack spacing={2}>
+                <Icon as={IoCheckmarkCircle} boxSize={7} color="purple.500" />
+                <Heading size="lg" color="text">Your Feedback</Heading>
+              </HStack>
+              <Text color="muted">Personalized insights and next steps to improve faster.</Text>
+              <HStack spacing={2} pt={2} flexWrap="wrap">
+                <Button 
+                  as="a" 
+                  href="/dashboard" 
+                  size="sm" 
+                  borderRadius="10px"
+                  variant="outline"
+                  borderColor="border"
+                  _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                >
+                  Back
+                </Button>
+                <Button 
+                  as="a" 
+                  href="/content" 
+                  size="sm" 
+                  variant="outline" 
+                  borderRadius="10px"
+                  borderColor="border"
+                  _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                >
+                  Review Content
+                </Button>
                 <Tooltip label="Share" hasArrow>
-                  <IconButton aria-label="Share" icon={<IoShareSocial />} size="sm" variant="outline" borderRadius="lg" color="white" borderColor="whiteAlpha.700" onClick={handleShare} />
+                  <IconButton 
+                    aria-label="Share" 
+                    icon={<IoShareSocial />} 
+                    size="sm" 
+                    variant="outline" 
+                    borderRadius="10px"
+                    borderColor="border"
+                    _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                    onClick={handleShare} 
+                  />
                 </Tooltip>
                 <Tooltip label="Copy Link" hasArrow>
-                  <IconButton aria-label="Copy link" icon={<IoCopy />} size="sm" variant="outline" borderRadius="lg" color="white" borderColor="whiteAlpha.700" onClick={() => handleCopy(window.location.href)} />
+                  <IconButton 
+                    aria-label="Copy link" 
+                    icon={<IoCopy />} 
+                    size="sm" 
+                    variant="outline" 
+                    borderRadius="10px"
+                    borderColor="border"
+                    _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                    onClick={() => handleCopy(window.location.href)} 
+                  />
                 </Tooltip>
                 <Tooltip label="Download / Print" hasArrow>
-                  <IconButton aria-label="Download or print" icon={<IoDownload />} size="sm" variant="outline" borderRadius="lg" color="white" borderColor="whiteAlpha.700" onClick={onDownloadPdf} />
+                  <IconButton 
+                    aria-label="Download or print" 
+                    icon={<IoDownload />} 
+                    size="sm" 
+                    variant="outline" 
+                    borderRadius="10px"
+                    borderColor="border"
+                    _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                    onClick={onDownloadPdf} 
+                  />
                 </Tooltip>
               </HStack>
             </VStack>
-            <VStack align="center" justify="center" minW="104px">
-              <CircularProgress value={overallScore ?? 0} size="96px" color="white" trackColor="whiteAlpha.400" thickness="10px">
-                <CircularProgressLabel fontWeight="bold">{overallScore?.toFixed(0) ?? '--'}%</CircularProgressLabel>
-              </CircularProgress>
-              <Text fontSize="sm" opacity={0.9} mt={1}>Overall</Text>
+            <VStack align="center" justify="center" minW="120px" spacing={2}>
+              <Box position="relative">
+                <CircularProgress 
+                  value={overallScore ?? 0} 
+                  size="110px" 
+                  color="purple.500" 
+                  trackColor="border"
+                  thickness="8px"
+                >
+                  <CircularProgressLabel 
+                    fontWeight="bold" 
+                    fontSize="2xl"
+                    color="text"
+                  >
+                    {overallScore?.toFixed(0) ?? '--'}%
+                  </CircularProgressLabel>
+                </CircularProgress>
+              </Box>
+              <Text fontSize="sm" color="muted" fontWeight="500">Overall Score</Text>
             </VStack>
           </HStack>
         </Box>
 
         {!id && (
-          <Alert status="info" mb={6} borderRadius="md">
+          <Alert status="info" mb={6} borderRadius="12px" variant="subtle">
             <AlertIcon />
             Missing feedback id. Please access this page from your results.
           </Alert>
         )}
 
         {error && (
-          <Alert status="error" mb={6} borderRadius="md">
+          <Alert status="error" mb={6} borderRadius="12px" variant="subtle">
             <AlertIcon />{error}
           </Alert>
         )}
 
         {isLoading && (
           <Stack spacing={6}>
-            <Skeleton height="120px" borderRadius="md" />
-            <Skeleton height="200px" borderRadius="md" />
-            <Skeleton height="320px" borderRadius="md" />
+            <Skeleton height="120px" borderRadius="12px" />
+            <Skeleton height="200px" borderRadius="12px" />
+            <Skeleton height="320px" borderRadius="12px" />
           </Stack>
         )}
 
         {!isLoading && feedback && (
           <Stack spacing={6} ref={printRef}>
-            <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={6} className="professional-card">
-              <HStack justify="space-between" mb={3}>
-                <Heading size="md">Quick Stats</Heading>
+            <Box 
+              bg="surface" 
+              borderWidth="1px" 
+              borderColor="border" 
+              borderRadius="12px" 
+              boxShadow={{ base: 'md', _dark: 'none' }}
+              p={6}
+            >
+              <HStack justify="space-between" mb={4}>
+                <Heading size="md" color="text">Quick Stats</Heading>
                 <FormControl display="flex" alignItems="center" width="auto">
-                  <FormLabel htmlFor="compact-view" mb="0" fontSize="sm" color={subdued}>
+                  <FormLabel htmlFor="compact-view" mb="0" fontSize="sm" color="muted">
                     Compact view
                   </FormLabel>
-                  <Switch id="compact-view" isChecked={compactView} onChange={(e) => setCompactView(e.target.checked)} colorScheme="purple" />
+                  <Switch 
+                    id="compact-view" 
+                    isChecked={compactView} 
+                    onChange={(e) => setCompactView(e.target.checked)} 
+                    colorScheme="purple" 
+                  />
                 </FormControl>
               </HStack>
               <SimpleGrid columns={{ base: 1, sm: 3 }} spacing={4}>
-                <Stat p={3} borderWidth="1px" borderColor={cardBorder} rounded="md">
-                  <StatLabel>Score</StatLabel>
-                  <StatNumber>{overallScore?.toFixed(1) ?? '--'}%</StatNumber>
+                <Stat 
+                  p={4} 
+                  borderWidth="1px" 
+                  borderColor="border" 
+                  borderRadius="10px"
+                  bg="bg"
+                >
+                  <StatLabel color="muted">Score</StatLabel>
+                  <StatNumber color="text">{overallScore?.toFixed(1) ?? '--'}%</StatNumber>
                 </Stat>
-                <Stat p={3} borderWidth="1px" borderColor={cardBorder} rounded="md">
-                  <StatLabel>Accuracy</StatLabel>
-                  <StatNumber>{evaluationStats.accuracy !== null ? `${evaluationStats.accuracy}%` : '--'}</StatNumber>
+                <Stat 
+                  p={4} 
+                  borderWidth="1px" 
+                  borderColor="border" 
+                  borderRadius="10px"
+                  bg="bg"
+                >
+                  <StatLabel color="muted">Accuracy</StatLabel>
+                  <StatNumber color="text">{evaluationStats.accuracy !== null ? `${evaluationStats.accuracy}%` : '--'}</StatNumber>
                 </Stat>
-                <Stat p={3} borderWidth="1px" borderColor={cardBorder} rounded="md">
-                  <StatLabel>Correct Answers</StatLabel>
-                  <StatNumber>{evaluationStats.correct}/{evaluationStats.total}</StatNumber>
+                <Stat 
+                  p={4} 
+                  borderWidth="1px" 
+                  borderColor="border" 
+                  borderRadius="10px"
+                  bg="bg"
+                >
+                  <StatLabel color="muted">Correct Answers</StatLabel>
+                  <StatNumber color="text">{evaluationStats.correct}/{evaluationStats.total}</StatNumber>
                 </Stat>
               </SimpleGrid>
             </Box>
 
-            <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={6} className="professional-card">
-              <Heading size="md" mb={3}>Detailed Feedback</Heading>
-              <Box color={subdued}>
+            <Box 
+              bg="surface" 
+              borderWidth="1px" 
+              borderColor="border" 
+              borderRadius="12px" 
+              boxShadow={{ base: 'md', _dark: 'none' }}
+              p={6}
+            >
+              <Heading size="md" mb={4} color="text">Detailed Feedback</Heading>
+              <Box color="muted">
                 <Markdown source={String(feedback.detailedFeedback || '')} />
               </Box>
               <HStack mt={4} spacing={3}>
-                <Button size="sm" variant="outline" borderRadius="lg" onClick={() => navigator.clipboard?.writeText(String(feedback.detailedFeedback || ''))}>Copy</Button>
+                <Button 
+                  size="sm" 
+                  variant="outline" 
+                  borderRadius="10px"
+                  borderColor="border"
+                  _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                  onClick={() => navigator.clipboard?.writeText(String(feedback.detailedFeedback || ''))}
+                >
+                  Copy
+                </Button>
               </HStack>
             </Box>
 
             {feedback.studySuggestions && (
-              <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={6} className="professional-card">
-                <Heading size="md" mb={3}>Study Suggestions</Heading>
-                <Box color={subdued}>
+              <Box 
+                bg="surface" 
+                borderWidth="1px" 
+                borderColor="border" 
+                borderRadius="12px" 
+                boxShadow={{ base: 'md', _dark: 'none' }}
+                p={6}
+              >
+                <HStack spacing={2} mb={4}>
+                  <Icon as={IoSchool} boxSize={5} color="purple.500" />
+                  <Heading size="md" color="text">Study Suggestions</Heading>
+                </HStack>
+                <Box color="muted">
                   <Markdown source={String(feedback.studySuggestions || '')} />
                 </Box>
-                <HStack mt={4} spacing={3}>
-                  <Button size="sm" variant="outline" borderRadius="lg" as="a" href="/content">
+                <HStack mt={4} spacing={3} flexWrap="wrap">
+                  <Button 
+                    size="sm" 
+                    variant="outline" 
+                    borderRadius="10px"
+                    borderColor="border"
+                    _hover={{ bg: 'surface', borderColor: 'purple.400' }}
+                    as="a" 
+                    href="/content"
+                  >
                     Explore Suggested Topics
                   </Button>
-                  <Button size="sm" borderRadius="lg" colorScheme="purple" as="a" href="/questions">Try Another Quiz</Button>
+                  <Button 
+                    size="sm" 
+                    borderRadius="10px" 
+                    bgGradient={{ base: 'linear(to-r, purple.500, blue.500)', _dark: 'linear(to-r, purple.400, blue.400)' }}
+                    color="white"
+                    _hover={{
+                      bgGradient: "linear(to-r, purple.600, blue.600)",
+                      transform: "translateY(-1px)",
+                    }}
+                    _active={{
+                      transform: "translateY(0)",
+                    }}
+                    transition="all 0.2s ease"
+                    as="a" 
+                    href="/questions"
+                  >
+                    Try Another Quiz
+                  </Button>
                 </HStack>
               </Box>
             )}
 
             {feedback.individualEvaluations && feedback.individualEvaluations.length > 0 && (
-              <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={2} className="professional-card">
-                <Heading size="md" mb={3} px={4} pt={4}>Per-Question Marking</Heading>
+              <Box 
+                bg="surface" 
+                borderWidth="1px" 
+                borderColor="border" 
+                borderRadius="12px" 
+                boxShadow={{ base: 'md', _dark: 'none' }}
+                overflow="hidden"
+              >
+                <Box px={6} pt={5} pb={3}>
+                  <Heading size="md" color="text">Per-Question Marking</Heading>
+                </Box>
                 <Accordion allowMultiple defaultIndex={compactView ? [] : [0]}>
                   {feedback.individualEvaluations.map((ev: any, idx: number) => {
                     const isCorrect = Boolean(ev.is_correct)
                     const scorePct = Math.round(Number(ev.score) || 0)
                     return (
-                      <AccordionItem key={idx} borderTopWidth={idx === 0 ? '0' : '1px'} borderColor={cardBorder}>
+                      <AccordionItem 
+                        key={idx} 
+                        borderTopWidth={idx === 0 ? '0' : '1px'} 
+                        borderColor="border"
+                        _last={{ borderBottomWidth: 0 }}
+                      >
                         <h2>
-                          <AccordionButton _expanded={{ bg: isCorrect ? 'green.50' : 'orange.50' }}>
+                          <AccordionButton 
+                            _hover={{ bg: 'bg' }}
+                            _expanded={{ 
+                              bg: isCorrect 
+                                ? { base: 'green.50', _dark: 'whiteAlpha.50' } 
+                                : { base: 'orange.50', _dark: 'whiteAlpha.50' }
+                            }}
+                            py={4}
+                          >
                             <HStack flex="1" textAlign="left" spacing={3} align="center">
-                              <Tag size="sm" colorScheme={isCorrect ? 'green' : 'orange'} borderRadius="full">
+                              <Tag 
+                                size="sm" 
+                                colorScheme={isCorrect ? 'green' : 'orange'} 
+                                borderRadius="full"
+                              >
                                 <TagLabel>{isCorrect ? 'Correct' : 'Review'}</TagLabel>
                               </Tag>
-                              <Text fontWeight="semibold">Q{idx + 1}</Text>
-                              <Text noOfLines={compactView ? 1 : 2} color={subdued}> {ev.question_text} </Text>
+                              <Text fontWeight="semibold" color="text">Q{idx + 1}</Text>
+                              <Text 
+                                noOfLines={compactView ? 1 : 2} 
+                                color="muted"
+                                flex={1}
+                              > 
+                                {ev.question_text} 
+                              </Text>
                             </HStack>
-                            <Badge colorScheme={isCorrect ? 'green' : 'red'} mr={2}>{scorePct}%</Badge>
-                            <AccordionIcon />
+                            <Badge 
+                              colorScheme={isCorrect ? 'green' : 'red'} 
+                              mr={2}
+                              fontSize="sm"
+                            >
+                              {scorePct}%
+                            </Badge>
+                            <AccordionIcon color="muted" />
                           </AccordionButton>
                         </h2>
-                        <AccordionPanel pb={4}>
-                          <VStack align="start" spacing={2}>
-                            <Text noOfLines={compactView ? 2 : undefined}><Text as="span" fontWeight="semibold">Your Answer:</Text> {ev.user_answer}</Text>
+                        <AccordionPanel pb={4} bg="bg">
+                          <VStack align="start" spacing={3}>
+                            <Box>
+                              <Text 
+                                as="span" 
+                                fontWeight="semibold" 
+                                color="text"
+                              >
+                                Your Answer:
+                              </Text>
+                              <Text 
+                                color="muted" 
+                                mt={1}
+                                noOfLines={compactView ? 2 : undefined}
+                              >
+                                {ev.user_answer}
+                              </Text>
+                            </Box>
                             {'correct_answer' in ev && (
-                              <Text noOfLines={compactView ? 2 : undefined}><Text as="span" fontWeight="semibold">Correct Answer:</Text> {ev.correct_answer}</Text>
+                              <Box>
+                                <Text 
+                                  as="span" 
+                                  fontWeight="semibold" 
+                                  color="text"
+                                >
+                                  Correct Answer:
+                                </Text>
+                                <Text 
+                                  color="muted" 
+                                  mt={1}
+                                  noOfLines={compactView ? 2 : undefined}
+                                >
+                                  {ev.correct_answer}
+                                </Text>
+                              </Box>
                             )}
                             {ev.feedback && (
-                              <Box color={subdued}>
-                                <Text as="span" fontWeight="semibold">Notes:</Text>
-                                <Markdown source={String(ev.feedback || '')} />
+                              <Box width="100%">
+                                <Text 
+                                  as="span" 
+                                  fontWeight="semibold" 
+                                  color="text"
+                                >
+                                  Notes:
+                                </Text>
+                                <Box color="muted" mt={1}>
+                                  <Markdown source={String(ev.feedback || '')} />
+                                </Box>
                               </Box>
                             )}
                           </VStack>
@@ -333,9 +554,17 @@ export default function FeedbackPage() {
             )}
 
             {!feedback.individualEvaluations?.length && (
-              <Box bg={cardBg} borderWidth="1px" borderColor={cardBorder} rounded="lg" p={6} className="professional-card" textAlign="center">
-                <Heading size="sm" mb={2}>No question-level feedback available</Heading>
-                <Text color={subdued}>Complete a quiz to see detailed per-question insights.</Text>
+              <Box 
+                bg="surface" 
+                borderWidth="1px" 
+                borderColor="border" 
+                borderRadius="12px" 
+                boxShadow={{ base: 'md', _dark: 'none' }}
+                p={8} 
+                textAlign="center"
+              >
+                <Heading size="sm" mb={2} color="text">No question-level feedback available</Heading>
+                <Text color="muted">Complete a quiz to see detailed per-question insights.</Text>
               </Box>
             )}
           </Stack>

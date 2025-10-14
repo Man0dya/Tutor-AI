@@ -69,7 +69,7 @@ export default function QuestionsPage() {
 
   return (
     <PrivateLayout>
-      <Container maxW="5xl" py={2}>
+      <Container maxW="7xl" py={2} px={{ base: 4, md: 6, lg: 8 }}>
         <HStack mb={2} spacing={2} align="center">
           <Icon as={MdQuiz} boxSize={7} color="purple.500" />
           <Heading size="lg">Practice Questions</Heading>
@@ -94,17 +94,34 @@ export default function QuestionsPage() {
           <Stack direction={{ base: 'column', md: 'row' }} spacing={4}>
             <FormControl isRequired>
               <FormLabel>Content ID</FormLabel>
-              <Input value={contentId} onChange={(e: ChangeEvent<HTMLInputElement>) => setContentId(e.target.value)} placeholder="Paste content id from previous step" />
+              <Input 
+                value={contentId} 
+                onChange={(e: ChangeEvent<HTMLInputElement>) => setContentId(e.target.value)} 
+                placeholder="Paste content id from previous step"
+                bg="bg"
+                borderColor="border"
+                _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
+              />
             </FormControl>
             <FormControl maxW={{ md: '160px' }}>
               <FormLabel>Count</FormLabel>
               <NumberInput min={1} max={20} value={count} onChange={(_str: string, v: number) => setCount(Number.isNaN(v) ? 1 : v)}>
-                <NumberInputField />
+                <NumberInputField 
+                  bg="bg"
+                  borderColor="border"
+                  _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
+                />
               </NumberInput>
             </FormControl>
             <FormControl maxW={{ md: '220px' }}>
               <FormLabel>Type</FormLabel>
-              <Select value={type} onChange={(e: ChangeEvent<HTMLSelectElement>) => setType(e.target.value)}>
+              <Select 
+                value={type} 
+                onChange={(e: ChangeEvent<HTMLSelectElement>) => setType(e.target.value)}
+                bg="bg"
+                borderColor="border"
+                _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
+              >
                 <option>Multiple Choice</option>
                 <option>True/False</option>
                 <option>Short Answer</option>
@@ -114,12 +131,22 @@ export default function QuestionsPage() {
               onClick={onGenerate}
               isLoading={loading}
               leftIcon={<Icon as={MdBolt} />}
-              colorScheme="purple"
+              bgGradient={{ base: 'linear(to-r, purple.500, blue.500)', _dark: 'linear(to-r, purple.400, blue.400)' }}
+              color="white"
               alignSelf={{ base: 'stretch', md: 'end' }}
-              height={{ base: '48px', md: '40px' }}
+              size="lg"
+              height={{ base: '56px', md: '48px' }}
               mt={{ base: 2, md: 6 }}
-              px={6}
+              px={8}
               borderRadius="10px"
+              _hover={{
+                bgGradient: "linear(to-r, purple.600, blue.600)",
+                transform: "translateY(-1px)",
+              }}
+              _active={{
+                transform: "translateY(0)",
+              }}
+              transition="all 0.2s ease"
             >
               Generate
             </Button>
@@ -199,7 +226,14 @@ export default function QuestionsPage() {
                 </RadioGroup>
               )}
               {q.type === 'Short Answer' && (
-                <Textarea placeholder="Your answer" value={answers[idx]?.toString() || ''} onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: e.target.value }))} />
+                <Textarea 
+                  placeholder="Your answer" 
+                  value={answers[idx]?.toString() || ''} 
+                  onChange={(e: ChangeEvent<HTMLTextAreaElement>) => setAnswers((a: Record<string, string>) => ({ ...a, [idx]: e.target.value }))}
+                  bg="bg"
+                  borderColor="border"
+                  _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
+                />
               )}
             </Box>
           )})}
@@ -209,7 +243,25 @@ export default function QuestionsPage() {
           <>
             <Divider my={6} />
             <HStack justify="flex-end">
-              <Button onClick={onSubmit} isLoading={loading} colorScheme="purple">Submit Answers</Button>
+              <Button 
+                onClick={onSubmit} 
+                isLoading={loading} 
+                bgGradient={{ base: 'linear(to-r, purple.500, blue.500)', _dark: 'linear(to-r, purple.400, blue.400)' }}
+                color="white"
+                size="lg"
+                px={8}
+                borderRadius="10px"
+                _hover={{
+                  bgGradient: "linear(to-r, purple.600, blue.600)",
+                  transform: "translateY(-1px)",
+                }}
+                _active={{
+                  transform: "translateY(0)",
+                }}
+                transition="all 0.2s ease"
+              >
+                Submit Answers
+              </Button>
             </HStack>
           </>
         )}

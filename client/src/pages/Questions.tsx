@@ -4,7 +4,6 @@ import PrivateLayout from '../components/PrivateLayout'
 import { generateQuestions, Question, submitAnswers, getErrorMessage } from '../api/client'
 import { useLocation, useNavigate } from 'react-router-dom'
 import { MdQuiz, MdBolt } from 'react-icons/md'
-// PII checks are enforced on the backend; no client-side PII detection
 
 function useQuery() {
   const { search } = useLocation()

@@ -56,8 +56,8 @@ export default function Navbar() {
         {user ? (
           <HStack spacing={4}>
             <Flex align="center" gap={3}>
-              <Avatar size="sm" name={user.email} bg="purple.500" />
-              <Text fontSize="sm" fontWeight="500" color="muted">{user.email}</Text>
+              <Avatar size="sm" name={user.name ?? user.email} bg="purple.500" />
+              <Text fontSize="sm" fontWeight="500" color="muted">{user.name || user.email}</Text>
               <Badge colorScheme={plan === 'premium' ? 'purple' : plan === 'standard' ? 'blue' : 'gray'} variant="subtle" borderRadius="6px">
                 {plan.toUpperCase()}
               </Badge>

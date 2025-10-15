@@ -256,6 +256,7 @@ LEARNING OBJECTIVES: {lo_text}
         Returns:
             list: List of unique key concepts and important terms (max 20).
         """
+        
         try:
             # Extract named entities using NLP processor
             entities = self.nlp_processor.extract_entities(content)
@@ -281,6 +282,7 @@ LEARNING OBJECTIVES: {lo_text}
             return [w for w in words if len(w) > 6][:10]
     
     def _analyze_content_structure(self, content):
+        
         """
         Analyze the structure and characteristics of the content.
 

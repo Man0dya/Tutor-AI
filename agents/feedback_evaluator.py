@@ -167,6 +167,7 @@ class FeedbackEvaluatorAgent:
             return self._evaluate_generic(question, user_answer)
 
     def _evaluate_mcq(self, question, user_answer):
+        
         """
         Evaluate multiple choice question with exact matching.
 
@@ -177,6 +178,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             dict: Evaluation with correctness and explanatory feedback
         """
+        
         correct_answer = question.get('correct_answer', '')
         is_correct = user_answer.strip() == correct_answer.strip()
 
@@ -190,6 +192,7 @@ class FeedbackEvaluatorAgent:
         }
 
     def _evaluate_true_false(self, question, user_answer):
+        
         """
         Evaluate true/false question with case-insensitive matching.
 
@@ -200,6 +203,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             dict: Simple evaluation with explanation
         """
+        
         correct_answer = question.get('correct_answer', '')
         is_correct = user_answer.strip().lower() == correct_answer.strip().lower()
 
@@ -213,6 +217,7 @@ class FeedbackEvaluatorAgent:
         }
 
     def _evaluate_text_answer(self, question, user_answer):
+        
         """
         Evaluate text-based answers using AI-powered analysis.
 
@@ -226,6 +231,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             dict: Detailed evaluation with AI-generated feedback
         """
+        
         if not user_answer.strip():
             return {
                 'question_text': question['question'],
@@ -249,6 +255,7 @@ class FeedbackEvaluatorAgent:
         }
 
     def _evaluate_fill_blank(self, question, user_answer):
+        
         """
         Evaluate fill-in-the-blank questions with flexible matching.
 
@@ -262,6 +269,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             dict: Evaluation with flexible correctness checking
         """
+        
         correct_answer = question.get('correct_answer', '')
 
         # Flexible matching for fill-in-the-blank
@@ -283,6 +291,7 @@ class FeedbackEvaluatorAgent:
         }
 
     def _evaluate_generic(self, question, user_answer):
+        
         """
         Generic evaluation fallback for unknown question types.
 
@@ -293,6 +302,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             dict: Basic evaluation indicating inability to assess
         """
+        
         return {
             'question_text': question.get('question', 'Unknown question'),
             'user_answer': user_answer,
@@ -303,6 +313,7 @@ class FeedbackEvaluatorAgent:
         }
 
     def _get_mcq_feedback(self, question, user_answer, is_correct):
+        
         """
         Generate appropriate feedback for multiple choice questions.
 
@@ -314,6 +325,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             str: Encouraging feedback with explanation
         """
+        
         if is_correct:
             return "Correct! " + question.get('explanation', 'Well done!')
         else:
@@ -322,6 +334,7 @@ class FeedbackEvaluatorAgent:
             return f"Incorrect. The correct answer is {correct_answer}. {explanation}"
 
     def _llm_evaluate_text_answer(self, question, user_answer):
+        
         """
         Use Google Gemini LLM to evaluate text-based answers comprehensively.
 
@@ -335,6 +348,7 @@ class FeedbackEvaluatorAgent:
         Returns:
             dict: Evaluation with score (0-100) and detailed feedback
         """
+        
         system_prompt = """You are an expert educational evaluator. Evaluate student answers fairly and constructively.
 
         Return your evaluation in JSON format:

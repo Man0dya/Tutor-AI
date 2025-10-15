@@ -243,6 +243,7 @@ LEARNING OBJECTIVES: {lo_text}
             return self._create_fallback_questions(full_context, question_count, "Multiple Choice")
     
     def _extract_key_concepts(self, content):
+        
         """
         Extract key concepts from content using NLP techniques.
 
@@ -309,6 +310,7 @@ LEARNING OBJECTIVES: {lo_text}
         return structure
     
     def _generate_questions_by_type(self, content, question_type, count, key_concepts):
+        
         """
         Generate questions of a specific type using AI.
 
@@ -323,6 +325,7 @@ LEARNING OBJECTIVES: {lo_text}
         Returns:
             list: List of generated questions of the specified type.
         """
+        
         if question_type == "Multiple Choice":
             return self._generate_mcq(content, count, key_concepts)
         elif question_type == "True/False":
@@ -337,6 +340,7 @@ LEARNING OBJECTIVES: {lo_text}
             return self._generate_short_answer(content, count, key_concepts)
     
     def _generate_mcq(self, content, count, key_concepts):
+        
         """
         Generate multiple choice questions using AI.
 
@@ -351,6 +355,7 @@ LEARNING OBJECTIVES: {lo_text}
         Returns:
             list: List of MCQ dictionaries with question, options, correct_answer, etc.
         """
+        
         system_prompt = """You are an expert question generator. Create multiple choice questions that test understanding of the given content.
         Strict requirements:
         - Provide exactly 4 options as plain, self-contained answer strings (no letter prefixes like A., B., no numbering like 1., 2.).

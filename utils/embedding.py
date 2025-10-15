@@ -1,4 +1,5 @@
 """
+
 Embedding utilities using sentence-transformers.
 
 Provides a singleton encoder and helper to compute normalized embeddings
@@ -32,9 +33,11 @@ def _load_model():
                 from sentence_transformers import SentenceTransformer  # type: ignore
             except Exception as e:  # ImportError or environment issues
                 raise RuntimeError(
+
                     "sentence-transformers is not installed or not available in the active interpreter. "
                     "Please install it (e.g., pip install sentence-transformers) and ensure your editor "
                     "is using the same Python environment."
+                    
                 ) from e
             # Force CPU to avoid CUDA dependency surprises
             _model = SentenceTransformer(

@@ -34,3 +34,9 @@ QS_DEFAULT_MODEL = os.getenv("QS_DEFAULT_MODEL", "gemini-2.5-flash")  # Fast mod
 
 # Analytics toggle
 ENABLE_ANALYTICS = os.getenv("ENABLE_ANALYTICS", "true").lower() == "true"
+
+# Atlas Search + Vector Search configuration
+# If you're using MongoDB Atlas Search, set ATLAS_SEARCH_ENABLED=true and ensure an index exists.
+# Index name usually defaults to "default" unless you created a custom name.
+ATLAS_SEARCH_ENABLED = os.getenv("ATLAS_SEARCH_ENABLED", "true").lower() == "true"
+ATLAS_SEARCH_INDEX = os.getenv("ATLAS_SEARCH_INDEX", "default")

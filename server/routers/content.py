@@ -27,6 +27,7 @@ from ..vector import (
     search_similar_content,
     add_content_to_index,
 )
+from utils.embedding import embed_text
 from utils.text_utils import content_hash
 from ..analytics import log_event
 
@@ -104,16 +105,15 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
         cached_docs = []
         similar_ids = []
         similar_scores = []
-        # If vector index exists, query top-K candidates to avoid scanning entire collection
-        if has_index():
-            similar_ids, similar_scores = search_similar(similarity_basis, k=10)
-            if similar_ids:
-                try:
-                    obj_ids = [ObjectId(s) for s in similar_ids]
-                except Exception:
-                    obj_ids = []
-                if obj_ids:
-                    cached_docs = await cached_collection.find({"_id": {"$in": obj_ids}}).to_list(length=None)
+        # Query Atlas Vector Search (or in-memory fallback) for top-K candidates to avoid scanning entire collection
+        similar_ids, similar_scores = await search_similar(similarity_basis, k=10)
+        if similar_ids:
+            try:
+                obj_ids = [ObjectId(s) for s in similar_ids]
+            except Exception:
+                obj_ids = []
+            if obj_ids:
+                cached_docs = await cached_collection.find({"_id": {"$in": obj_ids}}).to_list(length=None)
         if not cached_docs:
             # Fallback: scan all (less efficient but safe)
             cached_docs = await cached_collection.find().to_list(length=None)
@@ -151,7 +151,7 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                 vec_boost = 0.0
                 if similar_ids:
                     try:
-                        idx = similar_ids.index(doc.get("_id"))
+                        idx = similar_ids.index(str(doc.get("_id")))
                         vec_boost = max(0.0, min(1.0, similar_scores[idx]))
                     except ValueError:
                         vec_boost = 0.0
@@ -300,7 +300,7 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
 
         # Try semantic content deduplication using content index (best-effort)
         try:
-            cand_ids, cand_scores = search_similar_content(content_text, k=5)
+            cand_ids, cand_scores = await search_similar_content(content_text, k=5)
         except Exception:
             cand_ids, cand_scores = [], []
         if cand_ids:
@@ -350,10 +350,23 @@ async def generate_content(payload: ContentRequest, response: Response, user=Dep
                     return ContentOut(id=doc_id, topic=payload.topic, content=content_text, metadata=metadata)
 
         # Step 9: Save to global cache for future requests
+        # Pre-compute embeddings for Atlas Vector Search (and to keep parity with local index)
+        try:
+            sim_vec = embed_text(similarity_basis).tolist()
+        except Exception:
+            sim_vec = None
+        try:
+            content_vec = embed_text(content_text).tolist()
+        except Exception:
+            content_vec = None
+
         cache_doc = {
             "query": query,
             # embedding field kept for backward compatibility; will be vector-backed via index service
             "embedding": None,
+            # New Atlas Vector Search fields
+            "similarity_embedding": sim_vec,
+            "content_embedding": content_vec,
             "content": content_text,
             "topic": payload.topic,
             "similarity_basis": similarity_basis,

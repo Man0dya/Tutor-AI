@@ -68,33 +68,20 @@ class QuestionSetterAgent:
     
     def generate_questions(self, content, question_count=5, question_types=None, difficulty_distribution=None, bloom_levels=None):
         """
-        Generate educational questions using Bloom's taxonomy and advanced NLP.
+        Generate educational questions using natural language prompts for quality and speed.
 
-        This is the main method that orchestrates the entire question generation process.
-        It analyzes the input content, extracts key concepts, generates questions across
-        different Bloom's levels, assigns difficulty labels, and enhances with distractors.
+        Sends raw content to Gemini with clear instructions, parses flexibly,
+        and returns high-quality questions without over-engineering.
 
         Args:
             content (str or dict): Educational content to generate questions from.
-                Can be plain text or structured data with 'content', 'key_concepts',
-                and 'learning_objectives' fields.
             question_count (int, optional): Number of questions to generate. Defaults to 5.
             question_types (list, optional): Types of questions to generate.
-                Defaults to ["Multiple Choice", "Short Answer", "True/False"].
             difficulty_distribution (dict, optional): Distribution of Easy/Medium/Hard questions.
-                Should contain keys "Easy", "Medium", "Hard" with float values summing to 1.0.
-                Defaults to {"Easy": 0.3, "Medium": 0.5, "Hard": 0.2}.
             bloom_levels (list, optional): Bloom's taxonomy levels to target.
-                Defaults to ["Remember", "Understand", "Apply", "Analyze"].
 
         Returns:
-            dict: Generated questions with metadata containing:
-                - questions: List of question dictionaries with type, difficulty, etc.
-                - metadata: Statistics about the generated questions including counts,
-                  distributions, and covered concepts.
-
-        Raises:
-            Exception: If question generation fails due to API errors or invalid content.
+            dict: Generated questions with metadata.
         """
         # Set default parameters if not provided
         if question_types is None:
@@ -114,133 +101,213 @@ class QuestionSetterAgent:
                 learning_objectives = content.get('learning_objectives', [])
             else:
                 text_content = content
-                key_concepts = self._extract_key_concepts(content)
+                key_concepts = []
                 learning_objectives = []
-            
-            # Optionally summarize input to keep prompt compact
-            compact_context = text_content
-            if QS_SUMMARIZE_INPUT and isinstance(self.nlp_processor, NLPProcessor):
-                # 1) Short summary
-                summary = self.nlp_processor.summarize_text(text_content, max_sentences=4)
-                # 2) Top key phrases
-                phrases = [kp.get('phrase') for kp in (self.nlp_processor.extract_key_phrases(text_content, max_phrases=8) or [])]
-                phrases = [p for p in phrases if isinstance(p, str)]
-                # 3) Use provided key_concepts if available
-                kc = [k for k in key_concepts[:10] if isinstance(k, str)]
-                compact_context = f"SUMMARY:\n{summary}\n\nKEY_PHRASES: {', '.join(phrases)}\nKEY_CONCEPTS: {', '.join(kc)}\n"
 
-            # Batch mode: generate all questions in one structured JSON response
-            if QS_BATCH_MODE:
-                questions = self._generate_questions_batch(
-                    compact_context,
-                    full_context=text_content,
-                    key_concepts=key_concepts,
-                    learning_objectives=learning_objectives,
-                    question_count=question_count,
-                    question_types=question_types,
-                    bloom_levels=bloom_levels,
-                )
-            else:
-                # Legacy path: multi-pass Bloom-based generation
-                # Analyze content structure for better question generation
-                content_analysis = self._analyze_content_structure(text_content)
-                questions = self._generate_bloom_based_questions(
-                    text_content, key_concepts, learning_objectives,
-                    question_count, question_types, difficulty_distribution, bloom_levels
-                )
-
-            # Add difficulty labels based on the requested distribution
-            labeled_questions = self._label_question_difficulty(questions, difficulty_distribution)
-
-            # Create plausible distractors for multiple choice questions
-            enhanced_questions = self._enhance_with_distractors(labeled_questions, key_concepts)
-
-            # Normalize MCQs to ensure exactly 4 plain options and aligned correct answers
-            enhanced_questions = self._normalize_all_questions(enhanced_questions, key_concepts)
+            # Generate questions with a single fast LLM call using raw content
+            questions = self._generate_questions_fast(
+                text_content,
+                question_count=question_count,
+                question_types=question_types,
+                difficulty_distribution=difficulty_distribution,
+                bloom_levels=bloom_levels,
+            )
 
             # Return structured response with questions and metadata
             return {
-                'questions': enhanced_questions,
+                'questions': questions,
                 'metadata': {
-                    'total_count': len(enhanced_questions),
-                    'difficulty_distribution': self._calculate_actual_distribution(enhanced_questions),
-                    'question_types': list(set([q['type'] for q in enhanced_questions])),
-                    'bloom_levels': list(set([q.get('bloom_level', 'Unknown') for q in enhanced_questions])),
-                    'key_concepts_covered': key_concepts[:10]
+                    'total_count': len(questions),
+                    'difficulty_distribution': self._calculate_actual_distribution(questions),
+                    'question_types': list(set([q.get('type', 'Unknown') for q in questions])),
+                    'bloom_levels': list(set([q.get('bloom_level', 'Unknown') for q in questions])),
                 }
             }
 
         except Exception as e:
             raise Exception(f"Question generation failed: {str(e)}")
 
-    def _generate_questions_batch(self, compact_context: str, full_context: str, key_concepts, learning_objectives,
-                                  question_count: int, question_types, bloom_levels):
-        """Single-call batch generation with strict JSON output and token budgeting."""
-        # Keep explanations short to bound tokens
-        max_expl = max(0, min(3, QS_MAX_EXPLANATION_SENTENCES))
 
-        # Build a compact yet explicit system instruction
-        system_prompt = f"""
-You are an expert question generator for educational content.
-Generate exactly {question_count} questions as compact JSON only (no markdown, no commentary).
-Allowed types: {', '.join(question_types)}.
-Target Bloom's levels: {', '.join(bloom_levels)}.
-Rules:
-- Prefer 'Multiple Choice' where possible; include 'True/False' or 'Short Answer' if requested.
-- For MCQ: options must be exactly 4 plain strings; correct_answer must equal one of the options.
-- Explanations must be concise (<= {max_expl} sentence{'s' if max_expl!=1 else ''}).
-- Do not include letters (A/B/C/D) in option text.
-- Output MUST be valid JSON with this shape:
-{{
-  "questions": [
-    {{
-      "question": "...",
-      "type": "Multiple Choice" | "True/False" | "Short Answer",
-      "options": ["...","...","...","..."] (MCQ only),
-      "correct_answer": "...",  (for MCQ, must match one of options; for TF use True/False; for SA use short key answer)
-      "explanation": "...",
-      "bloom_level": "{bloom_levels[0] if bloom_levels else 'Remember'}"
-    }}
-  ]
-}}
-"""
+    def _generate_questions_fast(self, content: str, question_count: int, question_types: list, 
+                                 difficulty_distribution: dict, bloom_levels: list):
+        """
+        Fast question generation using natural prompts and flexible parsing.
+        
+        Sends raw content to Gemini with clear, natural instructions for better quality.
+        No strict JSON enforcement—parses flexibly from natural response.
+        """
+        # Build natural, clear prompt
+        types_str = ", ".join(question_types)
+        bloom_str = ", ".join(bloom_levels)
+        
+        # Calculate target counts per difficulty
+        easy_count = int(question_count * difficulty_distribution.get("Easy", 0.3))
+        medium_count = int(question_count * difficulty_distribution.get("Medium", 0.5))
+        hard_count = question_count - easy_count - medium_count
 
-        # User prompt with compact context, then a reference to full if needed
-        key_concepts_text = ', '.join([k for k in key_concepts[:10] if isinstance(k, str)])
-        lo_text = ', '.join([l for l in learning_objectives[:6] if isinstance(l, str)]) if learning_objectives else ''
+        prompt = f"""You are an expert educator creating high-quality assessment questions.
 
-        user_prompt = f"""
-CONTENT (COMPACT):
-{compact_context}
+Based on the content below, generate exactly {question_count} questions with the following distribution:
+- Question Types: {types_str}
+- Difficulty: {easy_count} Easy, {medium_count} Medium, {hard_count} Hard
+- Cognitive Levels (Bloom's): {bloom_str}
 
-FOCUS CONCEPTS: {key_concepts_text}
-LEARNING OBJECTIVES: {lo_text}
-"""
+CONTENT:
+{content}
+
+INSTRUCTIONS:
+1. For Multiple Choice questions:
+   - Provide 4 clear, distinct options (A, B, C, D)
+   - One option must be unambiguously correct
+   - Make wrong options plausible but clearly incorrect to someone who understands
+   - No tricks or overly pedantic distinctions
+
+2. For True/False questions:
+   - Make clear, testable statements
+   - Mix true and false answers
+
+3. For Short Answer questions:
+   - Ask for 1-3 sentence responses
+   - Test understanding and application, not just recall
+
+4. Label each question with:
+   - Type (Multiple Choice, True/False, Short Answer)
+   - Difficulty (Easy, Medium, Hard)
+   - Bloom Level ({bloom_str})
+
+5. Provide brief explanations (1-2 sentences) for correct answers
+
+Format each question clearly with:
+Question: [question text]
+Type: [type]
+Difficulty: [difficulty]
+Bloom Level: [level]
+Options: (for MCQ only)
+  A) [option]
+  B) [option]
+  C) [option]
+  D) [option]
+Correct Answer: [answer]
+Explanation: [explanation]
+
+Generate {question_count} diverse, high-quality questions now:"""
 
         try:
-            gen_cfg = types.GenerateContentConfig(
-                temperature=0.6,
-                max_output_tokens=min(1200, max(300, question_count * (120 if max_expl else 80))),
-            )
             response = self.client.models.generate_content(
-                model=QS_DEFAULT_MODEL,
-                contents=f"{system_prompt}\n\n{user_prompt}",
-                generation_config=gen_cfg,
+                model="gemini-2.5-flash",  # Fast, reliable model
+                contents=prompt,
+                config=types.GenerateContentConfig(
+                    temperature=0.7,
+                    max_output_tokens=2500,
+                )
             )
 
             if response.text:
-                text = response.text.strip()
-                if text.startswith('```json'):
-                    text = text[7:-3].strip()
-                elif text.startswith('```'):
-                    text = text[3:-3].strip()
-                data = json.loads(text)
-                qs = data.get('questions', [])
-                return qs
+                # Parse the natural response flexibly
+                questions = self._parse_natural_response(response.text)
+                return questions[:question_count]  # Ensure exact count
+            
             return []
-        except Exception:
-            # Fallback: minimal legacy path
-            return self._create_fallback_questions(full_context, question_count, "Multiple Choice")
+
+        except Exception as e:
+            # Fallback to simple questions if generation fails
+            return self._create_simple_fallback_questions(content, question_count)
+
+    def _parse_natural_response(self, text: str) -> list:
+        """Parse questions from natural language response flexibly."""
+        questions = []
+        
+        # Split by "Question:" markers
+        blocks = text.split("Question:")
+        
+        for block in blocks[1:]:  # Skip first empty split
+            try:
+                lines = [l.strip() for l in block.strip().split('\n') if l.strip()]
+                
+                q_dict = {
+                    'question': '',
+                    'type': 'Multiple Choice',
+                    'difficulty': 'Medium',
+                    'bloom_level': 'Understand',
+                    'options': [],
+                    'correct_answer': '',
+                    'explanation': ''
+                }
+                
+                # Extract question text (first line)
+                if lines:
+                    q_dict['question'] = lines[0].strip()
+                
+                # Parse remaining lines
+                current_section = None
+                for line in lines[1:]:
+                    line_lower = line.lower()
+                    
+                    if line_lower.startswith('type:'):
+                        q_dict['type'] = line.split(':', 1)[1].strip()
+                    elif line_lower.startswith('difficulty:'):
+                        q_dict['difficulty'] = line.split(':', 1)[1].strip()
+                    elif line_lower.startswith('bloom level:'):
+                        q_dict['bloom_level'] = line.split(':', 1)[1].strip()
+                    elif line_lower.startswith('options:'):
+                        current_section = 'options'
+                    elif line_lower.startswith('correct answer:'):
+                        q_dict['correct_answer'] = line.split(':', 1)[1].strip()
+                        current_section = None
+                    elif line_lower.startswith('explanation:'):
+                        q_dict['explanation'] = line.split(':', 1)[1].strip()
+                        current_section = 'explanation'
+                    elif current_section == 'options' and line:
+                        # Parse option (A), B), etc.
+                        if line[0] in 'ABCDabcd' and len(line) > 2:
+                            option_text = line[2:].strip()
+                            if option_text:
+                                q_dict['options'].append(option_text)
+                    elif current_section == 'explanation':
+                        # Multi-line explanation
+                        q_dict['explanation'] += ' ' + line
+                
+                # Clean up and validate
+                q_dict['explanation'] = q_dict['explanation'].strip()
+                
+                # For MCQ, ensure we have options
+                if q_dict['type'] == 'Multiple Choice' and len(q_dict['options']) < 2:
+                    continue
+                
+                # Map correct answer for MCQ (if letter format like "A" or "B)")
+                if q_dict['type'] == 'Multiple Choice' and q_dict['options']:
+                    ans = q_dict['correct_answer'].strip().upper()
+                    if ans in 'ABCD' and len(ans) == 1:
+                        idx = ord(ans) - ord('A')
+                        if 0 <= idx < len(q_dict['options']):
+                            q_dict['correct_answer'] = q_dict['options'][idx]
+                
+                # Add valid question
+                if q_dict['question'] and q_dict['correct_answer']:
+                    questions.append(q_dict)
+                    
+            except Exception:
+                continue
+        
+        return questions
+
+    def _create_simple_fallback_questions(self, content: str, count: int) -> list:
+        """Create simple fallback questions if parsing fails."""
+        questions = []
+        sentences = [s.strip() for s in content.split('.') if len(s.strip()) > 30]
+        
+        for i in range(min(count, len(sentences), 5)):
+            questions.append({
+                'question': f"What is the main idea conveyed in: '{sentences[i][:80]}...'?",
+                'type': 'Short Answer',
+                'difficulty': 'Medium',
+                'bloom_level': 'Understand',
+                'correct_answer': sentences[i],
+                'explanation': 'Based on the content provided.'
+            })
+        
+        return questions
+
     
     def _extract_key_concepts(self, content):
         

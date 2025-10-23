@@ -924,7 +924,7 @@ Provide actionable study recommendations that address these specific areas."""
             concept_scores (dict): Concept-wise performance scores
 
         Returns:
-            list: List of improvement areas .
+            list: List of improvement areas...
         """
         improvements = []
 

@@ -229,7 +229,9 @@ export default function ContentPage() {
 
     const observer = new IntersectionObserver(
       (entries) => {
+
         // Pick the most visible entry
+
         const visible = entries
           .filter(e => e.isIntersecting)
           .sort((a, b) => b.intersectionRatio - a.intersectionRatio)
@@ -237,7 +239,9 @@ export default function ContentPage() {
           const id = visible[0].target.getAttribute('id') || ''
           if (id) setActiveId(id)
         } else {
+
           // Fallback: find the first heading above the viewport
+
           let current = activeId
           for (const el of headingEls) {
             const rect = el.getBoundingClientRect()
@@ -256,10 +260,13 @@ export default function ContentPage() {
 
     headingEls.forEach((el) => observer.observe(el))
     return () => observer.disconnect()
+
     // eslint-disable-next-line react-hooks/exhaustive-deps
+
   }, [contentRef.current, content])
 
   // Reading progress for generated content box
+
   useEffect(() => {
     const el = contentRef.current
     if (!el) return
@@ -277,18 +284,24 @@ export default function ContentPage() {
   const onGenerate = async () => {
     if (!topic.trim()) {
       toast({ 
+
         title: 'Topic Required', 
         description: 'Please enter a topic to generate content',
         status: 'warning',
         duration: 3000,
         isClosable: true
+
       })
       return
     }
+
     // Clear any previously shown content to avoid displaying stale content during/after a failed attempt
+
     setContent('')
     setContentId('')
+
     // Client-side validation to block trivial inputs (mirrors backend checks loosely)
+
     if (!isMeaningfulTopic(topic)) {
       toast({
         title: 'Topic Too Short or Unclear',
@@ -299,7 +312,9 @@ export default function ContentPage() {
       })
       return
     }
+
     // Backend enforces PII rules; proceed to submit
+
     setLoading(true)
     try {
       const learning_objectives = objectives
@@ -309,27 +324,35 @@ export default function ContentPage() {
       const res = await generateContent({ topic, subject, difficulty, contentType, learningObjectives: learning_objectives })
       setContent(res.content)
       setContentId(res.id)
+
       // Optimistically bump local usage if on free plan
+
       if (plan === 'free') {
         setUsageCount((c) => c + 1)
       }
       toast({ 
+
         title: 'Content Generated Successfully!', 
         description: 'Your personalized study material is ready',
         status: 'success',
         duration: 4000,
         isClosable: true
+
       })
     } catch (err: any) {
+
       // Ensure no stale content remains visible after an error
+
       setContent('')
       setContentId('')
       toast({ 
+
         title: 'Generation Failed', 
         description: getErrorMessage(err) || 'Please try again', 
         status: 'error',
         duration: 5000,
         isClosable: true
+        
       })
     } finally {
       setLoading(false)

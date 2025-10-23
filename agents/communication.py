@@ -338,6 +338,7 @@ class AgentCommunicationProtocol:
         return agent_info
 
     def get_communication_logs(self, limit: int = 50) -> List[Dict[str, Any]]:
+
         """
         Get recent communication logs.
 
@@ -347,9 +348,11 @@ class AgentCommunicationProtocol:
         Returns:
             List[Dict[str, Any]]: Recent communication log entries
         """
+
         return self.communication_logs[-limit:]
 
     def get_message_history(self, agent_id: Optional[str] = None, limit: int = 20) -> List[Dict[str, Any]]:
+        
         """
         Get message history, optionally filtered by agent.
 
@@ -358,7 +361,7 @@ class AgentCommunicationProtocol:
             limit (int): Maximum number of messages to return
 
         Returns:
-            List[Dict[str, Any]]: Message history
+            List[Dict[str, Any]]: Message history entries        
         """
         history = self.message_history
 
@@ -409,6 +412,7 @@ class AgentCommunicationProtocol:
         ]
 
 class HTTPAgentServer:
+
     """
     HTTP server for agent communication (simplified mock for demonstration).
 
@@ -417,15 +421,18 @@ class HTTPAgentServer:
     implementation using frameworks like FastAPI or Flask.
 
     Note: This is a simplified demonstration version for the tutoring system.
+
     """
 
     def __init__(self, host: str = "0.0.0.0", port: int = 8000):
+
         """
         Initialize the HTTP server.
 
         Args:
             host (str): Host address to bind to
             port (int): Port number to listen on
+
         """
         self.host = host
         self.port = port
@@ -438,7 +445,9 @@ class HTTPAgentServer:
         }
 
     def _handle_send_message(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle send message HTTP requests."""
+
         try:
             response = self.communication_protocol.send_message(
                 request_data['sender'],
@@ -451,7 +460,9 @@ class HTTPAgentServer:
             return {'status': 'error', 'message': str(e)}
 
     def _handle_broadcast(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle broadcast message HTTP requests."""
+
         try:
             responses = self.communication_protocol.broadcast_message(
                 request_data['sender'],
@@ -463,7 +474,9 @@ class HTTPAgentServer:
             return {'status': 'error', 'message': str(e)}
 
     def _handle_agent_status(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle agent status HTTP requests."""
+
         agent_id = request_data.get('agent_id')
         if agent_id:
             status = self.communication_protocol.get_agent_status(agent_id)
@@ -477,7 +490,9 @@ class HTTPAgentServer:
             return {'status': 'success', 'all_agents': all_status}
 
     def _handle_health_check(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle health check HTTP requests."""
+
         return {
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
@@ -486,6 +501,7 @@ class HTTPAgentServer:
         }
 
     def process_request(self, endpoint: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """
         Process HTTP-like requests (simplified for demonstration).
 
@@ -496,6 +512,7 @@ class HTTPAgentServer:
         Returns:
             Dict[str, Any]: Response data
         """
+
         if endpoint in self.routes:
             return self.routes[endpoint](request_data)
         else:

@@ -67,12 +67,14 @@ export default function QuestionsPage() {
   }
 
   return (
+
     <PrivateLayout>
       <Container maxW="7xl" py={2} px={{ base: 4, md: 6, lg: 8 }}>
         <HStack mb={2} spacing={2} align="center">
           <Icon as={MdQuiz} boxSize={7} color="purple.500" />
           <Heading size="lg">Practice Questions</Heading>
         </HStack>
+
   <Text color="muted" mb={4}>Generate questions from your content and answer them below.</Text>
 
         {generating && (
@@ -82,6 +84,7 @@ export default function QuestionsPage() {
         )}
 
         <Box
+
           bg="surface"
           borderWidth="1px"
           borderColor="border"
@@ -89,10 +92,12 @@ export default function QuestionsPage() {
           boxShadow={{ base: 'md', _dark: 'none' }}
           p={6}
           mb={6}
+
         >
           <Stack direction={{ base: 'column', md: 'row' }} spacing={4}>
             <FormControl isRequired>
               <FormLabel>Content ID</FormLabel>
+
               <Input 
                 value={contentId} 
                 onChange={(e: ChangeEvent<HTMLInputElement>) => setContentId(e.target.value)} 
@@ -100,15 +105,18 @@ export default function QuestionsPage() {
                 bg="bg"
                 borderColor="border"
                 _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
+
               />
             </FormControl>
             <FormControl maxW={{ md: '160px' }}>
               <FormLabel>Count</FormLabel>
               <NumberInput min={1} max={20} value={count} onChange={(_str: string, v: number) => setCount(Number.isNaN(v) ? 1 : v)}>
                 <NumberInputField 
+
                   bg="bg"
                   borderColor="border"
                   _focus={{ borderColor: 'purple.400', boxShadow: '0 0 0 1px purple.400' }}
+                  
                 />
               </NumberInput>
             </FormControl>

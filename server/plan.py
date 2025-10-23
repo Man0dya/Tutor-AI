@@ -84,6 +84,7 @@ async def _get_user_doc(user_id: str) -> Dict[str, Any]:
         return {}
 
 async def get_user_plan_and_usage(user_id: str) -> Tuple[str, Dict[str, Any]]:
+
     """
     Retrieve user's subscription plan and current usage statistics.
 
@@ -94,12 +95,14 @@ async def get_user_plan_and_usage(user_id: str) -> Tuple[str, Dict[str, Any]]:
         tuple: (plan_name, usage_dict) where plan is lowercase string
                and usage contains quota tracking information.
     """
+
     doc = await _get_user_doc(user_id)
     plan = (doc.get("plan") or "free").lower()
     usage: Dict[str, Any] = doc.get("usage") or {}
     return plan, usage
 
 async def ensure_content_quota(user_id: str) -> None:
+
     """
     Enforce monthly content generation quota for free plan users.
 
@@ -112,6 +115,8 @@ async def ensure_content_quota(user_id: str) -> None:
     Raises:
         HTTPException: 402 Payment Required if free quota exceeded.
     """
+
+    
     plan, usage = await get_user_plan_and_usage(user_id)
     if plan != "free":
         return
@@ -145,6 +150,7 @@ async def ensure_content_quota(user_id: str) -> None:
         )
 
 async def record_content_generation(user_id: str) -> None:
+
     """
     Increment the content generation counter for the current month.
 
@@ -154,6 +160,7 @@ async def record_content_generation(user_id: str) -> None:
     Args:
         user_id (str): User identifier.
     """
+
     _, usage = await get_user_plan_and_usage(user_id)
     now = _now_utc()
     content_usage = usage.get("content") or {}
@@ -180,6 +187,7 @@ async def record_content_generation(user_id: str) -> None:
     )
 
 async def require_paid_feature(user_id: str) -> None:
+
     """
     Validate that user has access to paid features.
 
@@ -192,6 +200,7 @@ async def require_paid_feature(user_id: str) -> None:
     Raises:
         HTTPException: 402 Payment Required if user is not on paid plan.
     """
+
     plan, _ = await get_user_plan_and_usage(user_id)
     if plan not in ("standard", "premium"):
         raise HTTPException(

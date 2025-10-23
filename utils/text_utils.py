@@ -13,6 +13,7 @@ _ws_re = re.compile(r"\s+", re.MULTILINE)
 
 
 def normalize_text_for_hash(text: str) -> str:
+    
     """Normalize text to a canonical form for hashing.
 
     - Lowercase
@@ -33,6 +34,8 @@ def normalize_text_for_hash(text: str) -> str:
 
 
 def content_hash(text: str) -> str:
+    
     """Return a SHA-256 hex digest of the normalized text."""
+    
     norm = normalize_text_for_hash(text)
     return hashlib.sha256(norm.encode("utf-8")).hexdigest()

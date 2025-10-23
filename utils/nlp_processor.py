@@ -105,6 +105,7 @@ class NLPProcessor:
             return [t for t in re.findall(r"[A-Za-z]+", text.lower()) if t not in self.stop_words]
 
     def is_meaningful_query(self, text: str) -> bool:
+        
         """
         Heuristic to determine if a query/topic is meaningful.
 
@@ -132,7 +133,9 @@ class NLPProcessor:
         return False
 
     def token_jaccard_similarity(self, a: str, b: str) -> float:
+        
         """Compute Jaccard similarity between token sets of two strings."""
+        
         a_tokens = set(self.tokenize_meaningful(a))
         b_tokens = set(self.tokenize_meaningful(b))
         if not a_tokens or not b_tokens:
@@ -142,6 +145,7 @@ class NLPProcessor:
         return float(inter / union) if union else 0.0
     
     def extract_entities(self, text):
+        
         """
         Extract named entities from text using NLTK
         
@@ -219,6 +223,7 @@ class NLPProcessor:
         return entities
     
     def summarize_text(self, text, max_sentences=3):
+        
         """
         Create a summary of the text using extractive summarization
         
@@ -229,6 +234,7 @@ class NLPProcessor:
         Returns:
             str: Text summary
         """
+        
         try:
             sentences = sent_tokenize(text)
             

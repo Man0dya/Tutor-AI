@@ -42,7 +42,9 @@ class ContentRequest(BaseModel):
     learningObjectives: Optional[List[str]] = None
 
 class ContentOut(BaseModel):
+
     """Response model for generated content"""
+    
     id: str
     topic: str
     content: str

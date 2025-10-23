@@ -354,7 +354,7 @@ export default function ContentPage() {
         status: 'error',
         duration: 5000,
         isClosable: true
-        
+
       })
     } finally {
       setLoading(false)
@@ -394,14 +394,17 @@ export default function ContentPage() {
                 </HStack>
               )}
               {!!topic && (
+
                 <Wrap>
                   <WrapItem><Badge colorScheme="purple" variant="subtle">{subject}</Badge></WrapItem>
                   <WrapItem><Badge colorScheme="blue" variant="subtle">{difficulty}</Badge></WrapItem>
                   <WrapItem><Badge colorScheme="green" variant="subtle">{contentType}</Badge></WrapItem>
                 </Wrap>
+
               )}
             </HStack>
             <FormControl isRequired>
+
               <FormLabel fontWeight="600" color="text" mb={3}>
                 What would you like to learn about?
               </FormLabel>
@@ -418,6 +421,7 @@ export default function ContentPage() {
             </FormControl>
 
             <FormControl>
+
               <FormLabel fontWeight="600" color="muted" mb={3}>
                 Learning Objectives (Optional)
               </FormLabel>
@@ -434,6 +438,7 @@ export default function ContentPage() {
             </FormControl>
 
             <SimpleGrid columns={{ base: 1, md: 3 }} spacing={4}>
+
               <FormControl>
                 <FormLabel fontWeight="600" color="muted" mb={3}>Difficulty Level</FormLabel>
                 <Select 
@@ -448,9 +453,11 @@ export default function ContentPage() {
                   <option>Intermediate</option>
                   <option>Advanced</option>
                 </Select>
+
               </FormControl>
 
               <FormControl>
+
                 <FormLabel fontWeight="600" color="muted" mb={3}>Subject Area</FormLabel>
                 <Select 
                   value={subject} 
@@ -474,6 +481,7 @@ export default function ContentPage() {
 
               <FormControl>
                 <FormLabel fontWeight="600" color="muted" mb={3}>Content Type</FormLabel>
+
                 <Select 
                   value={contentType} 
                   onChange={(e: ChangeEvent<HTMLSelectElement>) => setContentType(e.target.value)}
@@ -518,6 +526,7 @@ export default function ContentPage() {
         </Box>
 
         {content && (
+          
           <Flex gap={6} align="flex-start">
             <Box flex="1 1 0%">
               <Box

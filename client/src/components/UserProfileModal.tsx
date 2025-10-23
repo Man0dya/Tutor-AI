@@ -62,7 +62,7 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     setIsLoading(true);
 
     try {
-      
+
       // Validate password confirmation if changing password 
       if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
         toast({
@@ -379,5 +379,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     </Modal>
   );
 };
+
 
 export default UserProfileModal;

@@ -6,8 +6,9 @@ import App from './App'
 import { AuthProvider } from './context/AuthContext'
 
 const config = {
-  initialColorMode: 'system',
-  useSystemColorMode: true,
+  // Persist user's choice; default to light for best readability
+  initialColorMode: 'light',
+  useSystemColorMode: false,
 } as const
 
 const theme = extendTheme({
@@ -16,12 +17,13 @@ const theme = extendTheme({
     colors: {
       bg: { default: 'gray.50', _dark: '#0b0b0d' },
       surface: { default: 'white', _dark: '#0f1113' },
-      text: { default: 'gray.800', _dark: 'gray.100' },
-      muted: { default: 'gray.600', _dark: 'gray.300' },
+      // Increase light-mode contrast to avoid low-visibility text
+      text: { default: 'gray.900', _dark: 'gray.100' },
+      muted: { default: 'gray.700', _dark: 'gray.300' },
       border: { default: 'gray.200', _dark: 'gray.700' },
       codeBg: { default: 'gray.900', _dark: '#0f1113' },
-      codeInlineBg: { default: 'gray.100', _dark: 'gray.700' },
-      accent: { default: 'purple.500', _dark: 'purple.300' },
+      codeInlineBg: { default: 'gray.200', _dark: 'gray.700' },
+      accent: { default: 'purple.600', _dark: 'purple.300' },
     },
   },
   styles: {

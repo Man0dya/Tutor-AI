@@ -11,7 +11,8 @@ import {
   SimpleGrid,
   VStack,
   Badge,
-  Divider
+  Divider,
+  useColorModeValue
 } from '@chakra-ui/react'
 import { Link as RouterLink, Navigate } from 'react-router-dom'
 import Navbar from '../components/Navbar'
@@ -32,6 +33,7 @@ export default function Landing() {
   if (user) {
     return <Navigate to="/dashboard" replace />
   }
+  const ctaBg = useColorModeValue('purple.600', 'purple.400')
   
   return (
     <Box minH="100vh" bg="bg" position="relative">
@@ -306,7 +308,7 @@ export default function Landing() {
       {/* CTA Section */}
       <Container maxW="4xl" py={{ base: 16, md: 24 }}>
         <Box
-          bg={{ base: 'purple.600', _dark: 'purple.400' }}
+          bg={ctaBg}
           borderRadius="3xl"
           p={{ base: 12, md: 16 }}
           textAlign="center"

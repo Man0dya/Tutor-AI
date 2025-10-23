@@ -1,5 +1,5 @@
 import { useState, type ChangeEvent, useMemo, useRef, useEffect } from 'react'
-import { Box, Button, FormControl, FormLabel, Heading, Input, Select, Stack, Textarea, useToast, SimpleGrid, Text, Icon, HStack, Divider, Badge, Wrap, WrapItem, Spacer, Flex, VStack, Progress, Collapse, InputGroup, InputLeftElement } from '@chakra-ui/react'
+import { Box, Button, FormControl, FormLabel, Heading, Input, Select, Stack, Textarea, useToast, SimpleGrid, Text, Icon, HStack, Divider, Badge, Wrap, WrapItem, Spacer, Flex, VStack, Progress, Collapse, InputGroup, InputLeftElement, useColorModeValue } from '@chakra-ui/react'
 import PrivateLayout from '../components/PrivateLayout'
 import { generateContent, getErrorMessage, getBillingStatus } from '../api/client'
 import { useAuth } from '../context/AuthContext'
@@ -27,6 +27,8 @@ export default function ContentPage() {
   const [tocQuery, setTocQuery] = useState<string>('')
   const [usageCount, setUsageCount] = useState<number>(0)
   const FREE_LIMIT = 10
+  const primaryGradient = useColorModeValue('linear(to-r, purple.600, blue.600)', 'linear(to-r, purple.400, blue.400)')
+  const primaryBg = useColorModeValue('purple.600', 'purple.400')
 
   // Basic client-side guard to avoid sending low-information topics that the backend will reject
   const isMeaningfulTopic = (s: string): boolean => {
@@ -471,12 +473,13 @@ export default function ContentPage() {
               isLoading={loading}
               loadingText="Generating content..."
               size="lg"
-              bgGradient={{ base: 'linear(to-r, purple.500, blue.500)', _dark: 'linear(to-r, purple.400, blue.400)' }}
+              bgGradient={primaryGradient}
+              bg={primaryBg}
               color="white"
               borderRadius="12px"
               leftIcon={<Icon as={MdAutoAwesome} />}
               _hover={{
-                bgGradient: "linear(to-r, purple.600, blue.600)",
+                bgGradient: primaryGradient,
                 transform: "translateY(-1px)",
               }}
               _active={{
@@ -484,6 +487,7 @@ export default function ContentPage() {
               }}
               transition="all 0.2s ease"
               py={6}
+              boxShadow="sm"
             >
               Generate Content
             </Button>

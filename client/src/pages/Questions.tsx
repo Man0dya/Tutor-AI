@@ -67,6 +67,7 @@ export default function QuestionsPage() {
   }
 
   return (
+    
     <PrivateLayout>
       <Container maxW="7xl" py={2} px={{ base: 4, md: 6, lg: 8 }}>
         <HStack mb={2} spacing={2} align="center">

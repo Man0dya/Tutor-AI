@@ -459,7 +459,7 @@ class HTTPAgentServer:
     def _handle_broadcast(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
 
         """Handle broadcast message HTTP requests."""
-        
+
         try:
             responses = self.communication_protocol.broadcast_message(
                 request_data['sender'],
@@ -471,7 +471,9 @@ class HTTPAgentServer:
             return {'status': 'error', 'message': str(e)}
 
     def _handle_agent_status(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle agent status HTTP requests."""
+
         agent_id = request_data.get('agent_id')
         if agent_id:
             status = self.communication_protocol.get_agent_status(agent_id)
@@ -485,7 +487,9 @@ class HTTPAgentServer:
             return {'status': 'success', 'all_agents': all_status}
 
     def _handle_health_check(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle health check HTTP requests."""
+
         return {
             'status': 'healthy',
             'timestamp': datetime.now().isoformat(),
@@ -494,6 +498,7 @@ class HTTPAgentServer:
         }
 
     def process_request(self, endpoint: str, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """
         Process HTTP-like requests (simplified for demonstration).
 
@@ -504,6 +509,7 @@ class HTTPAgentServer:
         Returns:
             Dict[str, Any]: Response data
         """
+        
         if endpoint in self.routes:
             return self.routes[endpoint](request_data)
         else:

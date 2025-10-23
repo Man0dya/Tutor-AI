@@ -4,8 +4,6 @@ import PricingPlans from '../components/PricingPlans'
 
 
 
-
-
 export default function PricingPage() {
   return (
     <Box bg="bg" minH="100vh">

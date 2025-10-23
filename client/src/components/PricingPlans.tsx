@@ -50,11 +50,13 @@ const plans = [
       "Custom integrations",
       "Team collaboration tools"
     ],
+
     button: "Upgrade to Unlimited",
     highlight: false,
     popular: false
   },
 ];
+  
 
 const PricingPlans: React.FC = () => {
   return (
@@ -211,5 +213,8 @@ const PricingPlans: React.FC = () => {
     </Box>
   );
 };
+
+
+
 
 export default PricingPlans;

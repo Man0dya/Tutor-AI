@@ -70,8 +70,10 @@ export default function Landing() {
               lineHeight="1.7"
               fontWeight="400"
             >
+
               Transform your learning experience with personalized AI-generated study materials, 
               intelligent assessments, and detailed feedback that adapts to your unique learning style.
+              
             </Text>
           </Stack>
           
@@ -162,6 +164,7 @@ export default function Landing() {
                 }
               ].map((feature, index) => (
                 <Box
+
                   key={index}
                   bg="surface"
                   p={8}
@@ -202,6 +205,7 @@ export default function Landing() {
       </Container>
 
       {/* How it Works Section */}
+      
       <Container maxW="6xl" py={{ base: 16, md: 24 }}>
         <VStack spacing={16}>
           <Stack spacing={4} textAlign="center" maxW="3xl">

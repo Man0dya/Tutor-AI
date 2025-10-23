@@ -339,7 +339,6 @@ class AgentCommunicationProtocol:
 
     def get_communication_logs(self, limit: int = 50) -> List[Dict[str, Any]]:
 
-
         """
         Get recent communication logs.
 
@@ -349,8 +348,6 @@ class AgentCommunicationProtocol:
         Returns:
             List[Dict[str, Any]]: Recent communication log entries
         """
-
-
 
         return self.communication_logs[-limit:]
 

@@ -338,6 +338,8 @@ class AgentCommunicationProtocol:
         return agent_info
 
     def get_communication_logs(self, limit: int = 50) -> List[Dict[str, Any]]:
+
+
         """
         Get recent communication logs.
 
@@ -347,6 +349,9 @@ class AgentCommunicationProtocol:
         Returns:
             List[Dict[str, Any]]: Recent communication log entries
         """
+
+
+        
         return self.communication_logs[-limit:]
 
     def get_message_history(self, agent_id: Optional[str] = None, limit: int = 20) -> List[Dict[str, Any]]:
@@ -509,7 +514,7 @@ class HTTPAgentServer:
         Returns:
             Dict[str, Any]: Response data
         """
-        
+
         if endpoint in self.routes:
             return self.routes[endpoint](request_data)
         else:

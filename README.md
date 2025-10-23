@@ -2,10 +2,24 @@
 
 An AI tutoring system with a FastAPI backend and a modern React (Vite + TypeScript + Chakra UI) frontend. It creates personalized study content, generates question sets, evaluates answers with feedback, and tracks progress. MongoDB backs the data layer, and optional Atlas Search + Vector Search enables semantic reuse and speed.
 
+## Why Tutor‑AI (value in one minute)
+
+Most AI study sites stop at “generate notes” or “ask a bot.” Tutor‑AI is built as a full learning workflow: it produces structured lessons, turns them into balanced assessments, evaluates your answers with constructive feedback, and tracks progress—all with privacy controls and aggressive cost/latency optimization.
+
+What makes it more valuable than typical alternatives:
+- Pedagogy‑first outputs: content is organized for learning (overview, key concepts, examples, applications, tips, summary) instead of a raw wall of text.
+- Assessment you can trust: questions target Bloom’s levels and difficulty distribution; MCQs are normalized (exactly 4 self‑contained options, mapped answers, plausible distractors).
+- Real feedback, not just a score: open‑ended answers get concise, constructive feedback with optional study suggestions.
+- Private by design: input moderation, PII detection/redaction, and configurable privacy modes protect prompts and outputs.
+- Faster and cheaper over time: multi‑layer reuse (hash → TF‑IDF/Jaccard → embeddings) and vector indexes cut LLM calls for similar requests.
+- Resilient: when the LLM is slow or flaky, fallbacks still return usable results (and previously saved sets always work).
+- Open and extensible: clear APIs, modular agents, and a standard stack you can run anywhere.
+
 
 ## Contents
 
 - [For Users](#for-users)
+- [Why Tutor‑AI](#why-tutorai-value-in-one-minute)
 - [For Developers](#for-developers)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
@@ -13,6 +27,14 @@ An AI tutoring system with a FastAPI backend and a modern React (Vite + TypeScri
 ---
 
 ## For Users
+
+### How it’s different (at a glance)
+
+- Learn with structure, not noise: generated content is readable, skimmable, and designed for revision.
+- Questions fit your goal: choose types, Bloom levels, and a difficulty mix; we enforce quality on MCQs.
+- Feedback that teaches: beyond correct/incorrect, you get short explanations and optional study tips.
+- Quicker results over time: similar topics reuse cached, verified material to save time and tokens.
+- Safer by default: we detect/ redact PII and moderate unsafe prompts.
 
 ### What you can do
 
@@ -161,6 +183,12 @@ The app starts at http://localhost:5173. Ensure `VITE_API_BASE_URL` points to yo
   1) Exact cache hit (by hash/parameters)
   2) Similar cache hit (semantic candidates via Atlas + IR blend)
   3) Generate and persist
+
+#### Why this matters to you
+
+- Faster answers: repeated or similar topics return instantly from cache.
+- Lower cost: fewer LLM calls for teams/classes working on overlapping material.
+- Higher quality: semantic candidates are re‑ranked with TF‑IDF cosine and token Jaccard to avoid wrong matches.
 
 ### Responsible AI and safety (overview)
 

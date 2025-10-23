@@ -1,86 +1,120 @@
 # Tutor AI
 
-Multi Agent AI tutoring system with a Python FastAPI backend and a modern React (Vite + TypeScript + Chakra UI) frontend. Generate personalized content, set practice questions, and receive actionable feedback—all in one place.
+An AI tutoring system with a FastAPI backend and a modern React (Vite + TypeScript + Chakra UI) frontend. It creates personalized study content, generates question sets, evaluates answers with feedback, and tracks progress. MongoDB backs the data layer, and optional Atlas Search + Vector Search enables semantic reuse and speed.
 
 
-## Table of Contents
+## Contents
 
-- [Overview](#overview)
-- [Key Features](#key-features)
-- [Plans and Pricing](#plans-and-pricing)
-- [Project Structure](#project-structure)
-- [Backend (FastAPI)](#backend-fastapi)
-	- [Setup](#setup)
-	- [Run](#run)
-	- [Notable Endpoints](#notable-endpoints)
-- [Frontend (React + Vite + TypeScript)](#frontend-react--vite--typescript)
-	- [Setup & Run](#setup--run)
-- [Usage Flow](#usage-flow)
-- [Quotas & Enforcement](#quotas--enforcement)
-- [Billing Notes](#billing-notes)
-- [Security](#security)
+- [For Users](#for-users)
+- [For Developers](#for-developers)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
 
-## Overview
+---
 
-Tutor AI helps learners create study materials, practice with intelligent question sets, and track progress with feedback and analytics. It includes:
+## For Users
 
-- React frontend (`client/`) for the user experience
-- FastAPI backend (`server/`) for APIs, auth, persistence, and billing
-- MongoDB storage (via Motor) for users, content, questions, and progress
-- Optional Stripe subscriptions for Standard/Premium plans
+### What you can do
 
-## Key Features
+- Create study content tailored to your topic, level, and goals
+- Generate question sets and practice quizzes for the content
+- Submit answers and receive feedback with actionable suggestions
+- Track progress and recent activity on your dashboard
+- Upgrade plans if you reach free limits
 
-- Personalized content generation (topics, difficulty, objectives)
-- Intelligent question generation (types, distribution, Bloom levels)
-- Feedback and scoring for submitted answers
-- Progress dashboard and recent activity
-- Authentication with JWT
-- Plans and quotas (free vs paid) with server-side enforcement
-- Billing: Stripe Checkout, Billing Portal, cancel/resume at period end
+### Quick start
 
-## Plans and Pricing
+1) Open the site (local dev uses http://localhost:5173 by default)
+2) Sign up or log in
+3) Go to “Content” and enter a topic (e.g., “Logistic Regression basics”), choose difficulty and objectives, then generate
+4) From the generated content, click “Generate Questions” to get a practice set
+5) Answer questions in “Questions” or “Content View” and submit for feedback
+6) Visit “Progress” to see scores and history; revisit any content later
 
-| Plan     | Price       | Content Generations | Question Generations | Feedback Evaluations | Notes          |
-|----------|-------------|---------------------|----------------------|----------------------|----------------|
-| Free     | Free        | 10                  |  —                   | —                    | Basic features |
-| Standard | $10/month   | 100                 | 100                  | 100                  | Standard features |
-| Premium  | $50/month   | Unlimited           | Unlimited            | Unlimited            | Premium features |
+Tips
+- If you’ve generated similar content before, the system may instantly reuse existing results to save time and tokens
+- If you hit a limit on the free plan, you’ll be redirected to Pricing; upgrading unlocks higher quotas
+- Your profile menu (top-right) lets you view plan, usage, and manage billing (if enabled)
 
-When limits are exceeded or a paid-only feature is accessed on the Free plan, the server returns HTTP 402 (Payment Required). The client intercepts 402 responses and redirects to the Pricing page.
+Support
+- If a screen shows “Payment Required (402)”, you’re over quota for your current plan
+- If something looks stuck, refresh the page; your content and results are saved
 
-## Project Structure
+---
+
+## For Developers
+
+This project has two apps:
+- Backend: FastAPI in `server/` with MongoDB (Motor), JWT auth, and multi-agent logic in `agents/`
+- Frontend: React + Vite + TypeScript + Chakra UI in `client/`
+
+### Prerequisites
+
+- Python 3.11 (recommended)
+- Node.js 18+ (or 20+)
+- MongoDB (local or Atlas). Atlas is recommended to enable search + vector features
+- An API key for the AI provider (Google Gemini) if you’ll run generation locally
+
+### Project structure (high level)
 
 ```
 Tutor-AI/
-	client/                # React + Vite + TS + Chakra UI frontend
-		src/
-			pages/             # Pages (Landing, Login, Signup, Dashboard, Content, Questions, Feedback, Progress)
-			components/        # Reusable UI (Navbar, PricingPlans, etc.)
-			api/               # Axios API client and types
-			context/           # Auth context (JWT, plan, usage, subscription)
-	server/                # FastAPI backend
-		routers/             # Feature routers (auth, content, questions, answers, progress, billing)
-		main.py              # App wiring
-		config.py            # Environment configuration
-		database.py          # Mongo (Motor) connection
-		auth.py              # Auth helpers
-		schemas.py           # Pydantic models
-	agents/                # Multi-agent content/question/feedback logic
-	utils/                 # NLP/information retrieval helpers
-	database/              # Session management helpers
-	requirements.txt       # Python dependencies
+  client/                 # React + Vite + TypeScript + Chakra UI
+    src/
+      pages/              # Landing, Login, Signup, Dashboard, Content, Questions, Feedback, Progress
+      components/         # Navbar, PricingPlans, Markdown, Profile modal, etc.
+      api/                # Axios client
+      context/            # Auth context (JWT, plan, usage)
+  server/                 # FastAPI app
+    routers/              # auth, content, questions, answers, progress, billing
+    main.py               # FastAPI app entry
+    config.py             # Env/config flags
+    database.py           # Motor client and indices
+    auth.py               # JWT helpers
+    schemas.py            # Pydantic models
+  agents/                 # content_generator, question_setter, feedback_evaluator
+  utils/                  # information_retrieval, nlp_processor, security
+  database/               # session manager helpers
 ```
 
-## Backend (FastAPI)
+### Environment configuration
 
-Prereqs:
-- Python 3.10+ (3.11 recommended)
-- MongoDB (set `MONGODB_URI`)
+Create a `.env` at the repo root:
 
-### Setup
+```env
+# Mongo
+MONGODB_URI=mongodb+srv://<user>:<pass>@cluster0.xxxx.mongodb.net
+MONGODB_DB=tutor_ai
+
+# CORS and auth
+ALLOWED_ORIGINS=http://localhost:5173
+JWT_SECRET=change-me
+
+# AI provider (Gemini)
+GEMINI_API_KEY=your_gemini_key
+
+# Optional: Atlas Search + Vector Search
+ATLAS_SEARCH_ENABLED=true
+ATLAS_SEARCH_INDEX=default
+
+# Optional: Stripe billing (dev/prod as needed)
+STRIPE_SECRET_KEY=sk_test_...
+STRIPE_WEBHOOK_SECRET=whsec_...
+STRIPE_PRICE_STANDARD=price_...
+STRIPE_PRICE_PREMIUM=price_...
+```
+
+For the client, create `client/.env.local`:
+
+```env
+VITE_API_BASE_URL=http://127.0.0.1:8001
+# Optional display-only price IDs
+VITE_STRIPE_PRICE_STANDARD=price_...
+VITE_STRIPE_PRICE_PREMIUM=price_...
+```
+
+### Backend setup and run (Windows PowerShell)
+
 ```powershell
 # From repo root
 python -m venv .venv
@@ -88,114 +122,82 @@ python -m venv .venv
 pip install --upgrade pip
 pip install -r requirements.txt
 
-# (Optional) Download NLTK data for NLP helpers
+# (Optional) Download NLTK datasets used by NLP helpers
 python download_nltk_data.py
 
-# Configure environment (create .env at project root)
-```
-
-Create a `.env` file at the project root:
-
-```env
-MONGODB_URI=mongodb+srv://... (or mongodb://localhost:27017)
-MONGODB_DB=tutor_ai
-JWT_SECRET=change-me
-ALLOWED_ORIGINS=http://localhost:5173
-
-# Optional: AI provider key if used by agents
-GEMINI_API_KEY=your_key
-
-# Optional: Stripe billing
-STRIPE_SECRET_KEY=sk_test_...
-STRIPE_WEBHOOK_SECRET=whsec_...
-STRIPE_PRICE_STANDARD=price_...
-STRIPE_PRICE_PREMIUM=price_...
-```
-
-### Run
-```powershell
+# Start FastAPI (reload for dev)
 uvicorn server.main:app --host 127.0.0.1 --port 8001 --reload
 ```
 
-### Notable Endpoints
-- Auth: `/auth/signup`, `/auth/login`, `/auth/me`, `/auth/profile`
-- Content: `/content/generate`, `/content/{id}`
-- Questions: `/questions/generate`
-- Answers/Feedback: `/answers/submit`
-- Progress: `/progress/me`
-- Billing:
-	- `GET /billing/me` – plan, usage, optional subscription summary
-	- `POST /billing/checkout/session` – start Stripe Checkout (price=standard|premium)
-	- `POST /billing/confirm` – confirm session in dev (no webhooks)
-	- `POST /billing/portal` – open Billing Portal
-	- `POST /billing/webhook` – Stripe webhook (prod)
-	- `POST /billing/subscription/cancel` – schedule/immediate cancel
-	- `POST /billing/subscription/resume` – undo cancel-at-period-end
+API docs (OpenAPI/Swagger) are at: http://127.0.0.1:8001/docs
 
-## Frontend (React + Vite + TypeScript)
+Key endpoints
+- Auth: `POST /auth/signup`, `POST /auth/login`, `GET /auth/me`
+- Content: `POST /content/generate`, `GET /content/{id}`
+- Questions: `POST /questions/generate`
+- Answers/Feedback: `POST /answers/submit`
+- Progress: `GET /progress/me`
+- Billing: `GET /billing/me`, `POST /billing/checkout/session`, `POST /billing/confirm`, `POST /billing/portal`,
+  `POST /billing/webhook`, `POST /billing/subscription/cancel`, `POST /billing/subscription/resume`
 
-Prereqs:
-- Node 18+
+### Frontend setup and run
 
-### Setup & Run
 ```powershell
 cd client
 npm install
-
-# Configure client env (client/.env.local)
-```
-
-Create `client/.env.local`:
-
-```env
-VITE_API_BASE_URL=http://127.0.0.1:8001
-VITE_STRIPE_PRICE_STANDARD=price_...  # optional
-VITE_STRIPE_PRICE_PREMIUM=price_...   # optional
-```
-
-```powershell
 npm run dev
 ```
 
-The dev server runs at http://localhost:5173. If `VITE_API_BASE_URL` is not set, the client can use the dev proxy `/api` configured in Vite.
+The app starts at http://localhost:5173. Ensure `VITE_API_BASE_URL` points to your backend base URL.
 
-## Usage Flow
+### Notes on search, vectors, and caching
 
-1) Create an account (Signup) and login
-2) Generate content (topic, difficulty, objectives)
-3) Create question sets for the content
-4) Submit answers to receive feedback and scores
-5) Track progress on the Dashboard
-6) Upgrade to Standard/Premium for higher or unlimited limits
+- Atlas Search + Vector Search (if `ATLAS_SEARCH_ENABLED=true`) is used to reuse similar content and question sets across users.
+- On cache writes, content embeddings are stored; a backfill utility exists to add embeddings for old records: `utils/backfill_embeddings.py`.
+- Global caches:
+  - `generated_content` for study materials
+  - `generated_questions` for question sets
+- The backend attempts:
+  1) Exact cache hit (by hash/parameters)
+  2) Similar cache hit (semantic candidates via Atlas + IR blend)
+  3) Generate and persist
 
-## Quotas & Enforcement
+### Responsible AI and safety (overview)
 
-- Free users are limited and certain routes are paid-only
-- Server raises HTTP 402 when over quota or for paid-only features
-- Client intercepts 402 and redirects to the Pricing page
+- Input validation and basic moderation
+- PII detection/redaction paths in NLP modules
+- Configurable privacy modes and CORS origins
+- Deterministic parsing for question generation (natural responses with robust parsing)
 
-## Billing Notes
+### Deployment (brief)
 
-- Development without webhooks: after Stripe Checkout returns to `/dashboard?session_id=...`, the client calls `POST /billing/confirm` to update the plan
-- Production: configure `STRIPE_WEBHOOK_SECRET` and point Stripe webhooks to `/billing/webhook`
-- Manage/cancel subscription via Billing Portal or the Settings modal (sidebar)
+- Use environment variables above
+- Expose FastAPI behind a reverse proxy (e.g., Nginx) and serve the frontend build (`npm run build` in `client/`)
+- Configure Atlas Search index name via `ATLAS_SEARCH_INDEX`
+- Configure Stripe webhooks to point to `/billing/webhook` in production
 
-## Security
-
-- JWT-based auth (HS256) with configurable expiry
-- CORS origins controlled by `ALLOWED_ORIGINS`
+---
 
 ## Troubleshooting
 
-- Backend not starting (exit code 1):
-	- Check `.env` values (MongoDB URI, JWT_SECRET)
-	- Ensure MongoDB is reachable
-	- Verify Python version and that `requirements.txt` is installed
-- 402 Payment Required on client:
-	- You’ve hit a limit or a paid-only feature on a free plan
-	- Upgrade via Pricing or log in as a paid user
-- Stripe: "Invalid or unconfigured price":
-	- Provide `priceId` from client env, or set server `STRIPE_PRICE_*`
+Backend won’t start
+- Check `.env` values (MongoDB URI/DB, JWT_SECRET)
+- Ensure MongoDB is reachable and the user has permissions
+- Verify Python 3.11+ and that `pip install -r requirements.txt` succeeded
+
+401/403 errors
+- Ensure the client includes the JWT in Authorization header and that CORS is set via `ALLOWED_ORIGINS`
+
+402 Payment Required (client toast and redirect)
+- You’ve reached plan limits; switch account or upgrade through Pricing
+
+Slow or repeated generations
+- Atlas Search + Vector Search can be enabled to semantically reuse prior results: set `ATLAS_SEARCH_ENABLED=true`
+
+Stripe price errors
+- Ensure `STRIPE_PRICE_*` values exist (server) or `VITE_STRIPE_PRICE_*` (client) if displayed on UI
+
+---
 
 ## License
 

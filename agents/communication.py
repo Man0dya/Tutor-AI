@@ -409,6 +409,7 @@ class AgentCommunicationProtocol:
         ]
 
 class HTTPAgentServer:
+
     """
     HTTP server for agent communication (simplified mock for demonstration).
 
@@ -417,15 +418,18 @@ class HTTPAgentServer:
     implementation using frameworks like FastAPI or Flask.
 
     Note: This is a simplified demonstration version for the tutoring system.
+
     """
 
     def __init__(self, host: str = "0.0.0.0", port: int = 8000):
+
         """
         Initialize the HTTP server.
 
         Args:
             host (str): Host address to bind to
             port (int): Port number to listen on
+
         """
         self.host = host
         self.port = port
@@ -438,7 +442,9 @@ class HTTPAgentServer:
         }
 
     def _handle_send_message(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle send message HTTP requests."""
+
         try:
             response = self.communication_protocol.send_message(
                 request_data['sender'],
@@ -451,7 +457,9 @@ class HTTPAgentServer:
             return {'status': 'error', 'message': str(e)}
 
     def _handle_broadcast(self, request_data: Dict[str, Any]) -> Dict[str, Any]:
+
         """Handle broadcast message HTTP requests."""
+        
         try:
             responses = self.communication_protocol.broadcast_message(
                 request_data['sender'],

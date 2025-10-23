@@ -154,6 +154,7 @@ class InformationRetrieval:
         }
         
         # Flatten and store content
+        
         doc_id = 0
         for subject, topics in educational_content.items():
             for topic, content in topics.items():
@@ -169,6 +170,7 @@ class InformationRetrieval:
                 doc_id += 1
         
         # Build document vectors for similarity search
+        
         self._build_document_vectors()
     
     def _build_document_vectors(self):
@@ -186,6 +188,7 @@ class InformationRetrieval:
             self.document_ids.append(doc_id)
         
         # Create TF-IDF vectors
+        
         try:
             tfidf_matrix = self.vectorizer.fit_transform(documents)
             
@@ -197,6 +200,7 @@ class InformationRetrieval:
             self.document_vectors = None
     
     def search(self, query: str, search_type: str = "General", max_results: int = 5) -> List[Dict[str, Any]]:
+        
         """
         Search the knowledge base using IR techniques
         
@@ -208,6 +212,7 @@ class InformationRetrieval:
         Returns:
             List[Dict]: Search results with relevance scores
         """
+        
         try:
             # Enhance query based on search type
             enhanced_query = self._enhance_query(query, search_type)
@@ -251,13 +256,16 @@ class InformationRetrieval:
         """Perform vector-based semantic search"""
         try:
             # Transform query to same vector space
+            
             query_tfidf = self.vectorizer.transform([query])
             query_vector = self.lsa.transform(query_tfidf)
             
             # Calculate cosine similarities
+            
             similarities = cosine_similarity(query_vector, self.document_vectors)[0]
             
             # Get top results
+            
             top_indices = np.argsort(similarities)[::-1][:max_results * 2]  # Get more for filtering
             
             results = []

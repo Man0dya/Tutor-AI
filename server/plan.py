@@ -84,7 +84,7 @@ async def _get_user_doc(user_id: str) -> Dict[str, Any]:
         return {}
 
 async def get_user_plan_and_usage(user_id: str) -> Tuple[str, Dict[str, Any]]:
-    
+
     """
     Retrieve user's subscription plan and current usage statistics.
 
@@ -95,18 +95,19 @@ async def get_user_plan_and_usage(user_id: str) -> Tuple[str, Dict[str, Any]]:
         tuple: (plan_name, usage_dict) where plan is lowercase string
                and usage contains quota tracking information.
     """
+
     doc = await _get_user_doc(user_id)
     plan = (doc.get("plan") or "free").lower()
     usage: Dict[str, Any] = doc.get("usage") or {}
     return plan, usage
 
 async def ensure_content_quota(user_id: str) -> None:
+
     """
     Enforce monthly content generation quota for free plan users.
 
     Checks current usage against free tier limits and raises HTTP 402
     if quota is exceeded. No enforcement for paid plans.
-
 
     Args:
         user_id (str): User identifier.

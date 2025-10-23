@@ -145,6 +145,11 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     onClose();
   };
 
+
+
+
+
+
   return (
     <Modal isOpen={isOpen} onClose={handleClose} size="2xl">
       <ModalOverlay bg="blackAlpha.300" backdropFilter="blur(10px)" />
@@ -379,6 +384,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     </Modal>
   );
 };
+
+
 
 
 export default UserProfileModal;

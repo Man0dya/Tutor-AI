@@ -14,7 +14,7 @@ What makes it more valuable than typical alternatives:
 
 ## Preview
 
-Here’s a quick preview of the dashboard in action:
+Here’s a quick preview of the dashboard:
 
 ![Preview Video](vedio.gif)  
 

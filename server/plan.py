@@ -115,6 +115,8 @@ async def ensure_content_quota(user_id: str) -> None:
     Raises:
         HTTPException: 402 Payment Required if free quota exceeded.
     """
+
+    
     plan, usage = await get_user_plan_and_usage(user_id)
     if plan != "free":
         return

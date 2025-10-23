@@ -351,7 +351,7 @@ class AgentCommunicationProtocol:
         """
 
 
-        
+
         return self.communication_logs[-limit:]
 
     def get_message_history(self, agent_id: Optional[str] = None, limit: int = 20) -> List[Dict[str, Any]]:
@@ -364,6 +364,7 @@ class AgentCommunicationProtocol:
 
         Returns:
             List[Dict[str, Any]]: Message history
+            
         """
         history = self.message_history
 

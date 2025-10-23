@@ -46,10 +46,14 @@ export default function Dashboard() {
       .then(setProgressData)
       .catch(() => {})
       .finally(() => setLoading(false))
+
     // If returning from Stripe checkout success, refresh billing status
     const params = new URLSearchParams(location.search)
+
     const sid = params.get('session_id') || undefined
+
     // Confirm if we have a session_id, regardless of presence of a 'session=success' flag
+
     if (sid) {
       api.post('/billing/confirm', { session_id: sid })
         .catch(() => {})
@@ -62,6 +66,7 @@ export default function Dashboard() {
   }, [])
 
   // Calculate study sessions from content count (content creation sessions)
+
   const studySessions = (progressData.content_count ?? 0) + (progressData.recent_question_sets?.length ?? 0)
   
   const recentStats = [
@@ -202,6 +207,7 @@ export default function Dashboard() {
               }> = []
               
               // Add recent content activities
+
               if (progressData.recent_contents?.length) {
                 progressData.recent_contents.slice(0, 3).forEach(content => {
                   activities.push({
@@ -216,6 +222,7 @@ export default function Dashboard() {
               }
               
               // Add recent question set activities
+
               if (progressData.recent_question_sets?.length) {
                 progressData.recent_question_sets.slice(0, 2).forEach(qs => {
                   activities.push({
@@ -230,6 +237,7 @@ export default function Dashboard() {
               }
               
               // Add recent feedback activities
+
               if (progressData.recent_feedback?.length) {
                 progressData.recent_feedback.slice(0, 2).forEach(feedback => {
                   activities.push({
@@ -244,6 +252,7 @@ export default function Dashboard() {
               }
               
               // Sort by most recent
+              
               activities.sort((a, b) => new Date(b.time).getTime() - new Date(a.time).getTime())
               
               return activities.length > 0 ? (

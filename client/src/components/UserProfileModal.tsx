@@ -23,16 +23,19 @@ import { IoEye, IoEyeOff } from 'react-icons/io5';
 import { useAuth } from '../context/AuthContext';
 import { updateProfile, getErrorMessage, createBillingPortal, cancelSubscription, resumeSubscription } from '../api/client';
 
+
 interface UserProfileModalProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
+
+
 const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) => {
   const { user, refreshUser, plan, subscription, refreshBilling, upgrade } = useAuth();
   const toast = useToast();
   
-  // Form state
+  // Form state management
   const [formData, setFormData] = useState({
     name: user?.name || '',
     email: user?.email || '',
@@ -59,7 +62,8 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     setIsLoading(true);
 
     try {
-      // Validate password confirmation if changing password
+
+      // Validate password confirmation if changing password 
       if (formData.newPassword && formData.newPassword !== formData.confirmPassword) {
         toast({
           title: 'Password Mismatch',
@@ -375,5 +379,6 @@ const UserProfileModal: React.FC<UserProfileModalProps> = ({ isOpen, onClose }) 
     </Modal>
   );
 };
+
 
 export default UserProfileModal;

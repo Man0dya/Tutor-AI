@@ -12,6 +12,11 @@ What makes it more valuable than typical alternatives:
 - 💡 **Get real feedback**: concise explanations plus optional study suggestions, not just a score.
 - 🔒 **Safe, fast, and cost‑smart**: privacy/PII safeguards and semantic reuse that cuts LLM calls; resilient fallbacks.
 
+## Preview
+
+Here’s a quick preview of the dashboard in action:
+
+![Preview Video](vedio.gif)  
 
 ## 📚 Contents
 

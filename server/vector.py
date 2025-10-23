@@ -223,6 +223,8 @@ def index_status() -> dict:
     return status
 
 
+
+
 def save_index(index_path: str, ids_path: str) -> bool:
     """Persist index if available; returns True on success."""
     global _INDEX_PATH, _IDS_PATH
@@ -237,6 +239,8 @@ def save_index(index_path: str, ids_path: str) -> bool:
         return True
     except Exception:
         return False
+
+
 
 
 def load_index(index_path: str, ids_path: str) -> bool:

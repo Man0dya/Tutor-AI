@@ -16,7 +16,7 @@ What makes it more valuable than typical alternatives:
 
 Here’s a quick preview of the dashboard:
 
-![Preview Video](vedio.gif)  
+![Preview Video](video.gif)  
 
 ## 📚 Contents
 

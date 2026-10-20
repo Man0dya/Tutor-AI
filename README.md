@@ -21,11 +21,11 @@ Here’s a quick preview of the dashboard:
 ## 📚 Contents
 
 - [For Users](#for-users)
-- [Why Tutor‑AI](#why-tutorai-value-in-one-minute)
+- [Why Tutor-AI](#why-tutorai-value-in-one-minute)
+- [Preview](#preview)
 - [For Developers](#for-developers)
 - [Troubleshooting](#troubleshooting)
 - [License](#license)
-
 ---
 
 ## 👥 For Users

@@ -36,7 +36,7 @@ Here’s a quick preview of the dashboard:
 - 🎯 **Questions fit your goal**: choose types, Bloom levels, and a difficulty mix; we enforce quality on MCQs.
 - 🎓 **Feedback that teaches**: beyond correct/incorrect, you get short explanations and optional study tips.
 - ⚡ **Quicker results over time**: similar topics reuse cached, verified material to save time and tokens.
-- 🔐 **Safer by default**: we detect/ redact PII and moderate unsafe prompts.
+- 🔐 **Safer by default**: We detect and redact PII and moderate unsafe prompts.
 
 ### 🚀 What you can do
 
